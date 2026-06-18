@@ -1,7 +1,7 @@
 <div class="register-container">
   <h1>Create your account</h1>
 
-  <form  [formGroup]="form" (ngSubmit)="onSubmit()">
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
 
     <div class="field">
       <label for="username">Username</label>
@@ -49,12 +49,12 @@
       }
     </div>
 
-    @if (errorMessage) {
-      <div class="server-error">{{ errorMessage }}</div>
+    @if (errorMessage()) {
+      <div class="server-error">{{ errorMessage() }}</div>
     }
 
-    <button type="submit" [disabled]="loading">
-      {{ loading ? 'Creating account...' : 'Register' }}
+    <button type="submit" [disabled]="loading()">
+      {{ loading() ? 'Creating account...' : 'Register' }}
     </button>
 
   </form>

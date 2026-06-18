@@ -5,24 +5,23 @@ import { AuthResponse, LoginRequest, RegisterRequest } from '../models/auth.mode
 import { Observable, tap } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
-export class Auth{
-
+export class Auth {
   private http = inject(HttpClient);
   private router = inject(Router);
 
-  private readonly TOKEN_KEY = "auth_token";
-  private readonly API = "http://localhost:8080/api/v1/auth";
+  private readonly TOKEN_KEY = 'auth_token';
+  private readonly API = 'http://localhost:8080/api/v1/auth';
 
   register(request: RegisterRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.API}/register`, request).pipe(
-      tap(response => this.saveToken(response.token))
-    );
+    return this.http
+      .post<AuthResponse>(`${this.API}/register`, request)
+      .pipe(tap((response) => this.saveToken(response.token)));
   }
 
   login(request: LoginRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.API}/login`, request).pipe(
-      tap(response => this.saveToken(response.token))
-    );
+    return this.http
+      .post<AuthResponse>(`${this.API}/login`, request)
+      .pipe(tap((response) => this.saveToken(response.token)));
   }
 
   logout(): void {
@@ -32,6 +31,19 @@ export class Auth{
 
   getToken(): string | null {
     return localStorage.getItem(this.TOKEN_KEY);
+  }
+
+  getTokenPayload(): { sub: string; id: string } | null {
+    const token = this.getToken();
+    if (!token) return null;
+
+    try {
+      const payload = token.split('.')[1]; // grab the middle part
+      const decoded = atob(payload); // Base64 decode it
+      return JSON.parse(decoded); // parse the JSON
+    } catch {
+      return null; // malformed token
+    }
   }
 
   isLoggedIn(): boolean {

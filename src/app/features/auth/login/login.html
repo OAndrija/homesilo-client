@@ -1,1 +1,43 @@
-<p>login works!</p>
+<div class="login-container">
+  <h1>Login</h1>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <div class="field">
+      <label for="username">Username</label>
+      <input
+        id="username"
+        type="text"
+        formControlName="username"
+        placeholder="Your username"
+      />
+
+      @if (submitted && username.errors?.['required']) {
+        <span class="error">Username is required</span>
+      }
+    </div>
+
+    <div class="field">
+      <label for="password">Password</label>
+      <input
+        id="password"
+        type="password"
+        formControlName="password"
+        placeholder="Your password"
+      />
+      @if (submitted && password.errors?.['required']) {
+        <span class="error">Password is required</span>
+      }
+    </div>
+
+    @if (errorMessage()) {
+      <div class="server-error">{{ errorMessage() }}</div>
+    }
+
+    <button type="submit" [disabled]="loading()">
+      {{ loading() ? 'Signing in...' : 'Login' }}
+    </button>
+  </form>
+
+  <p>Don't have an account? <a routerLink="/register">Register</a></p>
+
+</div>

@@ -1,8 +1,8 @@
-import { Component, inject } from '@angular/core';
-import { form } from '@angular/forms/signals';
+import { Component, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Auth } from '../../../core/services/auth';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-register',
@@ -15,49 +15,49 @@ export class Register {
   private router = inject(Router);
 
   form = new FormGroup({
-    username: new FormControl('', [
-      Validators.required,
-      Validators.maxLength(255),
-    ]),
-    email: new FormControl('', [
-      Validators.required,
-      Validators.email
-    ]),
+    username: new FormControl('', [Validators.required, Validators.maxLength(255)]),
+    email: new FormControl('', [Validators.required, Validators.email]),
     password: new FormControl('', [
       Validators.required,
       Validators.minLength(6),
-      Validators.maxLength(255)
-    ])
+      Validators.maxLength(255),
+    ]),
   });
 
   submitted = false;
-  errorMessage = '';
-  loading = false;
+  errorMessage = signal('');
+  loading = signal(false);
 
-  get username() { return this.form.controls.username }
-  get email() { return this.form.controls.email }
-  get password() { return this.form.controls.password }
+  get username() {
+    return this.form.controls.username;
+  }
+  get email() {
+    return this.form.controls.email;
+  }
+  get password() {
+    return this.form.controls.password;
+  }
 
   onSubmit(): void {
     this.submitted = true;
-    this.errorMessage = '';
+    this.errorMessage.set('');
 
     if (this.form.invalid) return;
 
-    this.loading = true;
+    this.loading.set(true);
 
-    this.auth.register({
-      username: this.username.value!,
-      email: this.email.value!,
-      password: this.password.value!
-    }).subscribe({
-      next: () => {
-        this.router.navigate(['/home']);
-      },
-      error: (err) => {
-        this.errorMessage = err.error?.error ?? 'Registration failed. Please try again.';
-        this.loading = false;
-      }
-    });
+    this.auth
+      .register({
+        username: this.username.value!,
+        email: this.email.value!,
+        password: this.password.value!,
+      })
+      .pipe(finalize(() => this.loading.set(false)))
+      .subscribe({
+        next: () => this.router.navigate(['/home']),
+        error: (err) => {
+          this.errorMessage.set(err.error?.error ?? 'Registration failed. Please try again.');
+        },
+      });
   }
 }
