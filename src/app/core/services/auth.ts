@@ -1,10 +1,10 @@
 import { HttpClient } from '@angular/common/http';
-import { inject } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthResponse, LoginRequest, RegisterRequest } from '../models/auth.models';
 import { Observable, tap } from 'rxjs';
 
-
+@Injectable({ providedIn: 'root' })
 export class Auth{
 
   private http = inject(HttpClient);
