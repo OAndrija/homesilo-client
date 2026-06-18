@@ -1,63 +1,80 @@
-<div class="register-container">
-  <h1>Create your account</h1>
-
-  <form [formGroup]="form" (ngSubmit)="onSubmit()">
-
-    <div class="field">
-      <label for="username">Username</label>
-      <input
-        id="username"
-        type="text"
-        formControlName="username"
-        placeholder="Choose a username"
-      />
-
-      @if (submitted && username.errors?.['required']) {
-        <span class="error">Username is required</span>
-      }
+<div class="auth-page">
+  <div class="brand-panel">
+    <div class="brand-content">
+      <div class="logo">
+        <div class="logo-mark">🗄️</div>
+        <span class="logo-text">HomeSilo</span>
+      </div>
+      <h1>Your home.<br>Your files.<br>Your rules.</h1>
+      <p>A private server that lives under your roof, not someone else's cloud.</p>
+      <ul class="feature-list">
+        <li>Store and back up any file</li>
+        <li>Access from anywhere</li>
+        <li>Completely private &amp; local</li>
+      </ul>
     </div>
-
-    <div class="field">
-      <label for="email">Email</label>
-      <input
-        id="email"
-        type="email"
-        formControlName="email"
-        placeholder="your@email.com"
-      />
-      @if (submitted && email.errors?.['required']){
-        <span class="error">Email is required</span>
-      }
-      @if (submitted && email.errors?.['email']){
-        <span class="error">Please enter a valid email</span>
-      }
+    <div class="vault-rings" aria-hidden="true">
+      <div class="ring ring-1"></div>
+      <div class="ring ring-2"></div>
+      <div class="ring ring-3"></div>
     </div>
+  </div>
 
-    <div class="field">
-      <label for="password">Password</label>
-      <input
-        id="password"
-        type="password"
-        formControlName="password"
-        placeholder="At least 6 characters"
-      />
-      @if (submitted && password.errors?.['required']) {
-        <span class="error">Password is required</span>
-      }
-      @if (submitted && password.errors?.['minlength']) {
-        <span class="error">Password must be at least 6 characters</span>
-      }
+  <div class="form-panel">
+    <div class="form-container">
+      <div class="form-header">
+        <h2>Create your account</h2>
+        <p>Join HomeSilo and take control of your files.</p>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <div class="field">
+          <label for="username">Username</label>
+          <input id="username" type="text" formControlName="username"
+                 placeholder="Choose a username"
+                 [class.input-error]="submitted && username.errors" />
+          @if (submitted && username.errors?.['required']) {
+            <span class="error">Username is required</span>
+          }
+        </div>
+
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" type="email" formControlName="email"
+                 placeholder="your@email.com"
+                 [class.input-error]="submitted && email.errors" />
+          @if (submitted && email.errors?.['required']) {
+            <span class="error">Email is required</span>
+          }
+          @if (submitted && email.errors?.['email']) {
+            <span class="error">Please enter a valid email</span>
+          }
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+          <input id="password" type="password" formControlName="password"
+                 placeholder="At least 6 characters"
+                 [class.input-error]="submitted && password.errors" />
+          @if (submitted && password.errors?.['required']) {
+            <span class="error">Password is required</span>
+          }
+          @if (submitted && password.errors?.['minlength']) {
+            <span class="error">Password must be at least 6 characters</span>
+          }
+        </div>
+
+        @if (errorMessage()) {
+          <div class="server-error">{{ errorMessage() }}</div>
+        }
+
+        <button type="submit" class="submit-btn" [disabled]="loading()">
+          @if (loading()) { <span class="spinner"></span> }
+          {{ loading() ? 'Creating account...' : 'Create account' }}
+        </button>
+      </form>
+
+      <p class="switch-auth">Already have an account? <a routerLink="/login">Sign in</a></p>
     </div>
-
-    @if (errorMessage()) {
-      <div class="server-error">{{ errorMessage() }}</div>
-    }
-
-    <button type="submit" [disabled]="loading()">
-      {{ loading() ? 'Creating account...' : 'Register' }}
-    </button>
-
-  </form>
-
-  <p>Already have an account? <a routerLink="/login">Sign in</a></p>
+  </div>
 </div>

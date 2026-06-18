@@ -1,13 +1,38 @@
-<div class="home-container">
-  <h1>Hi, {{ username }}! 👋</h1>
+<div class="home-page">
+  <nav class="navbar">
+    <div class="nav-logo">
+      <div class="logo-mark">🗄️</div>
+      <span class="logo-text">HomeSilo</span>
+    </div>
+    <div class="nav-right">
+      <span class="nav-username">{{ username }}</span>
+      <button class="logout-btn" (click)="logout()">Sign out</button>
+    </div>
+  </nav>
 
-  <div class="info-card">
-    <h2>Your Info</h2>
-    <p><strong>User ID:</strong> {{ userId }}</p>
+  <main class="content">
+    <div class="welcome">
+      <p class="greeting">Good to see you</p>
+      <h1>Hi, {{ username }} 👋</h1>
+    </div>
 
-    <h2>JWT Token</h2>
-    <p class="token">{{ token }}</p>
-  </div>
+    <div class="cards-grid">
+      <div class="card">
+        <p class="card-label">User ID</p>
+        <p class="card-value mono">{{ userId }}</p>
+      </div>
+      <div class="card">
+        <p class="card-label">Session</p>
+        <div class="status">
+          <span class="status-dot"></span>
+          <span class="card-value">Active</span>
+        </div>
+      </div>
+    </div>
 
-  <button (click)="logout()">Logout</button>
+    <div class="card token-card">
+      <p class="card-label">JWT Token</p>
+      <p class="token-value">{{ token }}</p>
+    </div>
+  </main>
 </div>
