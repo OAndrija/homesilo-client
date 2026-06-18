@@ -11,6 +11,10 @@
         formControlName="username"
         placeholder="Choose a username"
       />
+
+      @if (submitted && username.errors?.['required']) {
+        <span class="error">Username is required</span>
+      }
     </div>
 
     <div class="field">
@@ -21,6 +25,12 @@
         formControlName="email"
         placeholder="your@email.com"
       />
+      @if (submitted && email.errors?.['required']){
+        <span class="error">Email is required</span>
+      }
+      @if (submitted && email.errors?.['email']){
+        <span class="error">Please enter a valid email</span>
+      }
     </div>
 
     <div class="field">
@@ -31,9 +41,21 @@
         formControlName="password"
         placeholder="At least 6 characters"
       />
+      @if (submitted && password.errors?.['required']) {
+        <span class="error">Password is required</span>
+      }
+      @if (submitted && password.errors?.['minlength']) {
+        <span class="error">Password must be at least 6 characters</span>
+      }
     </div>
 
-    <button type="submit"></button>
+    @if (errorMessage) {
+      <div class="server-error">{{ errorMessage }}</div>
+    }
+
+    <button type="submit" [disabled]="loading">
+      {{ loading ? 'Creating account...' : 'Register' }}
+    </button>
 
   </form>
 

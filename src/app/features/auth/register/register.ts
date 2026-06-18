@@ -15,9 +15,19 @@ export class Register {
   private router = inject(Router);
 
   form = new FormGroup({
-    username: new FormControl('', Validators.required),
-    email: new FormControl('', Validators.required),
-    password: new FormControl('', Validators.required)
+    username: new FormControl('', [
+      Validators.required,
+      Validators.maxLength(255),
+    ]),
+    email: new FormControl('', [
+      Validators.required,
+      Validators.email
+    ]),
+    password: new FormControl('', [
+      Validators.required,
+      Validators.minLength(6),
+      Validators.maxLength(255)
+    ])
   });
 
   submitted = false;
@@ -45,7 +55,7 @@ export class Register {
         this.router.navigate(['/home']);
       },
       error: (err) => {
-        this.errorMessage = err.message;
+        this.errorMessage = err.error?.error ?? 'Registration failed. Please try again.';
         this.loading = false;
       }
     });
