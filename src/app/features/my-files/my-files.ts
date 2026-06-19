@@ -82,6 +82,16 @@ export class MyFiles {
     });
   }
 
+  getFileExt(filename: string): string {
+    const lastDot = filename.lastIndexOf('.');
+
+    if (lastDot === -1) {
+      return 'FILE';
+    }
+
+    return filename.substring(lastDot + 1).toUpperCase();
+  }
+
   //Helper methods
 
   formatSize(bytes: number): string {
