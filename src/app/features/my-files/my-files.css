@@ -2,6 +2,7 @@
   width: 100%;
   padding: 0 36px 36px;
   box-sizing: border-box;
+  position: relative;
 }
 
 .page-header {
@@ -134,4 +135,26 @@
 .show-more-btn:disabled {
   opacity: .6;
   cursor: not-allowed;
+}
+
+.drop-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: rgba(13, 15, 26, 0.92);
+  border: 2px dashed #F8B84E;
+  border-radius: 20px;
+  color: #F8B84E;
+  font-size: 18px;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+.drop-icon {
+  font-size: 56px;
 }

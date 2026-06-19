@@ -1,4 +1,18 @@
-<div class="files-page">
+<div
+  class="files-page"
+  [class.drag-active]="dragging()"
+  (dragenter)="onDragEnter($event)"
+  (dragover)="onDragOver($event)"
+  (dragleave)="onDragLeave($event)"
+  (drop)="onDrop($event)">
+
+  @if (dragging()) {
+    <div class="drop-overlay">
+      <span class="material-symbols-rounded drop-icon">cloud_upload</span>
+      <p>Drop files to upload</p>
+    </div>
+  }
+
   <div class="page-header">
     <div>
       <h2>My Files</h2>

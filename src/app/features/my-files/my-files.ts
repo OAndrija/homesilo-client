@@ -1,4 +1,4 @@
-import { Component, ElementRef, inject, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, inject, signal, viewChild, HostListener } from '@angular/core';
 import { Files } from '../../core/services/files';
 import { FileMetadata } from '../../core/models/file-metadata';
 import { catchError, concatMap, finalize, from, of } from 'rxjs';
@@ -25,6 +25,9 @@ export class MyFiles {
   uploadTotal = signal(0);
   uploadCompleted = signal(0);
   uploadFailedCount = signal(0);
+
+  dragging = signal(false);
+  private dragCounter = 0;
 
   ngOnInit() {
     this.loadFiles();
@@ -63,7 +66,7 @@ export class MyFiles {
   triggerFilePicker(): void {
     this.fileInput()?.nativeElement.click();
   }
-  
+
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     const fileList = input.files;
@@ -126,5 +129,54 @@ export class MyFiles {
     this.fileService.trash(file.id).subscribe(() => {
       this.files.update((files) => files.filter((f) => f.id !== file.id));
     });
+  }
+
+  //Drag and Drop functions
+
+  @HostListener('document:dragover', ['$event'])
+  onDocumentDragOver(event: DragEvent): void {
+    event.preventDefault();
+  }
+
+  @HostListener('document:drop', ['$event'])
+  onDocumentDrop(event: DragEvent): void {
+    event.preventDefault();
+  }
+
+  onDragEnter(event: DragEvent): void {
+    event.preventDefault();
+    this.dragCounter++;
+    if (this.hasFiles(event)) {
+      this.dragging.set(true);
+    }
+  }
+
+  onDragOver(event: DragEvent): void {
+    // Must preventDefault here too, or the browser blocks drop entirely
+    event.preventDefault();
+  }
+
+  onDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    this.dragCounter--;
+    if (this.dragCounter <= 0) {
+      this.dragCounter = 0;
+      this.dragging.set(false);
+    }
+  }
+
+  onDrop(event: DragEvent): void {
+    event.preventDefault();
+    this.dragCounter = 0;
+    this.dragging.set(false);
+
+    const droppedFiles = event.dataTransfer?.files;
+    if (!droppedFiles || droppedFiles.length === 0) return;
+
+    this.uploadFiles(Array.from(droppedFiles));
+  }
+
+  private hasFiles(event: DragEvent): boolean {
+    return Array.from(event.dataTransfer?.types ?? []).includes('Files');
   }
 }
