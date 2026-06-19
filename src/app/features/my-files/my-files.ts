@@ -1,12 +1,12 @@
 import { Component, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { Files } from '../../core/services/files';
 import { FileMetadata } from '../../core/models/file-metadata';
-import { finalize, take } from 'rxjs';
-import { DatePipe } from '@angular/common';
+import { finalize } from 'rxjs';
+import { FileTable } from '../../shared/file-table/file-table';
 
 @Component({
   selector: 'app-my-files',
-  imports: [DatePipe],
+  imports: [FileTable],
   templateUrl: './my-files.html',
   styleUrl: './my-files.css',
 })
@@ -17,7 +17,6 @@ export class MyFiles {
   loading = signal(true);
   uploading = signal(false);
   errorMessage = signal('');
-  dragging = signal(false);
   fileInput = viewChild<ElementRef<HTMLInputElement>>('fileInput');
 
   ngOnInit() {

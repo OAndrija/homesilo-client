@@ -16,6 +16,11 @@
         <span class="material-symbols-rounded">folder</span>
         <span class="nav-label">My Files</span>
       </a>
+      <a routerLink="/starred" routerLinkActive="active" class="nav-link"
+         title="Starred" (click)="closeOnMobile()">
+        <span class="material-symbols-rounded">star</span>
+        <span class="nav-label">Starred</span>
+      </a>
       <a routerLink="/trash" routerLinkActive="active" class="nav-link"
          title="Trash" (click)="closeOnMobile()">
         <span class="material-symbols-rounded">delete</span>

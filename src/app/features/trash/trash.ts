@@ -1,12 +1,12 @@
-import { Component, ElementRef, inject, signal, viewChild } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { Component, inject, signal } from '@angular/core';
 import { Files } from '../../core/services/files';
 import { FileMetadata } from '../../core/models/file-metadata';
 import { finalize } from 'rxjs';
+import { FileTable } from '../../shared/file-table/file-table';
 
 @Component({
   selector: 'app-trash',
-  imports: [DatePipe],
+  imports: [FileTable],
   templateUrl: './trash.html',
   styleUrl: './trash.css',
 })
@@ -51,21 +51,5 @@ export class Trash {
     this.fileService.restore(file.id).subscribe(() => {
       this.files.update((files) => files.filter((f) => f.id !== file.id));
     });
-  }
-
-  getFileExt(filename: string): string {
-    const lastDot = filename.lastIndexOf('.');
-
-    if (lastDot === -1) {
-      return 'FILE';
-    }
-
-    return filename.substring(lastDot + 1).toUpperCase();
-  }
-
-  formatSize(bytes: number): string {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   }
 }

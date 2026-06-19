@@ -4,14 +4,6 @@
   box-sizing: border-box;
 }
 
-/* GLOBAL ALIGNMENT FIX */
-.files-table th,
-.files-table td {
-  vertical-align: middle;
-  line-height: 1.2;
-}
-
-/* HEADER */
 .page-header {
   display: flex;
   justify-content: space-between;
@@ -33,185 +25,6 @@
   font-size: 14px;
 }
 
-/* BUTTON (kept for consistency if you add restore-all later) */
-.upload-btn {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-
-  padding: 0 20px;
-  height: 48px;
-
-  border: none;
-  border-radius: 14px;
-
-  background: #F8B84E;
-  color: #11131C;
-
-  font-size: 14px;
-  font-weight: 600;
-
-  cursor: pointer;
-  transition: .25s;
-}
-
-.upload-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 30px rgba(248,184,78,.35);
-}
-
-.upload-btn:disabled {
-  opacity: .6;
-  cursor: not-allowed;
-}
-
-/* SPINNER */
-.spinner {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  border: 2px solid rgba(0,0,0,.25);
-  border-top-color: black;
-  animation: spin .7s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* CARD */
-.files-card {
-  background: #151827;
-  border: 1px solid #24283B;
-  border-radius: 20px;
-  overflow: hidden;
-  box-shadow: 0 10px 35px rgba(0,0,0,.28);
-}
-
-/* TABLE */
-.files-table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-}
-
-/* HEADER ROW */
-.files-table th {
-  padding: 14px 20px;
-  text-align: left;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: .08em;
-  color: #737A97;
-  background: #181B2B;
-}
-
-/* CELLS */
-.files-table td {
-  padding: 14px 20px;
-  font-size: 14px;
-  color: #EEF2FF;
-  border-bottom: none; /* IMPORTANT FIX */
-}
-
-/* ROWS */
-.files-table tbody tr {
-  position: relative;
-  height: 54px;
-  transition: .25s;
-}
-
-/* CLEAN SEPARATOR LINE (FIX FOR MISALIGNED LINES) */
-.files-table tbody tr::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 1px;
-  background: #202335;
-}
-
-/* HOVER */
-.files-table tbody tr:hover {
-  background: #1A1D2E;
-  box-shadow: inset 4px 0 #F8B84E;
-}
-
-.files-table tbody tr:hover::after {
-  background: transparent;
-}
-
-/* FILE NAME */
-.file-name {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-weight: 600;
-}
-
-/* ICON ALIGNMENT FIX */
-.file-icon,
-.material-symbols-rounded {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-  vertical-align: middle;
-}
-
-.file-icon {
-  color: #8AA8FF;
-  font-size: 20px;
-}
-
-/* ACTIONS */
-.actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-}
-
-/* ICON BUTTONS */
-.icon-btn {
-  width: 36px;
-  height: 36px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border: none;
-  border-radius: 10px;
-
-  background: transparent;
-  color: #8C95B6;
-
-  cursor: pointer;
-  transition: .25s;
-}
-
-.icon-btn:hover {
-  background: #25293C;
-  transform: translateY(-2px);
-  color: white;
-}
-
-/* RESTORE */
-.restore:hover {
-  background: rgba(34, 197, 94, .15);
-  color: #22C55E;
-}
-
-/* DELETE */
-.danger:hover {
-  background: rgba(239,68,68,.15);
-  color: #EF4444;
-}
-
-/* EMPTY STATE */
 .empty-state {
   height: 350px;
   display: flex;
@@ -238,12 +51,11 @@
   margin-top: 10px;
 }
 
-/* ERROR */
 .server-error {
   margin-bottom: 20px;
   padding: 16px;
   border-radius: 14px;
   color: #FF8080;
-  border: 1px solid rgba(255,107,107,.25);
-  background: rgba(255,107,107,.08);
+  border: 1px solid rgba(255, 107, 107, .25);
+  background: rgba(255, 107, 107, .08);
 }
