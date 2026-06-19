@@ -1,1 +1,44 @@
-<p>my-files works!</p>
+<div class="files-page">
+  <div class="page-header">
+    <h2>My Files</h2>
+    <button class="upload-btn" (click)="triggerFilePicker()" [disabled]="uploading()">
+      @if (uploading()) { <span class="spinner"></span> }
+      {{ uploading() ? 'Uploading...' : '+ Upload' }}
+    </button>
+    <input #fileInput type="file" hidden (change)="onFileSelected($event)" />
+  </div>
+
+  @if (errorMessage()) {
+    <div class="server-error">{{ errorMessage() }}</div>
+  }
+
+  @if (loading()) {
+    <p class="empty-state">Loading files...</p>
+  } @else if (files().length === 0) {
+    <p class="empty-state">No files yet. Upload your first one.</p>
+  } @else {
+    <table class="files-table">
+      <thead>
+      <tr>
+        <th>Name</th>
+        <th>Size</th>
+        <th>Uploaded</th>
+        <th></th>
+      </tr>
+      </thead>
+      <tbody>
+        @for (file of files(); track file.id) {
+          <tr>
+            <td class="file-name">{{ file.originalFileName }}</td>
+            <td>{{ formatSize(file.size) }}</td>
+            <td>{{ file.uploadedAt | date: 'medium' }}</td>
+            <td class="actions">
+              <button (click)="downloadFile(file)">Download</button>
+              <button (click)="trashFile(file)">Trash</button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>
