@@ -17,7 +17,7 @@ export class MyFiles {
   loading = signal(true);
   uploading = signal(false);
   errorMessage = signal('');
-
+  dragging = signal(false);
   fileInput = viewChild<ElementRef<HTMLInputElement>>('fileInput');
 
   ngOnInit() {
@@ -42,15 +42,23 @@ export class MyFiles {
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
-    if(!file) { return }
 
+    if (!file) return;
+
+    this.uploadFile(file);
+    input.value = '';
+  }
+
+  private uploadFile(file: File): void {
     this.uploading.set(true);
+
     this.fileService
       .upload(file)
-      .pipe(finalize(() => {
-        this.uploading.set(false);
-        input.value = '';
-      }))
+      .pipe(
+        finalize(() => {
+          this.uploading.set(false);
+        }),
+      )
       .subscribe({
         next: (newFile) => this.files.update((files) => [newFile, ...files]),
         error: () => this.errorMessage.set('Failed to upload file'),
@@ -73,6 +81,8 @@ export class MyFiles {
       this.files.update((files) => files.filter((f) => f.id !== file.id));
     });
   }
+
+  //Helper methods
 
   formatSize(bytes: number): string {
     if (bytes < 1024) return `${bytes} B`;
