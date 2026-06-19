@@ -15,7 +15,10 @@ export class Trash {
 
   files = signal<FileMetadata[]>([]);
   loading = signal(true);
+  loadingMore = signal(false);
   errorMessage = signal('');
+  currentPage = signal(0);
+  hasMore = signal(false);
 
   ngOnInit() {
     this.loadTrashedFiles();
@@ -23,12 +26,32 @@ export class Trash {
 
   loadTrashedFiles(): void {
     this.loading.set(true);
+    this.currentPage.set(0);
     this.fileService
-      .listTrashed()
+      .listTrashed(0)
       .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
-        next: (response) => this.files.set(response.content),
+        next: (response) => {
+          this.files.set(response.content);
+          this.hasMore.set(!response.last);
+        },
         error: () => this.errorMessage.set('Failed to load trashed files.'),
+      });
+  }
+
+  loadMore(): void {
+    const nextPage = this.currentPage() + 1;
+    this.loadingMore.set(true);
+    this.fileService
+      .listTrashed(nextPage)
+      .pipe(finalize(() => this.loadingMore.set(false)))
+      .subscribe({
+        next: (response) => {
+          this.files.update((files) => [...files, ...response.content]);
+          this.currentPage.set(nextPage);
+          this.hasMore.set(!response.last);
+        },
+        error: () => this.errorMessage.set('Failed to load more files.'),
       });
   }
 

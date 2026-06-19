@@ -2,7 +2,7 @@
   <div class="page-header">
     <div>
       <h2>My Files</h2>
-      <p class="subtitle">{{ files().length }} file{{ files().length !== 1 ? 's' : '' }}</p>
+      <p class="subtitle">Showing {{ files().length }} file{{ files().length !== 1 ? 's' : '' }}</p>
     </div>
     <button
       class="upload-btn"
@@ -41,5 +41,21 @@
       dateColumnLabel="Uploaded"
       (download)="downloadFile($event)"
       (trash)="trashFile($event)" />
+
+    @if (hasMore()) {
+      <div class="show-more-wrap">
+        <button
+          class="show-more-btn"
+          (click)="loadMore()"
+          [disabled]="loadingMore()">
+          @if (loadingMore()) {
+            <span class="spinner"></span>
+            Loading...
+          } @else {
+            Show more
+          }
+        </button>
+      </div>
+    }
   }
 </div>

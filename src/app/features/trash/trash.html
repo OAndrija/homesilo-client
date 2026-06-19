@@ -25,5 +25,21 @@
       dateColumnLabel="Deleted"
       (restore)="restoreFile($event)"
       (deleteForever)="deleteFile($event)" />
+
+    @if (hasMore()) {
+      <div class="show-more-wrap">
+        <button
+          class="show-more-btn"
+          (click)="loadMore()"
+          [disabled]="loadingMore()">
+          @if (loadingMore()) {
+            <span class="spinner"></span>
+            Loading...
+          } @else {
+            Show more
+          }
+        </button>
+      </div>
+    }
   }
 </div>
