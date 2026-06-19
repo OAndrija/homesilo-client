@@ -12,8 +12,10 @@
       @for (file of files(); track file.id) {
         <tr>
           <td class="file-name">
-            <span class="material-symbols-rounded file-icon">
-              description
+            <span
+              class="material-symbols-rounded file-icon"
+              [style.color]="getFileIcon(file.originalFileName).color">
+              {{ getFileIcon(file.originalFileName).icon }}
             </span>
             {{ file.originalFileName }}
           </td>

@@ -15,8 +15,11 @@ export class MyFiles {
 
   files = signal<FileMetadata[]>([]);
   loading = signal(true);
+  loadingMore = signal(false);
   uploading = signal(false);
   errorMessage = signal('');
+  currentPage = signal(0);
+  hasMore = signal(false);
   fileInput = viewChild<ElementRef<HTMLInputElement>>('fileInput');
 
   ngOnInit() {
@@ -29,8 +32,27 @@ export class MyFiles {
       .listActive()
       .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
-        next: (response) => this.files.set(response.content),
+        next: (response) => {
+          this.files.set(response.content);
+          this.hasMore.set(!response.last);
+        },
         error: () => this.errorMessage.set('Failed to laod files.'),
+      });
+  }
+
+  loadMore(): void {
+    const nextPage = this.currentPage() + 1;
+    this.loadingMore.set(true);
+    this.fileService
+      .listActive(nextPage)
+      .pipe(finalize(() => this.loadingMore.set(false)))
+      .subscribe({
+        next: (response) => {
+          this.files.update((files) => [...files, ...response.content]);
+          this.currentPage.set(nextPage);
+          this.hasMore.set(!response.last);
+        },
+        error: () => this.errorMessage.set('Failed to load more files.'),
       });
   }
 
@@ -79,23 +101,5 @@ export class MyFiles {
     this.fileService.trash(file.id).subscribe(() => {
       this.files.update((files) => files.filter((f) => f.id !== file.id));
     });
-  }
-
-  getFileExt(filename: string): string {
-    const lastDot = filename.lastIndexOf('.');
-
-    if (lastDot === -1) {
-      return 'FILE';
-    }
-
-    return filename.substring(lastDot + 1).toUpperCase();
-  }
-
-  //Helper methods
-
-  formatSize(bytes: number): string {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   }
 }

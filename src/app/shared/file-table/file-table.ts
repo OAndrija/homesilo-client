@@ -1,6 +1,7 @@
 import { Component, input, output } from '@angular/core';
 import { FileMetadata } from '../../core/models/file-metadata';
 import { DatePipe } from '@angular/common';
+import { getFileIcon } from '../../core/utils/file-icon.util';
 
 export type FileAction = 'download' | 'trash' | 'restore' | 'deleteForever' | 'star';
 
@@ -23,6 +24,8 @@ export class FileTable {
   hasAction(action: FileAction): boolean {
     return this.actions().includes(action);
   }
+
+  getFileIcon = getFileIcon;
 
   formatSize(bytes: number): string {
     if (bytes < 1024) return `${bytes} B`;
