@@ -1,7 +1,7 @@
 import { Component, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { Files } from '../../core/services/files';
 import { FileMetadata } from '../../core/models/file-metadata';
-import { finalize } from 'rxjs';
+import { catchError, concatMap, finalize, from, of } from 'rxjs';
 import { FileTable } from '../../shared/file-table/file-table';
 
 @Component({
@@ -16,11 +16,15 @@ export class MyFiles {
   files = signal<FileMetadata[]>([]);
   loading = signal(true);
   loadingMore = signal(false);
-  uploading = signal(false);
   errorMessage = signal('');
   currentPage = signal(0);
   hasMore = signal(false);
   fileInput = viewChild<ElementRef<HTMLInputElement>>('fileInput');
+
+  uploading = signal(false);
+  uploadTotal = signal(0);
+  uploadCompleted = signal(0);
+  uploadFailedCount = signal(0);
 
   ngOnInit() {
     this.loadFiles();
@@ -59,30 +63,51 @@ export class MyFiles {
   triggerFilePicker(): void {
     this.fileInput()?.nativeElement.click();
   }
-
+  
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
+    const fileList = input.files;
 
-    if (!file) return;
+    if (!fileList || fileList.length === 0) return;
 
-    this.uploadFile(file);
+    this.uploadFiles(Array.from(fileList));
     input.value = '';
   }
 
-  private uploadFile(file: File): void {
+  private uploadFiles(filesToUpload: File[]): void {
     this.uploading.set(true);
+    this.uploadTotal.set(filesToUpload.length);
+    this.uploadCompleted.set(0);
+    this.uploadFailedCount.set(0);
 
-    this.fileService
-      .upload(file)
+    from(filesToUpload)
       .pipe(
+        concatMap((file) =>
+          this.fileService.upload(file).pipe(
+            catchError(() => {
+              this.uploadFailedCount.update((n) => n + 1);
+              return of(null);
+            }),
+          ),
+        ),
         finalize(() => {
           this.uploading.set(false);
+          if (this.uploadFailedCount() > 0) {
+            const failed = this.uploadFailedCount();
+            const total = this.uploadTotal();
+            this.errorMessage.set(
+              `${failed} of ${total} file${total !== 1 ? 's' : ''} failed to upload.`,
+            );
+          }
         }),
       )
       .subscribe({
-        next: (newFile) => this.files.update((files) => [newFile, ...files]),
-        error: () => this.errorMessage.set('Failed to upload file'),
+        next: (newFile) => {
+          this.uploadCompleted.update((n) => n + 1);
+          if (newFile) {
+            this.files.update((files) => [newFile, ...files]);
+          }
+        },
       });
   }
 

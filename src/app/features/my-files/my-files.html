@@ -10,15 +10,17 @@
       [disabled]="uploading()">
       @if (uploading()) {
         <span class="spinner"></span>
+        Uploading {{ uploadCompleted() }} of {{ uploadTotal() }}...
       } @else {
         <span class="material-symbols-rounded">upload</span>
+        Upload Files
       }
-      {{ uploading() ? 'Uploading...' : 'Upload Files' }}
     </button>
     <input
       #fileInput
       hidden
       type="file"
+      multiple
       (change)="onFileSelected($event)" />
   </div>
 
