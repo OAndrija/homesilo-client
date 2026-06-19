@@ -1,8 +1,10 @@
 import { Routes } from '@angular/router';
 import { Login } from './features/auth/login/login';
 import { Register } from './features/auth/register/register';
-import { Home } from './features/home/home';
 import { authGuard } from './core/guards/auth-guard';
+import { Layout } from './shared/layout/layout';
+import { MyFiles } from './features/my-files/my-files';
+import { Trash } from './features/trash/trash';
 
 export const routes: Routes = [
   {
@@ -19,8 +21,12 @@ export const routes: Routes = [
     component: Register,
   },
   {
-    path: 'home',
+    path: '',
     canActivate: [authGuard],
-    component: Home,
-  }
+    component: Layout,
+    children: [
+      { path: 'my-files', component: MyFiles},
+      { path: 'trash', component: Trash },
+    ],
+  },
 ];

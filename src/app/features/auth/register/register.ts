@@ -54,7 +54,7 @@ export class Register {
       })
       .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
-        next: () => this.router.navigate(['/home']),
+        next: () => this.router.navigate(['/my-files']),
         error: (err) => {
           this.errorMessage.set(err.error?.error ?? 'Registration failed. Please try again.');
         },

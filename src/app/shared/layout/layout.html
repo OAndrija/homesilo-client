@@ -1,0 +1,33 @@
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">🗄️</div>
+      <span class="logo-text">HomeSilo</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a routerLink="/my-files" routerLinkActive="active" class="nav-link">
+        <span class="nav-icon">📁</span>
+        <span>My Files</span>
+      </a>
+      <a routerLink="/trash" routerLinkActive="active" class="nav-link">
+        <span class="nav-icon">🗑️</span>
+        <span>Trash</span>
+      </a>
+    </nav>
+  </aside>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-spacer"></div>
+      <div class="topbar-user">
+        <span class="username">{{ username() }}</span>
+        <button class="logout-btn" (click)="onLogout()">Log out</button>
+      </div>
+    </header>
+
+    <main class="page-content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>
