@@ -1,6 +1,6 @@
 .files-page {
   width: 100%;
-  padding: 36px;
+  padding: 0 36px 36px;
   box-sizing: border-box;
 }
 
@@ -9,6 +9,11 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 28px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #0D0F1A;
+  padding: 36px 0 20px;
 }
 
 .page-header h2 {

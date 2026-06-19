@@ -20,7 +20,7 @@
             {{ file.originalFileName }}
           </td>
           <td>{{ formatSize(file.size) }}</td>
-          <td>{{ file.uploadedAt | date:'medium' }}</td>
+          <td>{{ file.uploadedAt | date:'short' }}</td>
           <td class="actions">
             @if (hasAction('download')) {
               <button
