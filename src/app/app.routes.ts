@@ -6,6 +6,7 @@ import { Layout } from './shared/layout/layout';
 import { MyFiles } from './features/my-files/my-files';
 import { Trash } from './features/trash/trash';
 import { Starred } from './features/starred/starred';
+import { Home } from './features/home/home';
 
 export const routes: Routes = [
   {
@@ -26,6 +27,7 @@ export const routes: Routes = [
     canActivate: [authGuard],
     component: Layout,
     children: [
+      { path: 'home', component: Home },
       { path: 'my-files', component: MyFiles},
       { path: 'starred', component: Starred},
       { path: 'trash', component: Trash },

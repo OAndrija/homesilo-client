@@ -4,11 +4,16 @@
   <aside class="sidebar">
     <div class="sidebar-logo">
       <div class="logo-mark">
-        <img src="homesilo-logo-full.png" alt="HomeSilo logo">
+        <img src="homesilo-logo-full.png" alt="homesilo logo">
       </div>
       <span class="logo-text">homesilo</span>
     </div>
     <nav class="sidebar-nav">
+      <a routerLink="/home" routerLinkActive="active" class="nav-link"
+        title="Home" (click)="closeOnMobile()">
+        <span class="material-symbols-rounded">home</span>
+        <span class="nav-label">Home</span>
+      </a>
       <a routerLink="/my-files" routerLinkActive="active" class="nav-link"
          title="My Files" (click)="closeOnMobile()">
         <span class="material-symbols-rounded">folder</span>
@@ -55,7 +60,6 @@
       }
       </div>
       <div class="topbar-user">
-        <span class="username">{{ username() }}</span>
         <button class="logout-btn" (click)="onLogout()">Sign out</button>
       </div>
     </header>

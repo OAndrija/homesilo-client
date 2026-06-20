@@ -1,0 +1,360 @@
+.home-page {
+  width: 100%;
+  padding: 0 36px 36px;
+  box-sizing: border-box;
+}
+
+/* ── Header ─────────────────────────────────────────────────── */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #0D0F1A;
+  padding: 36px 0 20px;
+}
+
+.page-header h2 {
+  margin: 0;
+  color: #F5F7FF;
+  font-size: 30px;
+  font-weight: 700;
+  font-family: "Space Grotesk", sans-serif;
+}
+
+.subtitle {
+  margin-top: 6px;
+  color: #8F96B3;
+  font-size: 14px;
+}
+
+.upload-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 20px;
+  height: 48px;
+  border: none;
+  border-radius: 14px;
+  background: #F8B84E;
+  color: #11131C;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: .25s;
+  text-decoration: none;
+}
+
+.upload-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(248, 184, 78, .35);
+}
+
+/* ── Stat grid ───────────────────────────────────────────────── */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.stat-card {
+  background: #151827;
+  border: 1px solid #24283B;
+  border-radius: 20px;
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: border-color .2s;
+}
+
+.stat-card:hover {
+  border-color: #3A3F5C;
+}
+
+.stat-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #737A97;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+}
+
+.stat-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-icon .material-symbols-rounded { font-size: 18px; }
+
+.amber-icon { background: rgba(248, 184, 78, .12); color: #F8B84E; }
+.blue-icon  { background: rgba(96, 165, 250, .12); color: #60A5FA; }
+.green-icon { background: rgba(34, 197, 94,  .12); color: #22C55E; }
+.star-icon  { background: rgba(251, 191, 36, .12); color: #FBBF24; }
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #EEF2FF;
+  font-family: "Space Grotesk", sans-serif;
+  line-height: 1;
+}
+
+.stat-sub {
+  font-size: 12px;
+  color: #737A97;
+}
+
+.stat-free {
+  font-size: 12px;
+  color: #22C55E;
+  margin-top: 2px;
+}
+
+.storage-wrap {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.ring-svg {
+  flex-shrink: 0;
+  transition: stroke-dashoffset .6s ease;
+}
+
+/* ── Section headers ─────────────────────────────────────────── */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.section-header h3 {
+  margin: 0;
+  color: #EEF2FF;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: "Space Grotesk", sans-serif;
+}
+
+.see-all-btn {
+  background: none;
+  border: none;
+  color: #F8B84E;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+  transition: background .2s;
+}
+
+.see-all-btn:hover {
+  background: rgba(248, 184, 78, .1);
+}
+
+/* ── States ──────────────────────────────────────────────────── */
+.loading-state {
+  padding: 40px;
+  text-align: center;
+  color: #737A97;
+  font-size: 14px;
+}
+
+.empty-state {
+  height: 220px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  color: #8A91AF;
+}
+
+.empty-icon {
+  font-size: 52px;
+  color: #4D74FF;
+  margin-bottom: 14px;
+}
+
+.empty-state h3 {
+  margin: 0;
+  color: white;
+  font-size: 20px;
+}
+
+.empty-state p {
+  margin-top: 8px;
+  font-size: 14px;
+}
+
+/* ── Bottom grid ─────────────────────────────────────────────── */
+.bottom-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 28px;
+}
+
+.panel {
+  background: #151827;
+  border: 1px solid #24283B;
+  border-radius: 20px;
+  padding: 22px 24px;
+}
+
+/* Storage by type */
+.type-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.type-row:last-child {
+  margin-bottom: 0;
+}
+
+.type-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.type-icon .material-symbols-rounded { font-size: 18px; }
+
+.type-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.type-name {
+  font-size: 13px;
+  color: #C4C9E0;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.type-bar-bg {
+  height: 4px;
+  background: #24283B;
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.type-bar {
+  height: 4px;
+  border-radius: 99px;
+  transition: width .4s ease;
+}
+
+.type-size {
+  font-size: 12px;
+  color: #737A97;
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-width: 44px;
+  text-align: right;
+}
+
+/* Recently trashed */
+.trash-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px solid #202335;
+}
+
+.trash-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.trash-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: #1A1D2E;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #737A97;
+}
+
+.trash-icon .material-symbols-rounded { font-size: 18px; }
+
+.trash-meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.trash-name {
+  font-size: 13px;
+  color: #EEF2FF;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trash-date {
+  font-size: 11px;
+  color: #737A97;
+}
+
+.restore-btn {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: #22C55E;
+  background: rgba(34, 197, 94, .1);
+  border: none;
+  border-radius: 8px;
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: background .2s;
+}
+
+.restore-btn:hover {
+  background: rgba(34, 197, 94, .2);
+}
+
+.empty-trash {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 32px 0;
+  color: #737A97;
+  font-size: 14px;
+}
+
+.empty-trash .material-symbols-rounded {
+  font-size: 36px;
+  color: #3A3F5C;
+}

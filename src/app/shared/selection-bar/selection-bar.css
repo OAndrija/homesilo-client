@@ -1,17 +1,17 @@
 :host {
   flex: 1;
-  margin: 0 120px;
+  margin: 0 100px;
   min-width: 0;
 }
 
 .selection-bar {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 10px;
   background: #1A1D2E;
   border: 1px solid #2D3250;
   border-radius: 14px;
-  padding: 16px 16px;
+  padding: 10px 16px;
   animation: slide-down .2s ease;
   min-width: 0;        /* prevents flex blowout */
 }

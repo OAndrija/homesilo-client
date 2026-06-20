@@ -1,0 +1,154 @@
+<div class="home-page">
+
+  <div class="page-header">
+    <div>
+      <h2>Dashboard</h2>
+      <p class="subtitle">Welcome back {{ username() }}</p>
+    </div>
+    <button class="upload-btn" routerLink="/my-files">
+      <span class="material-symbols-rounded">folder_open</span>
+      My Files
+    </button>
+  </div>
+
+  <!-- ── Stat cards ─────────────────────────────────────────── -->
+  <div class="stat-grid">
+
+    <div class="stat-card">
+      <div class="stat-top">
+        <span class="stat-label">Storage used</span>
+        <div class="stat-icon amber-icon">
+          <span class="material-symbols-rounded">database</span>
+        </div>
+      </div>
+      <div class="storage-wrap">
+        <svg viewBox="0 0 58 58" width="58" height="58" class="ring-svg">
+          <circle cx="29" cy="29" r="24" fill="none" stroke="#24283B" stroke-width="6"/>
+          <circle
+            cx="29" cy="29" r="24"
+            fill="none" stroke="#F8B84E" stroke-width="6"
+            stroke-linecap="round"
+            transform="rotate(-90 29 29)"
+            [attr.stroke-dasharray]="circumference"
+            [attr.stroke-dashoffset]="ringOffset()"/>
+        </svg>
+        <div>
+          <div class="stat-value">{{ storageUsedGB() }} GB</div>
+          <div class="stat-sub">of {{ storageLimitGB() }} GB used</div>
+          <div class="stat-free">{{ storageFreePercent() }}% free</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-top">
+        <span class="stat-label">Total files</span>
+        <div class="stat-icon blue-icon">
+          <span class="material-symbols-rounded">folder_copy</span>
+        </div>
+      </div>
+      <div class="stat-value">{{ totalFiles() }}</div>
+      <div class="stat-sub">across all folders</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-top">
+        <span class="stat-label">Added this week</span>
+        <div class="stat-icon green-icon">
+          <span class="material-symbols-rounded">trending_up</span>
+        </div>
+      </div>
+      <div class="stat-value">{{ filesThisWeek() }}</div>
+      <div class="stat-sub">new files</div>
+    </div>
+
+    <div class="stat-card" routerLink="/starred" style="cursor:pointer;">
+      <div class="stat-top">
+        <span class="stat-label">Starred</span>
+        <div class="stat-icon star-icon">
+          <span class="material-symbols-rounded">star</span>
+        </div>
+      </div>
+      <div class="stat-value">{{ starredCount() }}</div>
+      <div class="stat-sub">files starred</div>
+    </div>
+
+  </div>
+
+  <!-- ── Recent files ───────────────────────────────────────── -->
+  <div class="section-header">
+    <h3>Recent files</h3>
+    <button class="see-all-btn" routerLink="/my-files">See all</button>
+  </div>
+
+  @if (loadingRecent()) {
+    <div class="loading-state">Loading files...</div>
+  } @else if (recentFiles().length === 0) {
+    <div class="empty-state">
+      <span class="material-symbols-rounded empty-icon">cloud_upload</span>
+      <h3>No files yet</h3>
+      <p>Upload your first file to get started.</p>
+    </div>
+  } @else {
+    <app-file-table
+      [files]="recentFiles()"
+      [actions]="['download']"
+      dateColumnLabel="Uploaded"
+      (download)="downloadFile($event)"
+      (openFile)="openFile($event)" />
+  }
+
+  <!-- ── Bottom panels ──────────────────────────────────────── -->
+  <div class="bottom-grid">
+
+    <div class="panel">
+      <div class="section-header">
+        <h3>Storage by type</h3>
+      </div>
+      @for (type of breakdownWithPercent(); track type.label) {
+        <div class="type-row">
+          <div class="type-icon" [style.background]="type.color + '1a'" [style.color]="type.color">
+            <span class="material-symbols-rounded">{{ type.icon }}</span>
+          </div>
+          <div class="type-info">
+            <span class="type-name">{{ type.label }}</span>
+            <div class="type-bar-bg">
+              <div class="type-bar" [style.width.%]="type.percent" [style.background]="type.color"></div>
+            </div>
+          </div>
+          <span class="type-size">{{ type.sizeLabel }}</span>
+        </div>
+      }
+    </div>
+
+    <div class="panel">
+      <div class="section-header">
+        <h3>Recently trashed</h3>
+        <button class="see-all-btn" routerLink="/trash">View trash</button>
+      </div>
+
+      @if (loadingTrashed()) {
+        <div class="loading-state">Loading...</div>
+      } @else if (trashedFiles().length === 0) {
+        <div class="empty-trash">
+          <span class="material-symbols-rounded">delete</span>
+          <p>Trash is empty</p>
+        </div>
+      } @else {
+        @for (file of trashedFiles(); track file.id) {
+          <div class="trash-row">
+            <div class="trash-icon">
+              <span class="material-symbols-rounded">description</span>
+            </div>
+            <div class="trash-meta">
+              <span class="trash-name">{{ file.originalFileName }}</span>
+              <span class="trash-date">{{ file.uploadedAt | date:'mediumDate' }}</span>
+            </div>
+            <button class="restore-btn" (click)="restoreFile(file)">Restore</button>
+          </div>
+        }
+      }
+    </div>
+
+  </div>
+</div>

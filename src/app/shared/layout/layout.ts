@@ -16,7 +16,6 @@ export class Layout {
   private router = inject(Router);
   private searchService = inject(Search);
 
-  username = signal(this.auth.getTokenPayload()?.sub ?? '');
   sidebarOpen = signal(true);
   searchInputValue = signal('');
 

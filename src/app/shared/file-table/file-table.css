@@ -102,13 +102,13 @@
 }
 
 .icon-btn {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   background: transparent;
   color: #8C95B6;
   cursor: pointer;
@@ -146,4 +146,13 @@
 
 .files-table tbody tr {
   user-select: none;
+}
+
+.actions {
+  opacity: 0;
+  transition: opacity .2s;
+}
+
+tr:hover .actions  {
+  opacity: 1;
 }
