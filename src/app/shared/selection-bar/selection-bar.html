@@ -1,0 +1,51 @@
+@if (selectedCount() > 0) {
+  <div class="selection-bar">
+    <span class="sel-count">
+      <span class="sel-badge">{{ selectedCount() }}</span>
+      {{ selectedCount() === 1 ? 'file' : 'files' }} selected
+    </span>
+
+    <div class="sel-actions">
+      @if (hasAction('download')) {
+        <button class="sel-btn" (click)="downloadAll.emit()" title="Download selected">
+          <span class="material-symbols-rounded">download</span>
+          Download
+        </button>
+      }
+      @if (hasAction('open')) {
+        <button class="sel-btn" (click)="openAll.emit()" title="Open all in new tabs">
+          <span class="material-symbols-rounded">open_in_new</span>
+          Open all
+        </button>
+      }
+
+      @if (hasAction('trash') || hasAction('restore') || hasAction('deleteForever')) {
+        <div class="sel-divider"></div>
+      }
+
+      @if (hasAction('restore')) {
+        <button class="sel-btn restore" (click)="restoreAll.emit()">
+          <span class="material-symbols-rounded">restore_from_trash</span>
+          Restore
+        </button>
+      }
+      @if (hasAction('trash')) {
+        <button class="sel-btn danger" (click)="trashAll.emit()">
+          <span class="material-symbols-rounded">delete</span>
+          Move to trash
+        </button>
+      }
+      @if (hasAction('deleteForever')) {
+        <button class="sel-btn danger" (click)="deleteForeverAll.emit()">
+          <span class="material-symbols-rounded">delete_forever</span>
+          Delete forever
+        </button>
+      }
+    </div>
+
+    <button class="sel-clear" (click)="clearSelection.emit()">
+      <span class="material-symbols-rounded">close</span>
+      Clear
+    </button>
+  </div>
+}

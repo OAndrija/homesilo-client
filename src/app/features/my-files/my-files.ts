@@ -14,10 +14,11 @@ import { catchError, concatMap, finalize, from, of } from 'rxjs';
 import { FileTable } from '../../shared/file-table/file-table';
 import { Search } from '../../core/services/search';
 import { isPreviewable } from '../../core/utils/file-preview.utils';
+import { SelectionBar } from '../../shared/selection-bar/selection-bar';
 
 @Component({
   selector: 'app-my-files',
-  imports: [FileTable],
+  imports: [FileTable, SelectionBar],
   templateUrl: './my-files.html',
   styleUrl: './my-files.css',
 })

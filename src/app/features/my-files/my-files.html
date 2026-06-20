@@ -18,6 +18,15 @@
       <h2>My Files</h2>
       <p class="subtitle">Showing {{ files().length }} file{{ files().length !== 1 ? 's' : '' }}</p>
     </div>
+
+    <app-selection-bar
+      [selectedCount]="fileTable()?.selectedIds()?.size ?? 0"
+      [actions]="['download', 'open', 'trash']"></app-selection-bar>
+    <!--    (clearSelection)="fileTable()?.selectedIds.set(new Set())"-->
+    <!--    (downloadAll)="onDownloadAll()"-->
+    <!--    (openAll)="onOpenAll()"-->
+    <!--    (trashAll)="onTrashAll()" -->
+
     <button
       class="upload-btn"
       (click)="triggerFilePicker()"

@@ -88,6 +88,11 @@ export class FileTable {
     this.lastClickedIndex = index;
   }
 
+  clearSelection(): void {
+    this.selectedIds.set(new Set());
+    this.lastClickedIndex = null;
+  }
+
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     const clickedInside = this.elementRef.nativeElement.contains(event.target as Node);
