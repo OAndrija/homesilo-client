@@ -41,4 +41,8 @@ export class Files {
   deletePermanently(fileId: string): Observable<void> {
     return this.http.delete<void>(`${API_URL}/${fileId}`);
   }
- }
+
+  getStorageUsage(): Observable<number> {
+    return this.http.get<number>(`${API_URL}/storage-usage`);
+  }
+}

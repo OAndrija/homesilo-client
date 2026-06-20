@@ -1,6 +1,4 @@
 <div class="app-shell" [class.sidebar-open]="sidebarOpen()">
-
-  <!-- Backdrop — mobile only, clicking it closes the sidebar -->
   <div class="backdrop" (click)="toggleSidebar()"></div>
 
   <aside class="sidebar">
@@ -27,6 +25,8 @@
         <span class="nav-label">Trash</span>
       </a>
     </nav>
+
+    <app-storage-indicator [sidebarOpen]="sidebarOpen()" />
   </aside>
 
   <div class="main-area">

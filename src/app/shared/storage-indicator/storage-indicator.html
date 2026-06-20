@@ -1,0 +1,12 @@
+<div class="storage-indicator">
+  <div class="storage-header">
+    <span class="material-symbols-rounded storage-icon">cloud</span>
+    <span class="storage-label">Storage</span>
+  </div>
+  <div class="storage-bar-track">
+    <div class="storage-bar-fill" [style.width.%]="percentUsed()"></div>
+  </div>
+  <p class="storage-text">
+    {{ formatGB(usedBytes()) }}GB of {{ formatGB(maxBytes) }}GB used
+  </p>
+</div>
