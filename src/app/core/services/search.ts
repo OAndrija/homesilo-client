@@ -9,7 +9,7 @@ export class Search {
 
   constructor() {
     this.inputSubject
-      .pipe(debounceTime(300), distinctUntilChanged())
+      .pipe(debounceTime(200), distinctUntilChanged())
       .subscribe((value) => this.query.set(value));
   }
 
