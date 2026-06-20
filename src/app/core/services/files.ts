@@ -53,4 +53,12 @@ export class Files {
       .set('size', size);
     return this.http.get<PageResponse<FileMetadata>>(`${API_URL}/search`, { params });
   }
+
+  searchTrashed(query: string, page = 0, size = 20): Observable<PageResponse<FileMetadata>> {
+    const params = new HttpParams()
+      .set('query', query)
+      .set('page', page)
+       .set('size', size);
+    return this.http.get<PageResponse<FileMetadata>>(`${API_URL}/trash/search`, { params });
+  }
 }

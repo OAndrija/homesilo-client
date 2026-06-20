@@ -1,8 +1,9 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { Files } from '../../core/services/files';
 import { FileMetadata } from '../../core/models/file-metadata';
 import { finalize } from 'rxjs';
 import { FileTable } from '../../shared/file-table/file-table';
+import { Search } from '../../core/services/search';
 
 @Component({
   selector: 'app-trash',
@@ -12,6 +13,7 @@ import { FileTable } from '../../shared/file-table/file-table';
 })
 export class Trash {
   private fileService = inject(Files);
+  private searchService = inject(Search);
 
   files = signal<FileMetadata[]>([]);
   loading = signal(true);
@@ -20,8 +22,32 @@ export class Trash {
   currentPage = signal(0);
   hasMore = signal(false);
 
-  ngOnInit() {
-    this.loadTrashedFiles();
+  isSearching = computed(() => this.searchService.query().trim().length > 0);
+
+  constructor() {
+    effect(() => {
+      const query = this.searchService.query().trim();
+      this.currentPage.set(0);
+      if (query === '') {
+        this.loadTrashedFiles();
+      } else {
+        this.runSearch(query);
+      }
+    });
+  }
+
+  runSearch(query: string): void {
+    this.loading.set(true);
+    this.fileService
+      .searchTrashed(query, 0)
+      .pipe(finalize(() => this.loading.set(false)))
+      .subscribe({
+        next: (response) => {
+          this.files.set(response.content);
+          this.hasMore.set(!response.last);
+        },
+        error: () => this.errorMessage.set('Search failed.'),
+      });
   }
 
   loadTrashedFiles(): void {
@@ -41,18 +67,22 @@ export class Trash {
 
   loadMore(): void {
     const nextPage = this.currentPage() + 1;
+    const query = this.searchService.query().trim();
     this.loadingMore.set(true);
-    this.fileService
-      .listTrashed(nextPage)
-      .pipe(finalize(() => this.loadingMore.set(false)))
-      .subscribe({
-        next: (response) => {
-          this.files.update((files) => [...files, ...response.content]);
-          this.currentPage.set(nextPage);
-          this.hasMore.set(!response.last);
-        },
-        error: () => this.errorMessage.set('Failed to load more files.'),
-      });
+
+    const request$ =
+      query === ''
+        ? this.fileService.listTrashed(nextPage)
+        : this.fileService.searchTrashed(query, nextPage);
+
+    request$.pipe(finalize(() => this.loadingMore.set(false))).subscribe({
+      next: (response) => {
+        this.files.update((files) => [...files, ...response.content]);
+        this.currentPage.set(nextPage);
+        this.hasMore.set(!response.last);
+      },
+      error: () => this.errorMessage.set('Failed to load more trashed files.'),
+    });
   }
 
   deleteFile(file: FileMetadata): void {

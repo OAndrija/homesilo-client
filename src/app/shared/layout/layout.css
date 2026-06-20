@@ -239,6 +239,30 @@
   min-height: 0;
 }
 
+.search-clear-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  color: #6B7099;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s;
+}
+
+.search-clear-btn:hover {
+  background: #1C1F2E;
+  color: #F0F2FF;
+}
+
+.search-clear-btn .material-symbols-rounded {
+  font-size: 20px;
+}
+
 /* ==========================================================================
    Mobile
    ========================================================================== */

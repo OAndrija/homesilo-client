@@ -1,8 +1,9 @@
 import { Component, inject, signal } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet, NavigationEnd } from '@angular/router';
 import { Auth } from '../../core/services/auth';
 import { StorageIndicator } from '../storage-indicator/storage-indicator';
 import { Search } from '../../core/services/search';
+import { filter } from 'rxjs';
 
 @Component({
   selector: 'app-layout',
@@ -13,11 +14,20 @@ import { Search } from '../../core/services/search';
 export class Layout {
   private auth = inject(Auth);
   private router = inject(Router);
-  private search = inject(Search);
+  private searchService = inject(Search);
 
   username = signal(this.auth.getTokenPayload()?.sub ?? '');
   sidebarOpen = signal(true);
   searchInputValue = signal('');
+
+  constructor() {
+    this.router.events
+      .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
+      .subscribe(() => {
+        this.searchInputValue.set('');
+        this.searchService.clear();
+      });
+  }
 
   ngOnInit(): void {
     if (window.innerWidth < 768) {
@@ -28,7 +38,12 @@ export class Layout {
   onSearchInput(event: Event): void {
     const value = (event.target as HTMLInputElement).value;
     this.searchInputValue.set(value);
-    this.search.setQuery(value);
+    this.searchService.setQuery(value);
+  }
+
+  onClearSearch(): void {
+    this.searchInputValue.set('');
+    this.searchService.clear();
   }
 
   toggleSidebar(): void {

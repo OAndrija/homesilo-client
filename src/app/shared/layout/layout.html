@@ -41,7 +41,18 @@
           class="search-input"
           placeholder="Search in homesilo..."
           [value]="searchInputValue()"
-          (input)="onSearchInput($event)" />
+          (input)="onSearchInput($event)"
+          (keydown.escape)="onClearSearch()"
+          aria-label="Search files" />
+      @if (searchInputValue()) {
+        <button
+          class="search-clear-btn"
+          (click)="onClearSearch()"
+          aria-label="Clearn search"
+          type="button">
+          <span class="material-symbols-rounded">close</span>
+        </button>
+      }
       </div>
       <div class="topbar-user">
         <span class="username">{{ username() }}</span>

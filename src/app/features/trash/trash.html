@@ -14,9 +14,15 @@
     <div class="empty-state">Loading files...</div>
   } @else if (files().length === 0) {
     <div class="empty-state">
-      <span class="material-symbols-rounded empty-icon">delete</span>
-      <h3>Trash is empty</h3>
-      <p>Files you move to trash will appear here.</p>
+      @if (isSearching()) {
+        <span class="material-symbols-rounded empty-icon">search_off</span>
+        <h3>No results found</h3>
+        <p>Try a different search term.</p>
+      } @else {
+        <span class="material-symbols-rounded empty-icon">delete</span>
+        <h3>Trash is empty</h3>
+        <p>Files you move to trash will appear here.</p>
+      }
     </div>
   } @else {
     <app-file-table
