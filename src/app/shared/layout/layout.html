@@ -36,7 +36,12 @@
       </button>
       <div class="search-bar">
         <span class="material-symbols-rounded">search</span>
-        <input type="text" class="search-input" placeholder="Search in HomeSilo..." />
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Search in homesilo..."
+          [value]="searchInputValue()"
+          (input)="onSearchInput($event)" />
       </div>
       <div class="topbar-user">
         <span class="username">{{ username() }}</span>

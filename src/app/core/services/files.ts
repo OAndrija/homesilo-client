@@ -45,4 +45,12 @@ export class Files {
   getStorageUsage(): Observable<number> {
     return this.http.get<number>(`${API_URL}/storage-usage`);
   }
+
+  searchActive(query: string, page = 0, size = 20): Observable<PageResponse<FileMetadata>> {
+    const params = new HttpParams()
+      .set('query', query)
+      .set('page', page)
+      .set('size', size);
+    return this.http.get<PageResponse<FileMetadata>>(`${API_URL}/search`, { params });
+  }
 }

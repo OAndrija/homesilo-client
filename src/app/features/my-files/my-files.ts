@@ -1,8 +1,18 @@
-import { Component, ElementRef, inject, signal, viewChild, HostListener } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  inject,
+  signal,
+  viewChild,
+  HostListener,
+  computed,
+  effect,
+} from '@angular/core';
 import { Files } from '../../core/services/files';
 import { FileMetadata } from '../../core/models/file-metadata';
 import { catchError, concatMap, finalize, from, of } from 'rxjs';
 import { FileTable } from '../../shared/file-table/file-table';
+import { Search } from '../../core/services/search';
 
 @Component({
   selector: 'app-my-files',
@@ -12,6 +22,7 @@ import { FileTable } from '../../shared/file-table/file-table';
 })
 export class MyFiles {
   private fileService = inject(Files);
+  private searchService = inject(Search);
 
   files = signal<FileMetadata[]>([]);
   loading = signal(true);
@@ -29,8 +40,32 @@ export class MyFiles {
   dragging = signal(false);
   private dragCounter = 0;
 
-  ngOnInit() {
-    this.loadFiles();
+  isSearching = computed(() => this.searchService.query().trim().length > 0);
+
+  constructor() {
+    effect(() => {
+      const query = this.searchService.query().trim();
+      this.currentPage.set(0);
+      if (query === '') {
+        this.loadFiles();
+      } else {
+        this.runSearch(query);
+      }
+    });
+  }
+
+  runSearch(query: string): void {
+    this.loading.set(true);
+    this.fileService
+      .searchActive(query, 0)
+      .pipe(finalize(() => this.loading.set(false)))
+      .subscribe({
+        next: (response) => {
+          this.files.set(response.content);
+          this.hasMore.set(!response.last);
+        },
+        error: () => this.errorMessage.set('Search failed.'),
+      });
   }
 
   loadFiles(): void {
@@ -49,18 +84,22 @@ export class MyFiles {
 
   loadMore(): void {
     const nextPage = this.currentPage() + 1;
+    const query = this.searchService.query().trim();
     this.loadingMore.set(true);
-    this.fileService
-      .listActive(nextPage)
-      .pipe(finalize(() => this.loadingMore.set(false)))
-      .subscribe({
-        next: (response) => {
-          this.files.update((files) => [...files, ...response.content]);
-          this.currentPage.set(nextPage);
-          this.hasMore.set(!response.last);
-        },
-        error: () => this.errorMessage.set('Failed to load more files.'),
-      });
+
+    const request$ =
+      query === ''
+        ? this.fileService.listActive(nextPage)
+        : this.fileService.searchActive(query, nextPage);
+
+    request$.pipe(finalize(() => this.loadingMore.set(false))).subscribe({
+      next: (response) => {
+        this.files.update((files) => [...files, ...response.content]);
+        this.currentPage.set(nextPage);
+        this.hasMore.set(!response.last);
+      },
+      error: () => this.errorMessage.set('Failed to load more files.'),
+    });
   }
 
   triggerFilePicker(): void {

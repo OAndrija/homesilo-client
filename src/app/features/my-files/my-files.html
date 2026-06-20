@@ -46,9 +46,15 @@
     <div class="empty-state">Loading files...</div>
   } @else if (files().length === 0) {
     <div class="empty-state">
-      <span class="material-symbols-rounded empty-icon">cloud_upload</span>
-      <h3>No files yet</h3>
-      <p>Upload your first backup to HomeSilo.</p>
+      @if (isSearching()) {
+        <span class="material-symbols-rounded empty-icon">search_off</span>
+        <h3>No results found</h3>
+        <p>Try a different search term.</p>
+      } @else {
+        <span class="material-symbols-rounded empty-icon">cloud_upload</span>
+        <h3>No files yet</h3>
+        <p>Upload your first backup to HomeSilo.</p>
+      }
     </div>
   } @else {
     <app-file-table
