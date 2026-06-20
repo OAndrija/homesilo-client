@@ -10,7 +10,9 @@
     </thead>
     <tbody>
       @for (file of files(); track file.id) {
-        <tr>
+        <tr
+          [class.row-error]="errorRowId() === file.id"
+          (dblclick)="openFile.emit(file)">
           <td class="file-name">
             <span
               class="material-symbols-rounded file-icon"
@@ -20,7 +22,7 @@
             {{ file.originalFileName }}
           </td>
           <td>{{ formatSize(file.size) }}</td>
-          <td>{{ file.uploadedAt | date:'short' }}</td>
+          <td>{{ file.uploadedAt | date:'medium' }}</td>
           <td class="actions">
             @if (hasAction('download')) {
               <button

@@ -30,6 +30,10 @@ export class Files {
     return this.http.get(`${API_URL}/${fileId}/download`, { responseType: 'blob' });
   }
 
+  preview(fileId: string): Observable<Blob> {
+    return this.http.get(`${API_URL}/${fileId}/preview`, { responseType: 'blob' });
+  }
+
   trash(fileId: string): Observable<FileMetadata> {
     return this.http.patch<FileMetadata>(`${API_URL}/${fileId}/trash`, {});
   }
@@ -47,18 +51,12 @@ export class Files {
   }
 
   searchActive(query: string, page = 0, size = 20): Observable<PageResponse<FileMetadata>> {
-    const params = new HttpParams()
-      .set('query', query)
-      .set('page', page)
-      .set('size', size);
+    const params = new HttpParams().set('query', query).set('page', page).set('size', size);
     return this.http.get<PageResponse<FileMetadata>>(`${API_URL}/search`, { params });
   }
 
   searchTrashed(query: string, page = 0, size = 20): Observable<PageResponse<FileMetadata>> {
-    const params = new HttpParams()
-      .set('query', query)
-      .set('page', page)
-       .set('size', size);
+    const params = new HttpParams().set('query', query).set('page', page).set('size', size);
     return this.http.get<PageResponse<FileMetadata>>(`${API_URL}/trash/search`, { params });
   }
 }

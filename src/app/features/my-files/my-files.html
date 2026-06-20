@@ -39,7 +39,16 @@
   </div>
 
   @if (errorMessage()) {
-    <div class="server-error">{{ errorMessage() }}</div>
+    <div class="server-error">
+      <span>{{ errorMessage() }}</span>
+      <button
+        class="error-dismiss-btn"
+        (click)="errorMessage.set('')"
+        aria-label="Dismiss error"
+        type="button">
+        <span class="material-symbols-rounded">close</span>
+      </button>
+    </div>
   }
 
   @if (loading()) {
@@ -53,7 +62,7 @@
       } @else {
         <span class="material-symbols-rounded empty-icon">cloud_upload</span>
         <h3>No files yet</h3>
-        <p>Upload your first backup to HomeSilo.</p>
+        <p>Upload your first backup to homesilo.</p>
       }
     </div>
   } @else {
@@ -62,7 +71,8 @@
       [actions]="['download', 'trash']"
       dateColumnLabel="Uploaded"
       (download)="downloadFile($event)"
-      (trash)="trashFile($event)" />
+      (trash)="trashFile($event)"
+      (openFile)="openFile($event)" />
 
     @if (hasMore()) {
       <div class="show-more-wrap">

@@ -13,6 +13,7 @@ import { FileMetadata } from '../../core/models/file-metadata';
 import { catchError, concatMap, finalize, from, of } from 'rxjs';
 import { FileTable } from '../../shared/file-table/file-table';
 import { Search } from '../../core/services/search';
+import { isPreviewable } from '../../core/utils/file-preview.utils';
 
 @Component({
   selector: 'app-my-files',
@@ -23,6 +24,8 @@ import { Search } from '../../core/services/search';
 export class MyFiles {
   private fileService = inject(Files);
   private searchService = inject(Search);
+
+  fileTable = viewChild(FileTable);
 
   files = signal<FileMetadata[]>([]);
   loading = signal(true);
@@ -167,6 +170,28 @@ export class MyFiles {
   trashFile(file: FileMetadata): void {
     this.fileService.trash(file.id).subscribe(() => {
       this.files.update((files) => files.filter((f) => f.id !== file.id));
+    });
+  }
+
+  openFile(file: FileMetadata): void {
+    if (!isPreviewable(file.contentType)) {
+      this.errorMessage.set(
+        `Preview not available for "${file.originalFileName}". Use download instead.`,
+      );
+      this.fileTable()?.flashRowError(file.id);
+      return;
+    }
+
+    this.fileService.preview(file.id).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        window.open(url, '_blank');
+        setTimeout(() => window.URL.revokeObjectURL(url), 10000);
+      },
+      error: () => {
+        this.errorMessage.set('Failed to open file.');
+        this.fileTable()?.flashRowError(file.id);
+      },
     });
   }
 

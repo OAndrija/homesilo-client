@@ -18,6 +18,21 @@
   border-spacing: 0;
 }
 
+.files-table tbody tr {
+  cursor: pointer;
+}
+
+.files-table tbody tr.row-error {
+  background: rgba(239, 68, 68, 0.12);
+  box-shadow: inset 4px 0 #EF4444;
+  animation: row-error-flash 1.2s ease;
+}
+
+@keyframes row-error-flash {
+  0% { background: rgba(239, 68, 68, 0.28); }
+  100% { background: rgba(239, 68, 68, 0.12); }
+}
+
 .files-table th {
   padding: 14px 20px;
   text-align: left;
