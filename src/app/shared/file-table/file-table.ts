@@ -1,4 +1,4 @@
-import { Component, input, output, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, inject, input, output, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FileMetadata } from '../../core/models/file-metadata';
 import { getFileIcon } from '../../core/utils/file-icon.util';
@@ -12,6 +12,8 @@ export type FileAction = 'download' | 'trash' | 'restore' | 'deleteForever';
   styleUrl: './file-table.css',
 })
 export class FileTable {
+  private elementRef = inject(ElementRef);
+
   files = input.required<FileMetadata[]>();
   actions = input<FileAction[]>(['download', 'trash']);
   dateColumnLabel = input('Uploaded');
@@ -84,5 +86,14 @@ export class FileTable {
 
     this.selectedIds.set(new Set([file.id]));
     this.lastClickedIndex = index;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const clickedInside = this.elementRef.nativeElement.contains(event.target as Node);
+    if (!clickedInside) {
+      this.selectedIds.set(new Set());
+      this.lastClickedIndex = null;
+    }
   }
 }
