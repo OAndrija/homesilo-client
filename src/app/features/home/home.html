@@ -142,7 +142,7 @@
             </div>
             <div class="trash-meta">
               <span class="trash-name">{{ file.originalFileName }}</span>
-              <span class="trash-date">{{ file.uploadedAt | date:'mediumDate' }}</span>
+              <span class="trash-date">{{ file.trashedAt | date:'mediumDate' }}</span>
             </div>
             <button class="restore-btn" (click)="restoreFile(file)">Restore</button>
           </div>

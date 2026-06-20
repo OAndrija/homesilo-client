@@ -6,6 +6,7 @@ export interface FileMetadata {
   trashed: boolean;
   uploadedAt: string;
   lastModified: string;
+  trashedAt: string;
 }
 
 export interface PageResponse<T> {
