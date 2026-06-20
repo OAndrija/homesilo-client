@@ -81,7 +81,7 @@ export class MyFiles {
           this.files.set(response.content);
           this.hasMore.set(!response.last);
         },
-        error: () => this.errorMessage.set('Failed to laod files.'),
+        error: () => this.errorMessage.set('Failed to load files.'),
       });
   }
 
