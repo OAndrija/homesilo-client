@@ -25,6 +25,9 @@ export class FileTable {
   errorRowId = signal<string | null>(null);
   private errorTimeout?: ReturnType<typeof setTimeout>;
 
+  selectedIds = signal<Set<string>>(new Set());
+  private lastClickedIndex: number | null = null;
+
   hasAction(action: FileAction): boolean {
     return this.actions().includes(action);
   }
@@ -41,5 +44,45 @@ export class FileTable {
     clearTimeout(this.errorTimeout);
     this.errorRowId.set(fileId);
     this.errorTimeout = setTimeout(() => this.errorRowId.set(null), 1200);
+  }
+
+  isSelected(fileId: string): boolean {
+    return this.selectedIds().has(fileId);
+  }
+
+  onRowClick(file: FileMetadata, index: number, event: MouseEvent): void {
+    const isToggle = event.ctrlKey || event.metaKey;
+    const isRange = event.shiftKey;
+
+    if (isRange && this.lastClickedIndex !== null) {
+      const list = this.files();
+      const start = Math.min(this.lastClickedIndex, index);
+      const end = Math.max(this.lastClickedIndex, index);
+      const rangeIds = list.slice(start, end + 1).map((f) => f.id);
+
+      this.selectedIds.update((current) => {
+        const next = new Set(current);
+        rangeIds.forEach((id) => next.add(id));
+        return next;
+      });
+      return;
+    }
+
+    if (isToggle) {
+      this.selectedIds.update((current) => {
+        const next = new Set(current);
+        if (next.has(file.id)) {
+          next.delete(file.id);
+        } else {
+          next.add(file.id);
+        }
+        return next;
+      });
+      this.lastClickedIndex = index;
+      return;
+    }
+
+    this.selectedIds.set(new Set([file.id]));
+    this.lastClickedIndex = index;
   }
 }

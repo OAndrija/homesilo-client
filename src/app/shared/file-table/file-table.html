@@ -9,9 +9,11 @@
     </tr>
     </thead>
     <tbody>
-      @for (file of files(); track file.id) {
+      @for (file of files(); track file.id; let i = $index) {
         <tr
+          [class.row-selected]="isSelected(file.id)"
           [class.row-error]="errorRowId() === file.id"
+          (click)="onRowClick(file, i, $event)"
           (dblclick)="openFile.emit(file)">
           <td class="file-name">
             <span
@@ -25,34 +27,22 @@
           <td>{{ file.uploadedAt | date:'medium' }}</td>
           <td class="actions">
             @if (hasAction('download')) {
-              <button
-                class="icon-btn download"
-                (click)="download.emit(file)"
-                title="Download">
+              <button class="icon-btn download" (click)="download.emit(file); $event.stopPropagation()" title="Download">
                 <span class="material-symbols-rounded">download</span>
               </button>
             }
             @if (hasAction('trash')) {
-              <button
-                class="icon-btn danger"
-                (click)="trash.emit(file)"
-                title="Move to trash">
+              <button class="icon-btn danger" (click)="trash.emit(file); $event.stopPropagation()" title="Move to trash">
                 <span class="material-symbols-rounded">delete</span>
               </button>
             }
             @if (hasAction('restore')) {
-              <button
-                class="icon-btn restore"
-                (click)="restore.emit(file)"
-                title="Restore">
+              <button class="icon-btn restore" (click)="restore.emit(file); $event.stopPropagation()" title="Restore">
                 <span class="material-symbols-rounded">restore_from_trash</span>
               </button>
             }
             @if (hasAction('deleteForever')) {
-              <button
-                class="icon-btn danger"
-                (click)="deleteForever.emit(file)"
-                title="Delete forever">
+              <button class="icon-btn danger" (click)="deleteForever.emit(file); $event.stopPropagation()" title="Delete forever">
                 <span class="material-symbols-rounded">delete_forever</span>
               </button>
             }
