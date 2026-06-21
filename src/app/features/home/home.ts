@@ -42,7 +42,7 @@ export class Home {
   trashedFiles = computed(() => this.store.stats()?.recentlyTrashed ?? []);
   loadingTrashed = computed(() => this.store.loading());
 
-  starredCount = signal(0); // no backend support yet
+  starredCount = computed(() => this.store.stats()?.starredCount ?? 0);
 
   storageUsedGB = computed(() => (this.storageUsedBytes() / 1024 ** 3).toFixed(1));
   storageLimitGB = computed(() => Math.round(this.storageLimitBytes() / 1024 ** 3));

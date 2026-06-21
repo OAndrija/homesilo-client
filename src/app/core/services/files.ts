@@ -25,6 +25,11 @@ export class Files {
     return this.http.get<PageResponse<FileMetadata>>(`${API_URL}/trash`, { params });
   }
 
+  listStarred(page = 0, size = 20): Observable<PageResponse<FileMetadata>> {
+    const params = new HttpParams().set('page', page).set('size', size);
+    return this.http.get<PageResponse<FileMetadata>>(`${API_URL}/starred`, { params });
+  }
+
   upload(file: File): Observable<FileMetadata> {
     const formData = new FormData();
     formData.append('file', file);
@@ -41,6 +46,10 @@ export class Files {
 
   trash(fileId: string): Observable<FileMetadata> {
     return this.http.patch<FileMetadata>(`${API_URL}/${fileId}/trash`, {});
+  }
+
+  toggleStar(fileId: string): Observable<FileMetadata> {
+    return this.http.patch<FileMetadata>(`${API_URL}/${fileId}/star`, {});
   }
 
   restore(fileId: string): Observable<FileMetadata> {
@@ -63,5 +72,10 @@ export class Files {
   searchTrashed(query: string, page = 0, size = 20): Observable<PageResponse<FileMetadata>> {
     const params = new HttpParams().set('query', query).set('page', page).set('size', size);
     return this.http.get<PageResponse<FileMetadata>>(`${API_URL}/trash/search`, { params });
+  }
+
+  searchStarred(query: string, page = 0, size = 20): Observable<PageResponse<FileMetadata>> {
+    const params = new HttpParams().set('query', query).set('page', page).set('size', size);
+    return this.http.get<PageResponse<FileMetadata>>(`${API_URL}/starred/search`, { params });
   }
 }

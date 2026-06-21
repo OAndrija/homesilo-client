@@ -21,7 +21,7 @@
 
     <app-selection-bar
       [selectedCount]="fileTable()?.selectedIds()?.size ?? 0"
-      [actions]="['download', 'open', 'trash']"></app-selection-bar>
+      [actions]="['download', 'open', 'trash', 'star']"></app-selection-bar>
     <!--    (clearSelection)="fileTable()?.selectedIds.set(new Set())"-->
     <!--    (downloadAll)="onDownloadAll()"-->
     <!--    (openAll)="onOpenAll()"-->
@@ -77,10 +77,11 @@
   } @else {
     <app-file-table
       [files]="files()"
-      [actions]="['download', 'trash']"
+      [actions]="['download', 'trash', 'star']"
       dateColumnLabel="Modified"
       (download)="downloadFile($event)"
       (trash)="trashFile($event)"
+      (star)="toggleStar($event)"
       (openFile)="openFile($event)" />
 
     @if (hasMore()) {

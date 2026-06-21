@@ -36,6 +36,15 @@
                 <span class="material-symbols-rounded">delete</span>
               </button>
             }
+            @if (hasAction('star')) {
+              <button
+                class="icon-btn star"
+                [class.starred]="file.starred"
+                (click)="star.emit(file); $event.stopPropagation()"
+                [title]="file.starred ? 'Unstar' : 'Star'">
+                <span class="material-symbols-rounded star-icon-glyph">star</span>
+              </button>
+            }
             @if (hasAction('restore')) {
               <button class="icon-btn restore" (click)="restore.emit(file); $event.stopPropagation()" title="Restore">
                 <span class="material-symbols-rounded">restore_from_trash</span>

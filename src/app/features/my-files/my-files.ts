@@ -178,6 +178,13 @@ export class MyFiles {
     });
   }
 
+  toggleStar(file: FileMetadata): void {
+    this.fileService.toggleStar(file.id).subscribe((updated) => {
+      this.files.update((files) => files.map((f) => (f.id === updated.id ? updated : f)));
+      this.dashboardStore.silentRefresh();
+    });
+  }
+
   openFile(file: FileMetadata): void {
     if (!isPreviewable(file.contentType)) {
       this.errorMessage.set(

@@ -1,6 +1,6 @@
 import { Component, input, output, computed } from '@angular/core';
 
-export type SelectionBarAction = 'download' | 'open' | 'trash' | 'restore' | 'deleteForever';
+export type SelectionBarAction = 'download' | 'open' | 'trash' | 'restore' | 'deleteForever' | 'star';
 
 @Component({
   selector: 'app-selection-bar',
@@ -9,7 +9,7 @@ export type SelectionBarAction = 'download' | 'open' | 'trash' | 'restore' | 'de
 })
 export class SelectionBar {
   selectedCount = input.required<number>();
-  actions = input<SelectionBarAction[]>(['download', 'open', 'trash']);
+  actions = input<SelectionBarAction[]>(['download', 'open', 'trash', 'star']);
 
   downloadAll = output();
   openAll = output();

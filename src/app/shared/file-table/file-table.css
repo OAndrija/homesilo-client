@@ -141,6 +141,36 @@ tr:hover .actions {
   color: var(--color-danger);
 }
 
+.icon-btn.star:hover {
+  background: var(--color-star-bg);
+  color: var(--color-star);
+}
+
+.icon-btn.starred span {
+  color: var(--color-star);
+  font-variation-settings: 'FILL' 1;
+}
+
+tr:has(.starred) .actions {
+  opacity: 1;
+}
+
+tr:has(.starred):not(:hover) .icon-btn:not(.star) {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.star-icon-glyph {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  color: var(--color-text-icon-muted);
+  transition: font-variation-settings var(--transition-fast), color var(--transition-fast);
+}
+
+.icon-btn.starred .star-icon-glyph {
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  color: var(--color-star);
+}
+
 .files-table tbody tr.row-selected {
   background: var(--color-accent-bg);
   box-shadow: inset 4px 0 var(--color-accent);

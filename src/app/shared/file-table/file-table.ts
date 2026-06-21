@@ -3,7 +3,7 @@ import { DatePipe } from '@angular/common';
 import { FileMetadata } from '../../core/models/file-metadata';
 import { getFileIcon } from '../../core/utils/file-icon.util';
 
-export type FileAction = 'download' | 'trash' | 'restore' | 'deleteForever';
+export type FileAction = 'download' | 'trash' | 'restore' | 'deleteForever' | 'star';
 
 @Component({
   selector: 'app-file-table',
@@ -15,11 +15,12 @@ export class FileTable {
   private elementRef = inject(ElementRef);
 
   files = input.required<FileMetadata[]>();
-  actions = input<FileAction[]>(['download', 'trash']);
+  actions = input<FileAction[]>(['download', 'trash', 'star']);
   dateColumnLabel = input('Uploaded');
 
   download = output<FileMetadata>();
   trash = output<FileMetadata>();
+  star = output<FileMetadata>();
   restore = output<FileMetadata>();
   deleteForever = output<FileMetadata>();
   openFile = output<FileMetadata>();
