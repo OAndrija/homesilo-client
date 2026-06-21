@@ -18,13 +18,15 @@ export class Layout {
 
   sidebarOpen = signal(true);
   searchInputValue = signal('');
+  isHome = signal(false);
 
   constructor() {
     this.router.events
       .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
-      .subscribe(() => {
+      .subscribe((event) => {
         this.searchInputValue.set('');
         this.searchService.clear();
+        this.isHome.set(event.urlAfterRedirects.startsWith('/home'));
       });
   }
 

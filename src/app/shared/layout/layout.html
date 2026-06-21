@@ -39,26 +39,29 @@
       <button class="menu-btn" (click)="toggleSidebar()" aria-label="Toggle sidebar">
         <span class="material-symbols-rounded">menu</span>
       </button>
-      <div class="search-bar">
-        <span class="material-symbols-rounded">search</span>
-        <input
-          type="text"
-          class="search-input"
-          placeholder="Search in homesilo..."
-          [value]="searchInputValue()"
-          (input)="onSearchInput($event)"
-          (keydown.escape)="onClearSearch()"
-          aria-label="Search files" />
-      @if (searchInputValue()) {
-        <button
-          class="search-clear-btn"
-          (click)="onClearSearch()"
-          aria-label="Clearn search"
-          type="button">
-          <span class="material-symbols-rounded">close</span>
-        </button>
+
+      @if (!isHome()) {
+        <div class="search-bar">
+          <span class="material-symbols-rounded">search</span>
+          <input
+            type="text"
+            class="search-input"
+            placeholder="Search in homesilo..."
+            [value]="searchInputValue()"
+            (input)="onSearchInput($event)"
+            (keydown.escape)="onClearSearch()"
+            aria-label="Search files" />
+        @if (searchInputValue()) {
+          <button
+            class="search-clear-btn"
+            (click)="onClearSearch()"
+            aria-label="Clear search"
+            type="button">
+            <span class="material-symbols-rounded">close</span>
+          </button>
+        }
+        </div>
       }
-      </div>
       <div class="topbar-user">
         <button class="logout-btn" (click)="onLogout()">Sign out</button>
       </div>
