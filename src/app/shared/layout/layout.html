@@ -37,7 +37,9 @@
   <div class="main-area">
     <header class="topbar">
       <button class="menu-btn" (click)="toggleSidebar()" aria-label="Toggle sidebar">
-        <span class="material-symbols-rounded">menu</span>
+        <span class="material-symbols-rounded">
+          {{ sidebarOpen() ? 'chevron_left' : 'chevron_right' }}
+        </span>
       </button>
 
       @if (!isHome()) {
