@@ -6,10 +6,11 @@ import { FileMetadata } from '../../core/models/file-metadata';
 import { finalize } from 'rxjs';
 import { FileTable } from '../../shared/file-table/file-table';
 import { isPreviewable } from '../../core/utils/file-preview.utils';
+import { LoadingDelayPipe } from '../../shared/pipes/loading-delay';
 
 @Component({
   selector: 'app-starred',
-  imports: [FileTable],
+  imports: [FileTable, LoadingDelayPipe],
   templateUrl: './starred.html',
   styleUrl: './starred.css',
 })

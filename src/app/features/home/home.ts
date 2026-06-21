@@ -8,6 +8,7 @@ import { FileTable } from '../../shared/file-table/file-table';
 import { isPreviewable } from '../../core/utils/file-preview.utils';
 import { DatePipe } from '@angular/common';
 import { Auth } from '../../core/services/auth';
+import { LoadingDelayPipe } from '../../shared/pipes/loading-delay';
 
 const CATEGORY_META: Record<string, { color: string; icon: string }> = {
   Documents: { color: '#F87171', icon: 'picture_as_pdf' },
@@ -19,7 +20,7 @@ const CATEGORY_META: Record<string, { color: string; icon: string }> = {
 
 @Component({
   selector: 'app-home',
-  imports: [FileTable, RouterLink, DatePipe],
+  imports: [FileTable, RouterLink, DatePipe, LoadingDelayPipe],
   templateUrl: './home.html',
   styleUrl: './home.css',
 })

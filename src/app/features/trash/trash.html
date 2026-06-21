@@ -5,14 +5,12 @@
       <p class="subtitle">{{ files().length }} file{{ files().length !== 1 ? 's' : '' }} in trash</p>
     </div>
   </div>
-
   @if (errorMessage()) {
     <div class="server-error">{{ errorMessage() }}</div>
   }
-
-  @if (loading()) {
+  @if (loading() | loadingDelay) {
     <div class="empty-state">Loading files...</div>
-  } @else if (files().length === 0) {
+  } @else if (!loading() && files().length === 0) {
     <div class="empty-state">
       @if (isSearching()) {
         <span class="material-symbols-rounded empty-icon">search_off</span>
@@ -24,20 +22,16 @@
         <p>Files you move to trash will appear here.</p>
       }
     </div>
-  } @else {
+  } @else if (!loading()) {
     <app-file-table
       [files]="files()"
       [actions]="['restore', 'deleteForever']"
       dateColumnLabel="Deleted"
       (restore)="restoreFile($event)"
       (deleteForever)="deleteFile($event)" />
-
     @if (hasMore()) {
       <div class="show-more-wrap">
-        <button
-          class="show-more-btn"
-          (click)="loadMore()"
-          [disabled]="loadingMore()">
+        <button class="show-more-btn" (click)="loadMore()" [disabled]="loadingMore()">
           @if (loadingMore()) {
             <span class="spinner"></span>
             Loading...

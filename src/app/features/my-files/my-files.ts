@@ -16,10 +16,11 @@ import { Search } from '../../core/services/search';
 import { isPreviewable } from '../../core/utils/file-preview.utils';
 import { SelectionBar } from '../../shared/selection-bar/selection-bar';
 import { DashboardStore } from '../../core/services/dashboard-store';
+import { LoadingDelayPipe } from '../../shared/pipes/loading-delay';
 
 @Component({
   selector: 'app-my-files',
-  imports: [FileTable, SelectionBar],
+  imports: [FileTable, SelectionBar, LoadingDelayPipe],
   templateUrl: './my-files.html',
   styleUrl: './my-files.css',
 })

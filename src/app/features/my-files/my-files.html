@@ -5,32 +5,21 @@
   (dragover)="onDragOver($event)"
   (dragleave)="onDragLeave($event)"
   (drop)="onDrop($event)">
-
   @if (dragging()) {
     <div class="drop-overlay">
       <span class="material-symbols-rounded drop-icon">cloud_upload</span>
       <p>Drop files to upload</p>
     </div>
   }
-
   <div class="page-header">
     <div>
       <h2>My Files</h2>
       <p class="subtitle">Showing {{ files().length }} file{{ files().length !== 1 ? 's' : '' }}</p>
     </div>
-
     <app-selection-bar
       [selectedCount]="fileTable()?.selectedIds()?.size ?? 0"
       [actions]="['download', 'open', 'trash', 'star']"></app-selection-bar>
-    <!--    (clearSelection)="fileTable()?.selectedIds.set(new Set())"-->
-    <!--    (downloadAll)="onDownloadAll()"-->
-    <!--    (openAll)="onOpenAll()"-->
-    <!--    (trashAll)="onTrashAll()" -->
-
-    <button
-      class="upload-btn"
-      (click)="triggerFilePicker()"
-      [disabled]="uploading()">
+    <button class="upload-btn" (click)="triggerFilePicker()" [disabled]="uploading()">
       @if (uploading()) {
         <span class="spinner"></span>
         Uploading {{ uploadCompleted() }} of {{ uploadTotal() }}...
@@ -39,30 +28,19 @@
         Upload Files
       }
     </button>
-    <input
-      #fileInput
-      hidden
-      type="file"
-      multiple
-      (change)="onFileSelected($event)" />
+    <input #fileInput hidden type="file" multiple (change)="onFileSelected($event)" />
   </div>
-
   @if (errorMessage()) {
     <div class="server-error">
       <span>{{ errorMessage() }}</span>
-      <button
-        class="error-dismiss-btn"
-        (click)="errorMessage.set('')"
-        aria-label="Dismiss error"
-        type="button">
+      <button class="error-dismiss-btn" (click)="errorMessage.set('')" aria-label="Dismiss error" type="button">
         <span class="material-symbols-rounded">close</span>
       </button>
     </div>
   }
-
-  @if (loading()) {
+  @if (loading() | loadingDelay) {
     <div class="empty-state">Loading files...</div>
-  } @else if (files().length === 0) {
+  } @else if (!loading() && files().length === 0) {
     <div class="empty-state">
       @if (isSearching()) {
         <span class="material-symbols-rounded empty-icon">search_off</span>
@@ -74,7 +52,7 @@
         <p>Upload your first backup to homesilo.</p>
       }
     </div>
-  } @else {
+  } @else if (!loading()) {
     <app-file-table
       [files]="files()"
       [actions]="['download', 'trash', 'star']"
@@ -83,13 +61,9 @@
       (trash)="trashFile($event)"
       (star)="toggleStar($event)"
       (openFile)="openFile($event)" />
-
     @if (hasMore()) {
       <div class="show-more-wrap">
-        <button
-          class="show-more-btn"
-          (click)="loadMore()"
-          [disabled]="loadingMore()">
+        <button class="show-more-btn" (click)="loadMore()" [disabled]="loadingMore()">
           @if (loadingMore()) {
             <span class="spinner"></span>
             Loading...

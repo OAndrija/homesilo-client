@@ -5,10 +5,11 @@ import { finalize } from 'rxjs';
 import { FileTable } from '../../shared/file-table/file-table';
 import { Search } from '../../core/services/search';
 import { DashboardStore } from '../../core/services/dashboard-store';
+import { LoadingDelayPipe } from '../../shared/pipes/loading-delay';
 
 @Component({
   selector: 'app-trash',
-  imports: [FileTable],
+  imports: [FileTable, LoadingDelayPipe],
   templateUrl: './trash.html',
   styleUrl: './trash.css',
 })

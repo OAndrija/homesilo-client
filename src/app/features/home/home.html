@@ -81,14 +81,21 @@
     <button class="see-all-btn" routerLink="/my-files">See all</button>
   </div>
 
-  @if (loadingRecent()) {
+  @if (loadingRecent() | loadingDelay) {
     <div class="loading-state">Loading files...</div>
-  } @else if (recentFiles().length === 0) {
+  } @else if (!loadingRecent() && recentFiles().length === 0) {
     <div class="empty-state">
       <span class="material-symbols-rounded empty-icon">cloud_upload</span>
       <h3>No files yet</h3>
       <p>Upload your first file to get started.</p>
     </div>
+  } @else if (!loadingRecent()) {
+    <app-file-table
+      [files]="recentFiles()"
+      [actions]="['download']"
+      dateColumnLabel="Uploaded"
+      (download)="downloadFile($event)"
+      (openFile)="openFile($event)" />
   } @else {
     <app-file-table
       [files]="recentFiles()"
@@ -127,14 +134,14 @@
         <button class="see-all-btn" routerLink="/trash">View trash</button>
       </div>
 
-      @if (loadingTrashed()) {
+      @if (loadingTrashed() | loadingDelay) {
         <div class="loading-state">Loading...</div>
-      } @else if (trashedFiles().length === 0) {
+      } @else if (!loadingTrashed() && trashedFiles().length === 0) {
         <div class="empty-trash">
           <span class="material-symbols-rounded">delete</span>
           <p>Trash is empty</p>
         </div>
-      } @else {
+      } @else if (!loadingTrashed()) {
         @for (file of trashedFiles(); track file.id) {
           <div class="trash-row">
             <div class="trash-icon">
