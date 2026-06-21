@@ -15,6 +15,11 @@ export class Files {
     return this.http.get<PageResponse<FileMetadata>>(API_URL, { params });
   }
 
+  listRecentlyUploadedActive(page = 0, size = 10): Observable<PageResponse<FileMetadata>> {
+    const params = new HttpParams().set('page', page).set('size', size);
+    return this.http.get<PageResponse<FileMetadata>>(`${API_URL}/recent`, { params });
+  }
+
   listTrashed(page = 0, size = 20): Observable<PageResponse<FileMetadata>> {
     const params = new HttpParams().set('page', page).set('size', size);
     return this.http.get<PageResponse<FileMetadata>>(`${API_URL}/trash`, { params });

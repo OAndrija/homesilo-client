@@ -86,7 +86,7 @@ export class Home {
 
   private loadRecentFiles(): void {
     this.fileService
-      .listActive(0)
+      .listRecentlyUploadedActive(0)
       .pipe(finalize(() => this.loadingRecent.set(false)))
       .subscribe({
         next: (response) => {

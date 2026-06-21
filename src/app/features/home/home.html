@@ -3,7 +3,7 @@
   <div class="page-header">
     <div>
       <h2>Dashboard</h2>
-      <p class="subtitle">Welcome back {{ username() }}</p>
+      <p class="subtitle">Welcome back, {{ username() }}</p>
     </div>
     <button class="upload-btn" routerLink="/my-files">
       <span class="material-symbols-rounded">folder_open</span>
@@ -23,14 +23,14 @@
       </div>
       <div class="storage-wrap">
         <svg viewBox="0 0 58 58" width="58" height="58" class="ring-svg">
-          <circle cx="29" cy="29" r="24" fill="none" stroke="#24283B" stroke-width="6"/>
+          <circle cx="29" cy="29" r="24" fill="none" stroke="#24283B" stroke-width="6" />
           <circle
             cx="29" cy="29" r="24"
             fill="none" stroke="#F8B84E" stroke-width="6"
             stroke-linecap="round"
             transform="rotate(-90 29 29)"
             [attr.stroke-dasharray]="circumference"
-            [attr.stroke-dashoffset]="ringOffset()"/>
+            [attr.stroke-dashoffset]="ringOffset()" />
         </svg>
         <div>
           <div class="stat-value">{{ storageUsedGB() }} GB</div>

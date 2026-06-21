@@ -78,7 +78,7 @@
     <app-file-table
       [files]="files()"
       [actions]="['download', 'trash']"
-      dateColumnLabel="Uploaded"
+      dateColumnLabel="Modified"
       (download)="downloadFile($event)"
       (trash)="trashFile($event)"
       (openFile)="openFile($event)" />

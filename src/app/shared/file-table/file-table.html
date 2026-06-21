@@ -24,7 +24,7 @@
             {{ file.originalFileName }}
           </td>
           <td>{{ formatSize(file.size) }}</td>
-          <td>{{ file.uploadedAt | date:'medium' }}</td>
+          <td>{{ (file.trashedAt ?? file.lastModified ?? file.uploadedAt) | date:'medium' }}</td>
           <td class="actions">
             @if (hasAction('download')) {
               <button class="icon-btn download" (click)="download.emit(file); $event.stopPropagation()" title="Download">
