@@ -4,6 +4,7 @@ export interface FileMetadata {
   contentType: string;
   size: number;
   trashed: boolean;
+  starred: boolean;
   uploadedAt: string;
   lastModified: string;
   trashedAt: string | null;

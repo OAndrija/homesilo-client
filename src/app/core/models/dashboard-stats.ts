@@ -10,6 +10,7 @@ export interface DashboardStats {
   storageQuotaBytes: number;
   totalFiles: number;
   filesThisWeek: number;
+  starredCount: number;
   storageBreakdown: StorageBreakdownItem[];
   recentlyTrashed: FileMetadata[];
 }
