@@ -94,20 +94,20 @@
 
 [data-theme="light"] {
   /* ── Surfaces ── */
-  --color-bg: #F5F6FA;
-  --color-bg-elevated: #ECEEF5;
-  --color-surface: #EAECF4;
-  --color-surface-alt: #E4E7F2;
+  --color-bg: #FFFFFF;                /* page-content card → pure white */
+  --color-bg-elevated: #EAECF4;       /* shell/sidebar stays tinted */
+  --color-surface: #F0F2FA;
+  --color-surface-alt: #E8EBF5;
+  --color-surface-input: #ECEEF8;
+  --color-surface-hover: #E2E6F2;
   --color-surface-header: #ECF0F8;
-  --color-surface-input: #E8EAF3;
-  --color-surface-hover: #DDE0EE;
   /* ── Borders ── */
-  --color-border-faint: #E2E5F0;
-  --color-border-subtle: #D4D8EB;
-  --color-border: #C8CCDE;
-  --color-border-alt: #C2C7DC;
-  --color-border-strong: #B0B6D0;
-  --color-border-stronger: #9BA2C0;
+  --color-border-faint: #D8DCF0;
+  --color-border-subtle: #CDD2E8;
+  --color-border: #C0C5DC;
+  --color-border-alt: #B8BDD8;
+  --color-border-strong: #A8AED0;
+  --color-border-stronger: #9298C0;
   /* ── Text ── */
   --color-text-primary: #0F1124;
   --color-text-heading: #0A0C1A;
@@ -125,14 +125,14 @@
   /* ── Accent — unchanged, works on both modes ── */
   --color-accent: #D4900A;
   --color-accent-hover: #B87A06;
-  --color-accent-bg-faint: rgba(180, 110, 0, 0.05);
-  --color-accent-bg-subtle: rgba(180, 110, 0, 0.08);
-  --color-accent-bg: rgba(180, 110, 0, 0.10);
-  --color-accent-bg-medium: rgba(180, 110, 0, 0.13);
-  --color-accent-bg-strong: rgba(180, 110, 0, 0.16);
-  --color-accent-bg-stronger: rgba(180, 110, 0, 0.18);
-  --color-accent-bg-deep: rgba(180, 110, 0, 0.25);
-  --color-accent-bg-deepest: rgba(180, 110, 0, 0.35);
+  --color-accent-bg-faint: rgba(180, 110, 0, 0.07);
+  --color-accent-bg-subtle: rgba(180, 110, 0, 0.11);
+  --color-accent-bg: rgba(180, 110, 0, 0.15);
+  --color-accent-bg-medium: rgba(180, 110, 0, 0.19);
+  --color-accent-bg-strong: rgba(180, 110, 0, 0.24);   /* sidebar active link */
+  --color-accent-bg-stronger: rgba(180, 110, 0, 0.28);
+  --color-accent-bg-deep: rgba(180, 110, 0, 0.34);
+  --color-accent-bg-deepest: rgba(180, 110, 0, 0.44);
   /* ── Danger ── */
   --color-danger: #C0392B;
   --color-danger-text: #B02020;

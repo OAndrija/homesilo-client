@@ -44,8 +44,8 @@ export class Home {
 
   starredCount = signal(0); // no backend support yet
 
-  storageUsedGB = computed(() => (this.storageUsedBytes() / 1e9).toFixed(1));
-  storageLimitGB = computed(() => Math.round(this.storageLimitBytes() / 1e9));
+  storageUsedGB = computed(() => (this.storageUsedBytes() / 1024 ** 3).toFixed(1));
+  storageLimitGB = computed(() => Math.round(this.storageLimitBytes() / 1024 ** 3));
   storagePercent = computed(() =>
     Math.round((this.storageUsedBytes() / this.storageLimitBytes()) * 100),
   );
