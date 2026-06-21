@@ -4,6 +4,7 @@ import { FileMetadata } from '../../core/models/file-metadata';
 import { finalize } from 'rxjs';
 import { FileTable } from '../../shared/file-table/file-table';
 import { Search } from '../../core/services/search';
+import { DashboardStore } from '../../core/services/dashboard-store';
 
 @Component({
   selector: 'app-trash',
@@ -14,6 +15,7 @@ import { Search } from '../../core/services/search';
 export class Trash {
   private fileService = inject(Files);
   private searchService = inject(Search);
+  private dashboardStore = inject(DashboardStore);
 
   files = signal<FileMetadata[]>([]);
   loading = signal(true);
@@ -93,6 +95,7 @@ export class Trash {
     this.fileService.deletePermanently(file.id).subscribe({
       next: () => {
         this.files.update((files) => files.filter((f) => f.id !== file.id));
+        this.dashboardStore.refresh();
       },
       error: () => {
         this.errorMessage.set('Failed to delete file.');
@@ -103,6 +106,7 @@ export class Trash {
   restoreFile(file: FileMetadata): void {
     this.fileService.restore(file.id).subscribe(() => {
       this.files.update((files) => files.filter((f) => f.id !== file.id));
+      this.dashboardStore.refresh();
     });
   }
 }

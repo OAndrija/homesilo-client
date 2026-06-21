@@ -15,6 +15,7 @@ import { FileTable } from '../../shared/file-table/file-table';
 import { Search } from '../../core/services/search';
 import { isPreviewable } from '../../core/utils/file-preview.utils';
 import { SelectionBar } from '../../shared/selection-bar/selection-bar';
+import { DashboardStore } from '../../core/services/dashboard-store';
 
 @Component({
   selector: 'app-my-files',
@@ -25,6 +26,7 @@ import { SelectionBar } from '../../shared/selection-bar/selection-bar';
 export class MyFiles {
   private fileService = inject(Files);
   private searchService = inject(Search);
+  private dashboardStore = inject(DashboardStore);
 
   fileTable = viewChild(FileTable);
 
@@ -138,6 +140,7 @@ export class MyFiles {
         ),
         finalize(() => {
           this.uploading.set(false);
+          this.dashboardStore.refresh();
           if (this.uploadFailedCount() > 0) {
             const failed = this.uploadFailedCount();
             const total = this.uploadTotal();
@@ -171,6 +174,7 @@ export class MyFiles {
   trashFile(file: FileMetadata): void {
     this.fileService.trash(file.id).subscribe(() => {
       this.files.update((files) => files.filter((f) => f.id !== file.id));
+      this.dashboardStore.refresh();
     });
   }
 
