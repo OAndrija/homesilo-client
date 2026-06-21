@@ -4,6 +4,7 @@ import { Auth } from '../../core/services/auth';
 import { StorageIndicator } from '../storage-indicator/storage-indicator';
 import { Search } from '../../core/services/search';
 import { filter } from 'rxjs';
+import { ThemeService } from '../../core/services/theme';
 
 @Component({
   selector: 'app-layout',
@@ -15,6 +16,7 @@ export class Layout {
   private auth = inject(Auth);
   private router = inject(Router);
   private searchService = inject(Search);
+  themeService = inject(ThemeService);
 
   sidebarOpen = signal(true);
   searchInputValue = signal('');

@@ -1,8 +1,8 @@
 .app-shell {
   display: flex;
   height: 100vh;
-  background: #141620;
-  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--color-bg-elevated);
+  font-family: var(--font-body);
   position: relative;
   overflow: hidden;
 }
@@ -18,7 +18,7 @@
   flex-direction: column;
   padding: 5px 12px;
   overflow: hidden;
-  transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: width var(--transition-sidebar);
 }
 
 .app-shell.sidebar-open .sidebar {
@@ -51,11 +51,11 @@
 }
 
 .logo-text {
-  font-family: 'Space Grotesk', system-ui, sans-serif;
+  font-family: var(--font-heading);
   font-size: 18px;
   font-weight: 600;
   margin-top: 10px;
-  color: #7ec07e;
+  color: var(--color-brand-alt);
   letter-spacing: -0.3px;
 }
 
@@ -65,14 +65,14 @@
   overflow: hidden;
   opacity: 0;
   max-width: 0;
-  transition: opacity 0.15s ease, max-width 0.2s ease;
+  transition: opacity var(--transition-fast), max-width var(--transition-base);
 }
 
 .app-shell.sidebar-open .logo-text,
 .app-shell.sidebar-open .nav-label {
   opacity: 1;
   max-width: 160px;
-  transition: opacity 0.2s ease 0.1s, max-width 0.2s ease;
+  transition: opacity 0.2s ease 0.1s, max-width var(--transition-base);
 }
 
 .sidebar-nav {
@@ -87,12 +87,12 @@
   justify-content: flex-start;
   gap: 10px;
   padding: 13px 16px 13px 23px;
-  border-radius: 50px;
-  color: #9BA3C9;
+  border-radius: var(--radius-pill);
+  color: var(--color-text-muted);
   font-size: 14px;
   font-weight: 500;
   text-decoration: none;
-  transition: background 0.15s, color 0.15s, padding-left 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background var(--transition-fast), color var(--transition-fast), padding-left var(--transition-sidebar);
 }
 
 .app-shell.sidebar-open .nav-link {
@@ -107,13 +107,13 @@
 }
 
 .nav-link:hover {
-  background: #1C1F2E;
-  color: #F0F2FF;
+  background: var(--color-surface-input);
+  color: var(--color-text-primary);
 }
 
 .nav-link.active {
-  background: rgba(248, 184, 78, 0.15);
-  color: #F8B84E;
+  background: var(--color-accent-bg-strong);
+  color: var(--color-accent);
 }
 
 .main-area {
@@ -142,18 +142,18 @@
   z-index: 1;
   height: 55px;
   width: 55px;
-  background: #0D0F1A;
-  border: 1px solid #161823;
-  border-radius: 50px;
-  color: #6B7099;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border-faint);
+  border-radius: var(--radius-pill);
+  color: var(--color-text-dim);
   cursor: pointer;
-  transition: border-color 0.15s, color 0.15s, box-shadow 0.15s;
+  transition: border-color var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .menu-btn:hover {
-  border-color: #F8B84E;
-  color: #F8B84E;
-  box-shadow: 0 0 0 3px rgba(248, 184, 78, 0.08);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-bg-subtle);
 }
 
 .menu-btn .material-symbols-rounded {
@@ -166,22 +166,22 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  background: #0D0F1A;
-  border: 1px solid #161823;
-  border-radius: 50px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border-faint);
+  border-radius: var(--radius-pill);
   padding: 0 18px;
   height: 55px;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .search-bar:focus-within {
-  border-color: #F8B84E;
-  box-shadow: 0 0 0 3px rgba(248, 184, 78, 0.08);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-bg-subtle);
 }
 
 .search-bar .material-symbols-rounded {
   font-size: 20px;
-  color: #6B7099;
+  color: var(--color-text-dim);
   flex-shrink: 0;
 }
 
@@ -190,13 +190,13 @@
   background: transparent;
   border: none;
   outline: none;
-  color: #F0F2FF;
+  color: var(--color-text-primary);
   font-size: 14px;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--font-body);
 }
 
 .search-input::placeholder {
-  color: #3D4266;
+  color: var(--color-text-placeholder);
 }
 
 .topbar-user {
@@ -208,34 +208,32 @@
 
 .username {
   font-size: 18px;
-  color: #6B7099;
+  color: var(--color-text-dim);
   white-space: nowrap;
 }
 
 .logout-btn {
   background: transparent;
-  border: 1px solid #252840;
-  border-radius: 8px;
-  color: #9BA3C9;
+  border: 1px solid var(--color-border-alt);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
   font-size: 13px;
   font-weight: 500;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--font-body);
   padding: 12px 14px;
   cursor: pointer;
   white-space: nowrap;
-  transition: border-color 0.15s, color 0.15s;
+  transition: border-color var(--transition-fast), color var(--transition-fast);
 }
 
 .logout-btn:hover {
-  border-color: #F8B84E;
-  color: #F8B84E;
+  border-color: var(--color-accent);
+  color: var(--color-accent);
 }
-
-/* --- Page content --- */
 
 .page-content {
   flex: 1;
-  background: #0D0F1A;
+  background: var(--color-bg);
   border-radius: 16px 0 0 0;
   overflow-y: auto;
   min-height: 0;
@@ -250,24 +248,46 @@
   background: transparent;
   border: none;
   border-radius: 50%;
-  color: #6B7099;
+  color: var(--color-text-dim);
   cursor: pointer;
   flex-shrink: 0;
-  transition: background 0.15s, color 0.15s;
+  transition: background var(--transition-fast), color var(--transition-fast);
 }
 
 .search-clear-btn:hover {
-  background: #1C1F2E;
-  color: #F0F2FF;
+  background: var(--color-surface-input);
+  color: var(--color-text-primary);
 }
 
 .search-clear-btn .material-symbols-rounded {
   font-size: 20px;
 }
 
-/* ==========================================================================
-   Mobile
-   ========================================================================== */
+.theme-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  border: 1px solid var(--color-border-alt);
+  border-radius: var(--radius-pill);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color var(--transition-fast), color var(--transition-fast),
+  box-shadow var(--transition-fast);
+}
+
+.theme-toggle-btn:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-bg-subtle);
+}
+
+.theme-toggle-btn .material-symbols-rounded {
+  font-size: 20px;
+}
 
 @media (max-width: 767px) {
   .sidebar {
@@ -277,9 +297,9 @@
     height: 100vh;
     width: 228px;
     z-index: 200;
-    background: #141620;
+    background: var(--color-bg-elevated);
     transform: translateX(-100%);
-    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform var(--transition-sidebar);
   }
 
   .app-shell.sidebar-open .sidebar {

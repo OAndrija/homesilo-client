@@ -8,15 +8,14 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  background: #1A1D2E;
-  border: 1px solid #2D3250;
-  border-radius: 14px;
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-xl);
   padding: 10px 16px;
-  animation: slide-down .2s ease;
-  min-width: 0;        /* prevents flex blowout */
+  animation: slide-down 0.2s ease;
+  min-width: 0;
 }
 
-/* hide :host entirely when nothing selected so it takes no space */
 :host:empty {
   display: none;
 }
@@ -32,15 +31,15 @@
   gap: 8px;
   font-size: 13px;
   font-weight: 500;
-  color: #F8B84E;
+  color: var(--color-accent);
   padding-right: 12px;
-  border-right: 1px solid #2D3250;
+  border-right: 1px solid var(--color-border-strong);
   white-space: nowrap;
 }
 
 .sel-badge {
-  background: rgba(248, 184, 78, 0.15);
-  color: #F8B84E;
+  background: var(--color-accent-bg-strong);
+  color: var(--color-accent);
   border-radius: 6px;
   padding: 2px 8px;
   font-size: 13px;
@@ -57,7 +56,7 @@
 .sel-divider {
   width: 1px;
   height: 20px;
-  background: #2D3250;
+  background: var(--color-border-strong);
   margin: 0 4px;
 }
 
@@ -67,25 +66,29 @@
   gap: 6px;
   background: transparent;
   border: none;
-  color: #8C95B6;
-  border-radius: 8px;
+  color: var(--color-text-icon-muted);
+  border-radius: var(--radius-sm);
   padding: 6px 12px;
   font-size: 13px;
   cursor: pointer;
-  transition: .2s;
+  transition: var(--transition-base);
 }
 
 .sel-btn .material-symbols-rounded { font-size: 18px; }
-.sel-btn:hover { background: #25293C; color: #EEF2FF; }
+
+.sel-btn:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text-heading-alt);
+}
 
 .sel-btn.restore:hover {
-  background: rgba(34, 197, 94, .13);
-  color: #22C55E;
+  background: var(--color-success-bg-medium);
+  color: var(--color-success);
 }
 
 .sel-btn.danger:hover {
-  background: rgba(239, 68, 68, .13);
-  color: #EF4444;
+  background: var(--color-danger-bg-medium);
+  color: var(--color-danger);
 }
 
 .sel-clear {
@@ -94,17 +97,21 @@
   gap: 4px;
   background: transparent;
   border: none;
-  color: #737A97;
-  border-radius: 8px;
+  color: var(--color-text-faint);
+  border-radius: var(--radius-sm);
   padding: 6px 10px;
   font-size: 13px;
   cursor: pointer;
   margin-left: auto;
-  transition: .2s;
+  transition: var(--transition-base);
 }
 
 .sel-clear .material-symbols-rounded { font-size: 18px; }
-.sel-clear:hover { background: #25293C; color: #EEF2FF; }
+
+.sel-clear:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text-heading-alt);
+}
 
 @media (max-width: 900px) {
   .sel-btn span:last-child { display: none; }

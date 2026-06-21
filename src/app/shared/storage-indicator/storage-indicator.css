@@ -1,4 +1,3 @@
-/* storage-indicator.css */
 :host {
   display: flex;
   flex-direction: column;
@@ -16,18 +15,18 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding-left: 23px; /* matches collapsed .nav-link icon position */
-  transition: padding-left 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  padding-left: 23px;
+  transition: padding-left var(--transition-sidebar);
 }
 
 :host(.open) .storage-header {
-  padding-left: 16px; /* matches open .nav-link icon position */
+  padding-left: 16px;
 }
 
 .storage-icon {
-  width: 22px;        /* matches .nav-link .material-symbols-rounded width */
+  width: 22px;
   font-size: 22px;
-  color: #9BA3C9;
+  color: var(--color-text-muted);
   flex-shrink: 0;
 }
 
@@ -38,25 +37,25 @@
   max-width: 0;
   font-size: 13px;
   font-weight: 600;
-  color: #9BA3C9;
-  transition: opacity 0.15s ease, max-width 0.2s ease;
+  color: var(--color-text-muted);
+  transition: opacity var(--transition-fast), max-width var(--transition-base);
 }
 
 .storage-bar-track {
   width: 100%;
   height: 6px;
-  border-radius: 50px;
-  background: #1C1F2E;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-input);
   overflow: hidden;
   opacity: 0;
   max-height: 0;
-  transition: opacity 0.15s ease, max-height 0.2s ease;
+  transition: opacity var(--transition-fast), max-height var(--transition-base);
 }
 
 .storage-bar-fill {
   height: 100%;
-  border-radius: 50px;
-  background: #F8B84E;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
   transition: width 0.3s ease;
 }
 
@@ -67,9 +66,9 @@
   opacity: 0;
   max-height: 0;
   font-size: 12px;
-  color: #6B7099;
+  color: var(--color-text-dim);
   padding-left: 23px;
-  transition: opacity 0.15s ease, max-height 0.2s ease, padding-left 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity var(--transition-fast), max-height var(--transition-base), padding-left var(--transition-sidebar);
 }
 
 :host(.open) .storage-text {
@@ -80,7 +79,7 @@
 :host(.open) .storage-text {
   opacity: 1;
   max-width: 160px;
-  max-height: 20px; /* was missing height on storage-text, only had on storage-bar-track */
+  max-height: 20px;
 }
 
 :host(.open) .storage-bar-track {
