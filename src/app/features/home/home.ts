@@ -10,10 +10,10 @@ import { DatePipe } from '@angular/common';
 import { Auth } from '../../core/services/auth';
 
 const CATEGORY_META: Record<string, { color: string; icon: string }> = {
-  Documents: { color: '#EF4444', icon: 'picture_as_pdf' },
-  Images: { color: '#22C55E', icon: 'image' },
-  Videos: { color: '#818CF8', icon: 'movie' },
-  Archives: { color: '#F8B84E', icon: 'folder_zip' },
+  Documents: { color: '#F87171', icon: 'picture_as_pdf' },
+  Images: { color: '#A78BFA', icon: 'image' },
+  Videos: { color: '#F472B6', icon: 'movie' },
+  Archives: { color: '#FACC15', icon: 'folder_zip' },
   Other: { color: '#94A3B8', icon: 'description' },
 };
 
@@ -122,7 +122,7 @@ export class Home {
       // Restoring moves the file back into the active/non-trashed count,
       // which changes storageUsedBytes, totalFiles, and recentlyTrashed —
       // refresh the store so every subscriber (sidebar included) updates.
-      this.store.refresh();
+      this.store.silentRefresh();
       this.loadRecentFiles();
     });
   }

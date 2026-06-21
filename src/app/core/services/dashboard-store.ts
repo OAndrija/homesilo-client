@@ -24,6 +24,15 @@ export class DashboardStore {
     this.fetch();
   }
 
+  silentRefresh(): void {
+    this.dashboardService.getStats().subscribe({
+      next: (stats) => {
+        this.statsSignal.set(stats);
+        this.loadedOnce = true;
+      },
+    });
+  }
+
   /**
    * Clears cached stats and the loadedOnce flag. Must be called on logout
    * (and ideally on login) — this store is a root singleton, so without an
