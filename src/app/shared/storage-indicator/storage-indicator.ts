@@ -1,7 +1,5 @@
-import { Component, inject, signal, computed, input } from '@angular/core';
-import { Files } from '../../core/services/files';
-
-const MAX_STORAGE_BYTES = 10 * 1024 * 1024 * 1024;
+import { Component, inject, computed, input } from '@angular/core';
+import { DashboardStore } from '../../core/services/dashboard-store';
 
 @Component({
   selector: 'app-storage-indicator',
@@ -13,23 +11,19 @@ const MAX_STORAGE_BYTES = 10 * 1024 * 1024 * 1024;
   },
 })
 export class StorageIndicator {
-  private fileService = inject(Files);
-
+  private store = inject(DashboardStore);
   sidebarOpen = input.required<boolean>();
 
-  usedBytes = signal(0);
-  maxBytes = MAX_STORAGE_BYTES;
+  usedBytes = computed(() => this.store.stats()?.storageUsedBytes ?? 0);
+  maxBytes = computed(() => this.store.stats()?.storageQuotaBytes ?? 1);
 
   percentUsed = computed(() => {
-    const pct = (this.usedBytes() / this.maxBytes) * 100;
+    const pct = (this.usedBytes() / this.maxBytes()) * 100;
     return Math.min(pct, 100);
   });
 
   ngOnInit(): void {
-    this.fileService.getStorageUsage().subscribe({
-      next: (bytes) => this.usedBytes.set(bytes),
-      error: () => {},
-    });
+    this.store.ensureLoaded();
   }
 
   formatGB(bytes: number): string {

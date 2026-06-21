@@ -1,8 +1,8 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, effect } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { Files } from '../../core/services/files';
-import { Dashboard } from '../../core/services/dashboard';
+import { DashboardStore } from '../../core/services/dashboard-store';
 import { FileMetadata } from '../../core/models/file-metadata';
 import { FileTable } from '../../shared/file-table/file-table';
 import { isPreviewable } from '../../core/utils/file-preview.utils';
@@ -25,24 +25,24 @@ const CATEGORY_META: Record<string, { color: string; icon: string }> = {
 })
 export class Home {
   private fileService = inject(Files);
-  private dashboardService = inject(Dashboard);
+  private store = inject(DashboardStore);
   private authService = inject(Auth);
   private router = inject(Router);
 
   username = signal(this.authService.getTokenPayload()?.sub ?? '');
 
   recentFiles = signal<FileMetadata[]>([]);
-  trashedFiles = signal<FileMetadata[]>([]);
   loadingRecent = signal(true);
-  loadingTrashed = signal(true);
 
-  totalFiles = signal(0);
-  storageUsedBytes = signal(0);
-  storageLimitBytes = signal(1);
-  filesThisWeek = signal(0);
-  starredCount = signal(0);
+  // Derived straight from the store — no local copies that can drift out of sync.
+  totalFiles = computed(() => this.store.stats()?.totalFiles ?? 0);
+  filesThisWeek = computed(() => this.store.stats()?.filesThisWeek ?? 0);
+  storageUsedBytes = computed(() => this.store.stats()?.storageUsedBytes ?? 0);
+  storageLimitBytes = computed(() => this.store.stats()?.storageQuotaBytes ?? 1);
+  trashedFiles = computed(() => this.store.stats()?.recentlyTrashed ?? []);
+  loadingTrashed = computed(() => this.store.loading());
 
-  storageBreakdownRaw = signal<{ category: string; bytes: number }[]>([]);
+  starredCount = signal(0); // no backend support yet
 
   storageUsedGB = computed(() => (this.storageUsedBytes() / 1e9).toFixed(1));
   storageLimitGB = computed(() => Math.round(this.storageLimitBytes() / 1e9));
@@ -56,7 +56,8 @@ export class Home {
 
   breakdownWithPercent = computed(() => {
     const total = this.storageUsedBytes();
-    return this.storageBreakdownRaw().map((t) => {
+    const breakdown = this.store.stats()?.storageBreakdown ?? [];
+    return breakdown.map((t) => {
       const meta = CATEGORY_META[t.category] ?? CATEGORY_META['Other'];
       return {
         label: t.category,
@@ -69,25 +70,18 @@ export class Home {
   });
 
   constructor() {
-    this.loadDashboardStats();
-    this.loadRecentFiles();
-  }
+    // effect() must be created here (constructor field-initializer context) —
+    // calling it later from a method loses the injection context it needs.
+    effect(() => {
+      // Touching the signal establishes the reactive dependency; the actual
+      // values are read via the computed signals above, so this effect body
+      // intentionally does nothing else. Kept in case you want side effects
+      // later (e.g. logging, analytics) when stats change.
+      this.store.stats();
+    });
 
-  private loadDashboardStats(): void {
-    this.loadingTrashed.set(true);
-    this.dashboardService
-      .getStats()
-      .pipe(finalize(() => this.loadingTrashed.set(false)))
-      .subscribe({
-        next: (stats) => {
-          this.storageUsedBytes.set(stats.storageUsedBytes);
-          this.storageLimitBytes.set(stats.storageQuotaBytes);
-          this.totalFiles.set(stats.totalFiles);
-          this.filesThisWeek.set(stats.filesThisWeek);
-          this.storageBreakdownRaw.set(stats.storageBreakdown);
-          this.trashedFiles.set(stats.recentlyTrashed);
-        },
-      });
+    this.store.ensureLoaded();
+    this.loadRecentFiles();
   }
 
   private loadRecentFiles(): void {
@@ -125,7 +119,11 @@ export class Home {
 
   restoreFile(file: FileMetadata): void {
     this.fileService.restore(file.id).subscribe(() => {
-      this.trashedFiles.update((files) => files.filter((f) => f.id !== file.id));
+      // Restoring moves the file back into the active/non-trashed count,
+      // which changes storageUsedBytes, totalFiles, and recentlyTrashed —
+      // refresh the store so every subscriber (sidebar included) updates.
+      this.store.refresh();
+      this.loadRecentFiles();
     });
   }
 

@@ -3,11 +3,13 @@ import { inject, Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthResponse, LoginRequest, RegisterRequest } from '../models/auth.models';
 import { Observable, tap } from 'rxjs';
+import { DashboardStore } from './dashboard-store';
 
 @Injectable({ providedIn: 'root' })
 export class Auth {
   private http = inject(HttpClient);
   private router = inject(Router);
+  private dashboardStore = inject(DashboardStore);
 
   private readonly TOKEN_KEY = 'auth_token';
   private readonly API = 'http://localhost:8080/api/v1/auth';
@@ -52,5 +54,6 @@ export class Auth {
 
   private saveToken(token: string): void {
     localStorage.setItem(this.TOKEN_KEY, token);
+    this.dashboardStore.reset();
   }
 }
