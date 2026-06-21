@@ -1,1 +1,53 @@
-<p>starred works!</p>
+<div class="files-page">
+  <div class="page-header">
+    <div>
+      <h2>Starred</h2>
+      <p class="subtitle">{{ files().length }} starred file{{ files().length !== 1 ? 's' : '' }}</p>
+    </div>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="server-error">{{ errorMessage() }}</div>
+  }
+
+  @if (loading()) {
+    <div class="empty-state">Loading files...</div>
+  } @else if (files().length === 0) {
+    <div class="empty-state">
+      @if (isSearching()) {
+        <span class="material-symbols-rounded empty-icon">search_off</span>
+        <h3>No results found</h3>
+        <p>Try a different search term.</p>
+      } @else {
+        <span class="material-symbols-rounded empty-icon">star</span>
+        <h3>No starred files yet</h3>
+        <p>Files you star will appear here.</p>
+      }
+    </div>
+  } @else {
+    <app-file-table
+      [files]="files()"
+      [actions]="['download', 'trash', 'star']"
+      dateColumnLabel="Modified"
+      (download)="downloadFile($event)"
+      (trash)="trashFile($event)"
+      (star)="toggleStar($event)"
+      (openFile)="openFile($event)" />
+
+    @if (hasMore()) {
+      <div class="show-more-wrap">
+        <button
+          class="show-more-btn"
+          (click)="loadMore()"
+          [disabled]="loadingMore()">
+          @if (loadingMore()) {
+            <span class="spinner"></span>
+            Loading...
+          } @else {
+            Show more
+          }
+        </button>
+      </div>
+    }
+  }
+</div>
