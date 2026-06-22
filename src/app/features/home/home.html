@@ -76,27 +76,11 @@
   </div>
 
   <!-- ── Recent files ───────────────────────────────────────── -->
-  <div class="section-header">
-    <h3>Recent files</h3>
-    <button class="see-all-btn" routerLink="/my-files">See all</button>
-  </div>
-
-  @if (loadingRecent() | loadingDelay) {
-    <div class="loading-state">Loading files...</div>
-  } @else if (!loadingRecent() && recentFiles().length === 0) {
-    <div class="empty-state">
-      <span class="material-symbols-rounded empty-icon">cloud_upload</span>
-      <h3>No files yet</h3>
-      <p>Upload your first file to get started.</p>
+  @if (!loadingRecent() && recentFiles().length > 0) {
+    <div class="section-header">
+      <h3>Recent files</h3>
+      <button class="see-all-btn" routerLink="/my-files">See all</button>
     </div>
-  } @else if (!loadingRecent()) {
-    <app-file-table
-      [files]="recentFiles()"
-      [actions]="['download']"
-      dateColumnLabel="Uploaded"
-      (download)="downloadFile($event)"
-      (openFile)="openFile($event)" />
-  } @else {
     <app-file-table
       [files]="recentFiles()"
       [actions]="['download']"
@@ -112,19 +96,26 @@
       <div class="section-header">
         <h3>Storage by type</h3>
       </div>
-      @for (type of breakdownWithPercent(); track type.label) {
-        <div class="type-row">
-          <div class="type-icon" [style.background]="type.color + '1a'" [style.color]="type.color">
-            <span class="material-symbols-rounded">{{ type.icon }}</span>
-          </div>
-          <div class="type-info">
-            <span class="type-name">{{ type.label }}</span>
-            <div class="type-bar-bg">
-              <div class="type-bar" [style.width.%]="type.percent" [style.background]="type.color"></div>
-            </div>
-          </div>
-          <span class="type-size">{{ type.sizeLabel }}</span>
+      @if (breakdownWithPercent().length === 0) {
+        <div class="empty-trash">
+          <span class="material-symbols-rounded">pie_chart</span>
+          <p>No files uploaded yet</p>
         </div>
+      } @else {
+        @for (type of breakdownWithPercent(); track type.label) {
+          <div class="type-row">
+            <div class="type-icon" [style.background]="type.color + '1a'" [style.color]="type.color">
+              <span class="material-symbols-rounded">{{ type.icon }}</span>
+            </div>
+            <div class="type-info">
+              <span class="type-name">{{ type.label }}</span>
+              <div class="type-bar-bg">
+                <div class="type-bar" [style.width.%]="type.percent" [style.background]="type.color"></div>
+              </div>
+            </div>
+            <span class="type-size">{{ type.sizeLabel }}</span>
+          </div>
+        }
       }
     </div>
 
