@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostListener, inject, input, output, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, inject, input, output, signal, effect } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FileMetadata } from '../../core/models/file-metadata';
 import { getFileIcon } from '../../core/utils/file-icon.util';
@@ -30,6 +30,16 @@ export class FileTable {
 
   selectedIds = signal<Set<string>>(new Set());
   private lastClickedIndex: number | null = null;
+
+  constructor() {
+    effect(() => {
+      const currentIds = new Set(this.files().map((f) => f.id));
+      this.selectedIds.update((selected) => {
+        const pruned = new Set([...selected].filter((id) => currentIds.has(id)));
+        return pruned.size !== selected.size ? pruned : selected;
+      });
+    });
+  }
 
   hasAction(action: FileAction): boolean {
     return this.actions().includes(action);
@@ -97,8 +107,10 @@ export class FileTable {
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
-    const clickedInside = this.elementRef.nativeElement.contains(event.target as Node);
-    if (!clickedInside) {
+    const target = event.target as Node;
+    const clickedInsideTable = this.elementRef.nativeElement.contains(target);
+    const clickedInsideBar = !!(target as Element).closest?.('[data-selection-bar]');
+    if (!clickedInsideTable && !clickedInsideBar) {
       this.selectedIds.set(new Set());
       this.lastClickedIndex = null;
     }

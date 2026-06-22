@@ -1,5 +1,5 @@
 @if (selectedCount() > 0) {
-  <div class="selection-bar">
+  <div class="selection-bar" data-selection-bar>
     <span class="sel-count">
       <span class="sel-badge">{{ selectedCount() }}</span>
       {{ selectedCount() === 1 ? 'file' : 'files' }} selected

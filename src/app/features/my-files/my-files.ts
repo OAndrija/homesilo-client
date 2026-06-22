@@ -238,7 +238,6 @@ export class MyFiles {
       .subscribe(() => {
         const ids = new Set(selected.map((f) => f.id));
         this.files.update((files) => files.filter((f) => !ids.has(f.id)));
-        this.fileTable()?.clearSelection();
       });
   }
 
@@ -253,7 +252,6 @@ export class MyFiles {
       .subscribe((updated) => {
         this.files.update((files) => files.map((f) => (f.id === updated.id ? updated : f)));
       });
-    this.fileTable()?.clearSelection();
   }
 
   private getSelectedFiles(): FileMetadata[] {

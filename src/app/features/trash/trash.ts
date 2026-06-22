@@ -118,7 +118,6 @@ export class Trash {
       .subscribe(() => {
         const ids = new Set(selected.map((f) => f.id));
         this.files.update((files) => files.filter((f) => !ids.has(f.id)));
-        this.fileTable()?.clearSelection();
       });
   }
 
@@ -139,7 +138,6 @@ export class Trash {
       .subscribe(() => {
         const ids = new Set(selected.map((f) => f.id));
         this.files.update((files) => files.filter((f) => !ids.has(f.id)));
-        this.fileTable()?.clearSelection();
       });
   }
 
