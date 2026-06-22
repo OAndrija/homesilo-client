@@ -18,7 +18,12 @@
     </div>
     <app-selection-bar
       [selectedCount]="fileTable()?.selectedIds()?.size ?? 0"
-      [actions]="['download', 'open', 'trash', 'star']"></app-selection-bar>
+      [actions]="['download', 'trash', 'star']"
+      (downloadAll)="onDownloadAll()"
+      (trashAll)="onTrashAll()"
+      (starAll)="onStarAll()"
+      (clearSelection)="fileTable()?.clearSelection()">
+    </app-selection-bar>
     <button class="upload-btn" (click)="triggerFilePicker()" [disabled]="uploading()">
       @if (uploading()) {
         <span class="spinner"></span>

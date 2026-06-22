@@ -208,6 +208,45 @@ export class MyFiles {
     });
   }
 
+  onDownloadAll(): void {
+    const selected = this.getSelectedFiles();
+    selected.forEach((file) => this.downloadFile(file));
+  }
+
+  onTrashAll(): void {
+    const selected = this.getSelectedFiles();
+    if (selected.length === 0) return;
+    from(selected)
+      .pipe(
+        concatMap((file) => this.fileService.trash(file.id)),
+        finalize(() => this.dashboardStore.refresh()),
+      )
+      .subscribe(() => {
+        const ids = new Set(selected.map((f) => f.id));
+        this.files.update((files) => files.filter((f) => !ids.has(f.id)));
+        this.fileTable()?.clearSelection();
+      });
+  }
+
+  onStarAll(): void {
+    const selected = this.getSelectedFiles();
+    if (selected.length === 0) return;
+    from(selected)
+      .pipe(
+        concatMap((file) => this.fileService.toggleStar(file.id)),
+        finalize(() => this.dashboardStore.silentRefresh()),
+      )
+      .subscribe((updated) => {
+        this.files.update((files) => files.map((f) => (f.id === updated.id ? updated : f)));
+      });
+    this.fileTable()?.clearSelection();
+  }
+
+  private getSelectedFiles(): FileMetadata[] {
+    const ids = this.fileTable()?.selectedIds() ?? new Set();
+    return this.files().filter((f) => ids.has(f.id));
+  }
+
   //Drag and Drop functions
 
   @HostListener('document:dragover', ['$event'])

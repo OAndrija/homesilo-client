@@ -9,13 +9,22 @@
       @if (hasAction('download')) {
         <button class="sel-btn" (click)="downloadAll.emit()" title="Download selected">
           <span class="material-symbols-rounded">download</span>
-          Download
+          @if (selectedCount() == 1) {
+            Download
+          } @else {
+            Download all
+          }
         </button>
       }
-      @if (hasAction('open')) {
-        <button class="sel-btn" (click)="openAll.emit()" title="Open all in new tabs">
-          <span class="material-symbols-rounded">open_in_new</span>
-          Open all
+
+      @if (hasAction('star')) {
+        <button class="sel-btn" (click)="starAll.emit()" title="Star all">
+          <span class="material-symbols-rounded">star</span>
+            @if (selectedCount() == 1) {
+              Star
+            } @else {
+              Star all
+            }
         </button>
       }
 
@@ -26,7 +35,11 @@
       @if (hasAction('restore')) {
         <button class="sel-btn restore" (click)="restoreAll.emit()">
           <span class="material-symbols-rounded">restore_from_trash</span>
-          Restore
+          @if (selectedCount() == 1) {
+            Restore
+          } @else {
+            Restore all
+          }
         </button>
       }
       @if (hasAction('trash')) {
