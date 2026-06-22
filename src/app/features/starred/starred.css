@@ -163,3 +163,16 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+.page-header::after {
+  content: '';
+  flex: 1;
+}
+
+.page-header > div:first-child {
+  flex: 1;
+}
+
+app-selection-bar {
+  flex-shrink: 0;
+}

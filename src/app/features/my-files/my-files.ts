@@ -210,7 +210,21 @@ export class MyFiles {
 
   onDownloadAll(): void {
     const selected = this.getSelectedFiles();
-    selected.forEach((file) => this.downloadFile(file));
+    if (selected.length === 0) return;
+
+    if (selected.length === 1) {
+      this.downloadFile(selected[0]);
+      return;
+    }
+
+    this.fileService.downloadZip(selected.map((f) => f.id)).subscribe((blob) => {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'homesilo-files.zip';
+      a.click();
+      window.URL.revokeObjectURL(url);
+    });
   }
 
   onTrashAll(): void {

@@ -4,6 +4,13 @@
       <h2>Trash</h2>
       <p class="subtitle">{{ files().length }} file{{ files().length !== 1 ? 's' : '' }} in trash</p>
     </div>
+    <app-selection-bar
+      [selectedCount]="fileTable()?.selectedIds()?.size ?? 0"
+      [actions]="['restore', 'deleteForever']"
+      (restoreAll)="onRestoreAll()"
+      (deleteForeverAll)="onDeleteForeverAll()"
+      (clearSelection)="fileTable()?.clearSelection()">
+    </app-selection-bar>
   </div>
   @if (errorMessage()) {
     <div class="server-error">{{ errorMessage() }}</div>
@@ -32,12 +39,7 @@
     @if (hasMore()) {
       <div class="show-more-wrap">
         <button class="show-more-btn" (click)="loadMore()" [disabled]="loadingMore()">
-          @if (loadingMore()) {
-            <span class="spinner"></span>
-            Loading...
-          } @else {
-            Show more
-          }
+          @if (loadingMore()) { <span class="spinner"></span> Loading... } @else { Show more }
         </button>
       </div>
     }

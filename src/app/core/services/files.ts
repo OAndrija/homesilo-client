@@ -40,6 +40,10 @@ export class Files {
     return this.http.get(`${API_URL}/${fileId}/download`, { responseType: 'blob' });
   }
 
+  downloadZip(fileIds: string[]): Observable<Blob> {
+    return this.http.post(`${API_URL}/download-zip`, fileIds, { responseType: 'blob' });
+  }
+
   preview(fileId: string): Observable<Blob> {
     return this.http.get(`${API_URL}/${fileId}/preview`, { responseType: 'blob' });
   }

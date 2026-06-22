@@ -1,15 +1,16 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal, viewChild } from '@angular/core';
+import { concatMap, finalize, from } from 'rxjs';
 import { Files } from '../../core/services/files';
 import { FileMetadata } from '../../core/models/file-metadata';
-import { finalize } from 'rxjs';
 import { FileTable } from '../../shared/file-table/file-table';
+import { SelectionBar } from '../../shared/selection-bar/selection-bar';
 import { Search } from '../../core/services/search';
 import { DashboardStore } from '../../core/services/dashboard-store';
 import { LoadingDelayPipe } from '../../shared/pipes/loading-delay';
 
 @Component({
   selector: 'app-trash',
-  imports: [FileTable, LoadingDelayPipe],
+  imports: [FileTable, SelectionBar, LoadingDelayPipe],
   templateUrl: './trash.html',
   styleUrl: './trash.css',
 })
@@ -17,6 +18,8 @@ export class Trash {
   private fileService = inject(Files);
   private searchService = inject(Search);
   private dashboardStore = inject(DashboardStore);
+
+  fileTable = viewChild(FileTable);
 
   files = signal<FileMetadata[]>([]);
   loading = signal(true);
@@ -72,12 +75,10 @@ export class Trash {
     const nextPage = this.currentPage() + 1;
     const query = this.searchService.query().trim();
     this.loadingMore.set(true);
-
     const request$ =
       query === ''
         ? this.fileService.listTrashed(nextPage)
         : this.fileService.searchTrashed(query, nextPage);
-
     request$.pipe(finalize(() => this.loadingMore.set(false))).subscribe({
       next: (response) => {
         this.files.update((files) => [...files, ...response.content]);
@@ -89,18 +90,13 @@ export class Trash {
   }
 
   deleteFile(file: FileMetadata): void {
-    if (!confirm(`Permanently delete "${file.originalFileName}"?`)) {
-      return;
-    }
-
+    if (!confirm(`Permanently delete "${file.originalFileName}"?`)) return;
     this.fileService.deletePermanently(file.id).subscribe({
       next: () => {
         this.files.update((files) => files.filter((f) => f.id !== file.id));
         this.dashboardStore.refresh();
       },
-      error: () => {
-        this.errorMessage.set('Failed to delete file.');
-      },
+      error: () => this.errorMessage.set('Failed to delete file.'),
     });
   }
 
@@ -109,5 +105,46 @@ export class Trash {
       this.files.update((files) => files.filter((f) => f.id !== file.id));
       this.dashboardStore.refresh();
     });
+  }
+
+  onRestoreAll(): void {
+    const selected = this.getSelectedFiles();
+    if (selected.length === 0) return;
+    from(selected)
+      .pipe(
+        concatMap((file) => this.fileService.restore(file.id)),
+        finalize(() => this.dashboardStore.refresh()),
+      )
+      .subscribe(() => {
+        const ids = new Set(selected.map((f) => f.id));
+        this.files.update((files) => files.filter((f) => !ids.has(f.id)));
+        this.fileTable()?.clearSelection();
+      });
+  }
+
+  onDeleteForeverAll(): void {
+    const selected = this.getSelectedFiles();
+    if (selected.length === 0) return;
+    if (
+      !confirm(
+        `Permanently delete ${selected.length} file${selected.length !== 1 ? 's' : ''}? This cannot be undone.`,
+      )
+    )
+      return;
+    from(selected)
+      .pipe(
+        concatMap((file) => this.fileService.deletePermanently(file.id)),
+        finalize(() => this.dashboardStore.refresh()),
+      )
+      .subscribe(() => {
+        const ids = new Set(selected.map((f) => f.id));
+        this.files.update((files) => files.filter((f) => !ids.has(f.id)));
+        this.fileTable()?.clearSelection();
+      });
+  }
+
+  private getSelectedFiles(): FileMetadata[] {
+    const ids = this.fileTable()?.selectedIds() ?? new Set();
+    return this.files().filter((f) => ids.has(f.id));
   }
 }

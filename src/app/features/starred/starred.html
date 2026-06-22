@@ -4,6 +4,14 @@
       <h2>Starred</h2>
       <p class="subtitle">{{ files().length }} starred file{{ files().length !== 1 ? 's' : '' }}</p>
     </div>
+    <app-selection-bar
+      [selectedCount]="fileTable()?.selectedIds()?.size ?? 0"
+      [actions]="['download', 'trash', 'star']"
+      (downloadAll)="onDownloadAll()"
+      (trashAll)="onTrashAll()"
+      (starAll)="onStarAll()"
+      (clearSelection)="fileTable()?.clearSelection()">
+    </app-selection-bar>
   </div>
   @if (errorMessage()) {
     <div class="server-error">{{ errorMessage() }}</div>
@@ -24,6 +32,7 @@
     </div>
   } @else if (!loading()) {
     <app-file-table
+      #fileTableRef
       [files]="files()"
       [actions]="['download', 'trash', 'star']"
       dateColumnLabel="Modified"
@@ -34,12 +43,7 @@
     @if (hasMore()) {
       <div class="show-more-wrap">
         <button class="show-more-btn" (click)="loadMore()" [disabled]="loadingMore()">
-          @if (loadingMore()) {
-            <span class="spinner"></span>
-            Loading...
-          } @else {
-            Show more
-          }
+          @if (loadingMore()) { <span class="spinner"></span> Loading... } @else { Show more }
         </button>
       </div>
     }

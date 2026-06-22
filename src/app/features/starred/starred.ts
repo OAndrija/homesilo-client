@@ -3,14 +3,15 @@ import { Files } from '../../core/services/files';
 import { DashboardStore } from '../../core/services/dashboard-store';
 import { Search } from '../../core/services/search';
 import { FileMetadata } from '../../core/models/file-metadata';
-import { finalize } from 'rxjs';
+import { concatMap, finalize, from } from 'rxjs';
 import { FileTable } from '../../shared/file-table/file-table';
+import { SelectionBar } from '../../shared/selection-bar/selection-bar';
 import { isPreviewable } from '../../core/utils/file-preview.utils';
 import { LoadingDelayPipe } from '../../shared/pipes/loading-delay';
 
 @Component({
   selector: 'app-starred',
-  imports: [FileTable, LoadingDelayPipe],
+  imports: [FileTable, SelectionBar, LoadingDelayPipe],
   templateUrl: './starred.html',
   styleUrl: './starred.css',
 })
@@ -75,12 +76,10 @@ export class Starred {
     const nextPage = this.currentPage() + 1;
     const query = this.searchService.query().trim();
     this.loadingMore.set(true);
-
     const request$ =
       query === ''
         ? this.fileService.listStarred(nextPage)
         : this.fileService.searchStarred(query, nextPage);
-
     request$.pipe(finalize(() => this.loadingMore.set(false))).subscribe({
       next: (response) => {
         this.files.update((files) => [...files, ...response.content]);
@@ -90,6 +89,7 @@ export class Starred {
       error: () => this.errorMessage.set('Failed to load more starred files.'),
     });
   }
+
   downloadFile(file: FileMetadata): void {
     this.fileService.download(file.id).subscribe((blob) => {
       const url = window.URL.createObjectURL(blob);
@@ -123,7 +123,6 @@ export class Starred {
       this.fileTable()?.flashRowError(file.id);
       return;
     }
-
     this.fileService.preview(file.id).subscribe({
       next: (blob) => {
         const url = window.URL.createObjectURL(blob);
@@ -135,5 +134,56 @@ export class Starred {
         this.fileTable()?.flashRowError(file.id);
       },
     });
+  }
+
+  onDownloadAll(): void {
+    const selected = this.getSelectedFiles();
+    if (selected.length === 0) return;
+    if (selected.length === 1) {
+      this.downloadFile(selected[0]);
+      return;
+    }
+    this.fileService.downloadZip(selected.map((f) => f.id)).subscribe((blob) => {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'homesilo-files.zip';
+      a.click();
+      window.URL.revokeObjectURL(url);
+    });
+  }
+
+  onTrashAll(): void {
+    const selected = this.getSelectedFiles();
+    if (selected.length === 0) return;
+    from(selected)
+      .pipe(
+        concatMap((file) => this.fileService.trash(file.id)),
+        finalize(() => this.dashboardStore.refresh()),
+      )
+      .subscribe(() => {
+        const ids = new Set(selected.map((f) => f.id));
+        this.files.update((files) => files.filter((f) => !ids.has(f.id)));
+        this.fileTable()?.clearSelection();
+      });
+  }
+
+  onStarAll(): void {
+    const selected = this.getSelectedFiles();
+    if (selected.length === 0) return;
+    from(selected)
+      .pipe(
+        concatMap((file) => this.fileService.toggleStar(file.id)),
+        finalize(() => this.dashboardStore.silentRefresh()),
+      )
+      .subscribe((updated) => {
+        this.files.update((files) => files.map((f) => (f.id === updated.id ? updated : f)));
+      });
+    this.fileTable()?.clearSelection();
+  }
+
+  private getSelectedFiles(): FileMetadata[] {
+    const ids = this.fileTable()?.selectedIds() ?? new Set();
+    return this.files().filter((f) => ids.has(f.id));
   }
 }
