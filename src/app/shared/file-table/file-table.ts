@@ -1,7 +1,17 @@
-import { Component, ElementRef, HostListener, inject, input, output, signal, effect } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  HostListener,
+  inject,
+  input,
+  output,
+  signal,
+  effect,
+} from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FileMetadata } from '../../core/models/file-metadata';
 import { getFileIcon } from '../../core/utils/file-icon.util';
+import { Folder } from '../../core/models/folder';
 
 export type FileAction = 'download' | 'trash' | 'restore' | 'deleteForever' | 'star';
 
@@ -14,16 +24,21 @@ export type FileAction = 'download' | 'trash' | 'restore' | 'deleteForever' | 's
 export class FileTable {
   private elementRef = inject(ElementRef);
 
+  // File inputs / outputs
   files = input.required<FileMetadata[]>();
   actions = input<FileAction[]>(['download', 'trash', 'star']);
   dateColumnLabel = input('Uploaded');
-
   download = output<FileMetadata>();
   trash = output<FileMetadata>();
   star = output<FileMetadata>();
   restore = output<FileMetadata>();
   deleteForever = output<FileMetadata>();
   openFile = output<FileMetadata>();
+
+  // Folder inputs / outputs
+  folders = input<Folder[]>([]);
+  folderOpen = output<Folder>();
+  folderTrash = output<Folder>();
 
   errorRowId = signal<string | null>(null);
   private errorTimeout?: ReturnType<typeof setTimeout>;
@@ -32,6 +47,7 @@ export class FileTable {
   private lastClickedIndex: number | null = null;
 
   constructor() {
+    // Prune selected IDs when the file list changes
     effect(() => {
       const currentIds = new Set(this.files().map((f) => f.id));
       this.selectedIds.update((selected) => {
@@ -73,7 +89,6 @@ export class FileTable {
       const start = Math.min(this.lastClickedIndex, index);
       const end = Math.max(this.lastClickedIndex, index);
       const rangeIds = list.slice(start, end + 1).map((f) => f.id);
-
       this.selectedIds.update((current) => {
         const next = new Set(current);
         rangeIds.forEach((id) => next.add(id));
@@ -85,11 +100,8 @@ export class FileTable {
     if (isToggle) {
       this.selectedIds.update((current) => {
         const next = new Set(current);
-        if (next.has(file.id)) {
-          next.delete(file.id);
-        } else {
-          next.add(file.id);
-        }
+        if (next.has(file.id)) next.delete(file.id);
+        else next.add(file.id);
         return next;
       });
       this.lastClickedIndex = index;

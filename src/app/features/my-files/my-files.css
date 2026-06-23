@@ -5,11 +5,13 @@
   position: relative;
 }
 
+/* ── Header ──────────────────────────────────────────────────── */
+
 .page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 28px;
+  margin-bottom: 16px;
   position: sticky;
   top: 0;
   z-index: 10;
@@ -29,6 +31,37 @@
   margin-top: 6px;
   color: var(--color-text-subtitle);
   font-size: 14px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.new-folder-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: var(--transition-base);
+  flex-shrink: 0;
+}
+
+.new-folder-btn .material-symbols-rounded {
+  font-size: 22px;
+}
+
+.new-folder-btn:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  background: var(--color-accent-bg);
 }
 
 .upload-btn {
@@ -57,6 +90,54 @@
   cursor: not-allowed;
 }
 
+/* ── Breadcrumb ──────────────────────────────────────────────── */
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.crumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border: none;
+  border-radius: var(--radius-lg);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.crumb:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text-primary);
+}
+
+.crumb:last-child {
+  color: var(--color-text-heading);
+  pointer-events: none; /* current location — not clickable */
+}
+
+.crumb-root .material-symbols-rounded {
+  font-size: 16px;
+}
+
+.crumb-sep {
+  font-size: 16px;
+  color: var(--color-text-faint);
+  user-select: none;
+}
+
+/* ── Spinner ─────────────────────────────────────────────────── */
+
 .spinner {
   width: 16px;
   height: 16px;
@@ -69,6 +150,8 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* ── Empty state ─────────────────────────────────────────────── */
 
 .empty-state {
   height: 350px;
@@ -95,6 +178,8 @@
 .empty-state p {
   margin-top: 10px;
 }
+
+/* ── Error ───────────────────────────────────────────────────── */
 
 .server-error {
   margin-bottom: 20px;
@@ -132,6 +217,8 @@
   font-size: 18px;
 }
 
+/* ── Show more ───────────────────────────────────────────────── */
+
 .show-more-wrap {
   display: flex;
   justify-content: center;
@@ -163,6 +250,8 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+/* ── Drop overlay ────────────────────────────────────────────── */
 
 .drop-overlay {
   position: absolute;

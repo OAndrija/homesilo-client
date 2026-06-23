@@ -22,6 +22,8 @@
   user-select: none;
 }
 
+/* ── Error row ───────────────────────────────────────────────── */
+
 .files-table tbody tr.row-error {
   background: var(--color-danger-bg);
   box-shadow: inset 4px 0 var(--color-danger);
@@ -29,9 +31,11 @@
 }
 
 @keyframes row-error-flash {
-  0% { background: var(--color-danger-bg-deepest); }
+  0%   { background: var(--color-danger-bg-deepest); }
   100% { background: var(--color-danger-bg); }
 }
+
+/* ── Header ──────────────────────────────────────────────────── */
 
 .files-table th {
   padding: 14px 20px;
@@ -43,12 +47,20 @@
   background: var(--color-surface-header);
 }
 
+/* ── Cells ───────────────────────────────────────────────────── */
+
 .files-table td {
   padding: 10px 20px;
   font-size: 14px;
   color: var(--color-text-heading-alt);
   border-bottom: none;
 }
+
+.cell-muted {
+  color: var(--color-text-faint) !important;
+}
+
+/* ── Row base ────────────────────────────────────────────────── */
 
 .files-table tbody tr {
   position: relative;
@@ -75,6 +87,24 @@
   background: transparent;
 }
 
+/* ── Folder rows ─────────────────────────────────────────────── */
+
+.folder-row {
+  cursor: pointer;
+}
+
+.folder-row:hover {
+  background: var(--color-surface-alt);
+  box-shadow: inset 4px 0 var(--color-accent) !important;
+}
+
+.folder-icon {
+  color: var(--color-accent) !important;
+  font-variation-settings: 'FILL' 1;
+}
+
+/* ── File name cell ──────────────────────────────────────────── */
+
 .file-name {
   display: flex;
   align-items: center;
@@ -94,6 +124,8 @@
 .file-icon {
   font-size: 24px;
 }
+
+/* ── Actions ─────────────────────────────────────────────────── */
 
 .actions {
   display: flex;
@@ -170,6 +202,8 @@ tr:has(.starred):not(:hover) .icon-btn:not(.star) {
   font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
   color: var(--color-star);
 }
+
+/* ── Selected rows ───────────────────────────────────────────── */
 
 .files-table tbody tr.row-selected {
   background: var(--color-accent-bg);

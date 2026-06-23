@@ -8,6 +8,8 @@ export interface FileMetadata {
   uploadedAt: string;
   lastModified: string;
   trashedAt: string | null;
+  folderId: string | null;
+  folderName: string | null;
 }
 
 export interface PageResponse<T> {

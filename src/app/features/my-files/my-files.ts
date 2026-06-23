@@ -8,7 +8,9 @@ import {
   computed,
   effect,
 } from '@angular/core';
+import { map } from 'rxjs/operators';
 import { Files } from '../../core/services/files';
+import { Folders } from '../../core/services/folders';
 import { FileMetadata } from '../../core/models/file-metadata';
 import { catchError, concatMap, finalize, from, of } from 'rxjs';
 import { FileTable } from '../../shared/file-table/file-table';
@@ -17,6 +19,7 @@ import { isPreviewable } from '../../core/utils/file-preview.utils';
 import { SelectionBar } from '../../shared/selection-bar/selection-bar';
 import { DashboardStore } from '../../core/services/dashboard-store';
 import { LoadingDelayPipe } from '../../shared/pipes/loading-delay';
+import { Folder } from '../../core/models/folder';
 
 @Component({
   selector: 'app-my-files',
@@ -26,12 +29,20 @@ import { LoadingDelayPipe } from '../../shared/pipes/loading-delay';
 })
 export class MyFiles {
   private fileService = inject(Files);
+  private folderService = inject(Folders);
   private searchService = inject(Search);
   private dashboardStore = inject(DashboardStore);
 
   fileTable = viewChild(FileTable);
 
+  // ── Navigation state ─────────────────────────────────────────
+  currentFolderId = signal<string | null>(null);
+  breadcrumb = signal<Folder[]>([]);
+
+  // ── Content ───────────────────────────────────────────────────
+  folders = signal<Folder[]>([]);
   files = signal<FileMetadata[]>([]);
+
   loading = signal(true);
   loadingMore = signal(false);
   errorMessage = signal('');
@@ -48,21 +59,59 @@ export class MyFiles {
   private dragCounter = 0;
 
   isSearching = computed(() => this.searchService.query().trim().length > 0);
+  isAtRoot = computed(() => this.currentFolderId() === null);
+
+  contentSummary = computed(() => {
+    const f = this.folders().length;
+    const fi = this.files().length;
+    const parts: string[] = [];
+    if (f > 0) parts.push(`${f} folder${f !== 1 ? 's' : ''}`);
+    if (fi > 0) parts.push(`${fi} file${fi !== 1 ? 's' : ''}`);
+    return parts.length > 0 ? parts.join(', ') : 'Empty folder';
+  });
 
   constructor() {
     effect(() => {
       const query = this.searchService.query().trim();
+      const folderId = this.currentFolderId(); // reactive dependency — re-runs when folder changes
       this.currentPage.set(0);
       if (query === '') {
-        this.loadFiles();
+        this.loadContents(folderId, 0);
       } else {
         this.runSearch(query);
       }
     });
   }
 
+  // ── Load ─────────────────────────────────────────────────────
+
+  private loadContents(folderId: string | null, page: number): void {
+    this.loading.set(true);
+
+    const request$ =
+      folderId === null
+        ? this.folderService.getRootContents(page)
+        : this.folderService.getFolderContents(folderId, page);
+
+    request$.pipe(finalize(() => this.loading.set(false))).subscribe({
+      next: (response) => {
+        this.folders.set(response.subfolders);
+        if (page === 0) {
+          this.files.set(response.files.content);
+        } else {
+          this.files.update((f) => [...f, ...response.files.content]);
+        }
+        this.breadcrumb.set(response.breadcrumb ?? []);
+        this.hasMore.set(!response.files.last);
+        this.currentPage.set(page);
+      },
+      error: () => this.errorMessage.set('Failed to load files.'),
+    });
+  }
+
   runSearch(query: string): void {
     this.loading.set(true);
+    this.folders.set([]); // global search doesn't show folders
     this.fileService
       .searchActive(query, 0)
       .pipe(finalize(() => this.loading.set(false)))
@@ -75,39 +124,64 @@ export class MyFiles {
       });
   }
 
-  loadFiles(): void {
-    this.loading.set(true);
-    this.fileService
-      .listActive()
-      .pipe(finalize(() => this.loading.set(false)))
-      .subscribe({
-        next: (response) => {
-          this.files.set(response.content);
-          this.hasMore.set(!response.last);
-        },
-        error: () => this.errorMessage.set('Failed to load files.'),
-      });
-  }
-
   loadMore(): void {
     const nextPage = this.currentPage() + 1;
     const query = this.searchService.query().trim();
+    const folderId = this.currentFolderId();
     this.loadingMore.set(true);
 
     const request$ =
-      query === ''
-        ? this.fileService.listActive(nextPage)
-        : this.fileService.searchActive(query, nextPage);
+      query !== ''
+        ? this.fileService.searchActive(query, nextPage)
+        : folderId === null
+          ? this.folderService.getRootContents(nextPage).pipe(map((r) => r.files))
+          : this.folderService.getFolderContents(folderId, nextPage).pipe(map((r) => r.files));
 
     request$.pipe(finalize(() => this.loadingMore.set(false))).subscribe({
       next: (response) => {
-        this.files.update((files) => [...files, ...response.content]);
+        this.files.update((f) => [...f, ...response.content]);
         this.currentPage.set(nextPage);
         this.hasMore.set(!response.last);
       },
       error: () => this.errorMessage.set('Failed to load more files.'),
     });
   }
+
+  // ── Folder navigation ─────────────────────────────────────────
+
+  navigateToFolder(folder: Folder): void {
+    this.currentFolderId.set(folder.id);
+    this.fileTable()?.clearSelection();
+  }
+
+  navigateViaBreadcrumb(folder: Folder | null): void {
+    this.currentFolderId.set(folder?.id ?? null);
+    this.fileTable()?.clearSelection();
+  }
+
+  createFolder(): void {
+    const name = prompt('Folder name:');
+    if (!name?.trim()) return;
+    this.folderService.createFolder(name.trim(), this.currentFolderId()).subscribe({
+      next: (folder) => this.folders.update((f) => [...f, folder]),
+      error: (err) => {
+        const msg = err?.error?.message ?? 'Failed to create folder.';
+        this.errorMessage.set(msg);
+      },
+    });
+  }
+
+  trashFolder(folder: Folder): void {
+    this.folderService.trashFolder(folder.id).subscribe({
+      next: () => {
+        this.folders.update((f) => f.filter((fo) => fo.id !== folder.id));
+        this.dashboardStore.refresh();
+      },
+      error: () => this.errorMessage.set('Failed to move folder to trash.'),
+    });
+  }
+
+  // ── File actions ──────────────────────────────────────────────
 
   triggerFilePicker(): void {
     this.fileInput()?.nativeElement.click();
@@ -116,9 +190,7 @@ export class MyFiles {
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     const fileList = input.files;
-
     if (!fileList || fileList.length === 0) return;
-
     this.uploadFiles(Array.from(fileList));
     input.value = '';
   }
@@ -194,7 +266,6 @@ export class MyFiles {
       this.fileTable()?.flashRowError(file.id);
       return;
     }
-
     this.fileService.preview(file.id).subscribe({
       next: (blob) => {
         const url = window.URL.createObjectURL(blob);
@@ -208,15 +279,15 @@ export class MyFiles {
     });
   }
 
+  // ── Bulk actions ──────────────────────────────────────────────
+
   onDownloadAll(): void {
     const selected = this.getSelectedFiles();
     if (selected.length === 0) return;
-
     if (selected.length === 1) {
       this.downloadFile(selected[0]);
       return;
     }
-
     this.fileService.downloadZip(selected.map((f) => f.id)).subscribe((blob) => {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -259,7 +330,7 @@ export class MyFiles {
     return this.files().filter((f) => ids.has(f.id));
   }
 
-  //Drag and Drop functions
+  // ── Drag and drop ─────────────────────────────────────────────
 
   @HostListener('document:dragover', ['$event'])
   onDocumentDragOver(event: DragEvent): void {
@@ -274,13 +345,10 @@ export class MyFiles {
   onDragEnter(event: DragEvent): void {
     event.preventDefault();
     this.dragCounter++;
-    if (this.hasFiles(event)) {
-      this.dragging.set(true);
-    }
+    if (this.hasFiles(event)) this.dragging.set(true);
   }
 
   onDragOver(event: DragEvent): void {
-    // Must preventDefault here too, or the browser blocks drop entirely
     event.preventDefault();
   }
 
@@ -297,10 +365,8 @@ export class MyFiles {
     event.preventDefault();
     this.dragCounter = 0;
     this.dragging.set(false);
-
     const droppedFiles = event.dataTransfer?.files;
     if (!droppedFiles || droppedFiles.length === 0) return;
-
     this.uploadFiles(Array.from(droppedFiles));
   }
 

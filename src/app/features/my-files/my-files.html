@@ -5,17 +5,20 @@
   (dragover)="onDragOver($event)"
   (dragleave)="onDragLeave($event)"
   (drop)="onDrop($event)">
+
   @if (dragging()) {
     <div class="drop-overlay">
       <span class="material-symbols-rounded drop-icon">cloud_upload</span>
       <p>Drop files to upload</p>
     </div>
   }
+
   <div class="page-header">
     <div>
       <h2>My Files</h2>
-      <p class="subtitle">Showing {{ files().length }} file{{ files().length !== 1 ? 's' : '' }}</p>
+      <p class="subtitle">{{ contentSummary() }}</p>
     </div>
+
     <app-selection-bar
       [selectedCount]="fileTable()?.selectedIds()?.size ?? 0"
       [actions]="['download', 'trash', 'star']"
@@ -24,17 +27,41 @@
       (starAll)="onStarAll()"
       (clearSelection)="fileTable()?.clearSelection()">
     </app-selection-bar>
-    <button class="upload-btn" (click)="triggerFilePicker()" [disabled]="uploading()">
-      @if (uploading()) {
-        <span class="spinner"></span>
-        Uploading {{ uploadCompleted() }} of {{ uploadTotal() }}...
-      } @else {
-        <span class="material-symbols-rounded">upload</span>
-        Upload Files
-      }
-    </button>
+
+    <div class="header-actions">
+      <button class="new-folder-btn" (click)="createFolder()" title="New folder">
+        <span class="material-symbols-rounded">create_new_folder</span>
+      </button>
+      <button class="upload-btn" (click)="triggerFilePicker()" [disabled]="uploading()">
+        @if (uploading()) {
+          <span class="spinner"></span>
+          Uploading {{ uploadCompleted() }} of {{ uploadTotal() }}...
+        } @else {
+          <span class="material-symbols-rounded">upload</span>
+          Upload Files
+        }
+      </button>
+    </div>
+
     <input #fileInput hidden type="file" multiple (change)="onFileSelected($event)" />
   </div>
+
+  <!-- ── Breadcrumb ─────────────────────────────────────────── -->
+  @if (!isAtRoot() || breadcrumb().length > 0) {
+    <nav class="breadcrumb">
+      <button class="crumb crumb-root" (click)="navigateViaBreadcrumb(null)">
+        <span class="material-symbols-rounded">home</span>
+        My Files
+      </button>
+      @for (crumb of breadcrumb(); track crumb.id) {
+        <span class="material-symbols-rounded crumb-sep">chevron_right</span>
+        <button class="crumb" (click)="navigateViaBreadcrumb(crumb)">
+          {{ crumb.name }}
+        </button>
+      }
+    </nav>
+  }
+
   @if (errorMessage()) {
     <div class="server-error">
       <span>{{ errorMessage() }}</span>
@@ -43,9 +70,10 @@
       </button>
     </div>
   }
+
   @if (loading() | loadingDelay) {
     <div class="empty-state">Loading files...</div>
-  } @else if (!loading() && files().length === 0) {
+  } @else if (!loading() && folders().length === 0 && files().length === 0) {
     <div class="empty-state">
       @if (isSearching()) {
         <span class="material-symbols-rounded empty-icon">search_off</span>
@@ -53,19 +81,23 @@
         <p>Try a different search term.</p>
       } @else {
         <span class="material-symbols-rounded empty-icon">cloud_upload</span>
-        <h3>No files yet</h3>
-        <p>Upload your first backup to homesilo.</p>
+        <h3>{{ isAtRoot() ? 'No files yet' : 'This folder is empty' }}</h3>
+        <p>{{ isAtRoot() ? 'Upload your first backup to homesilo.' : 'Upload files or create a folder to get started.' }}</p>
       }
     </div>
   } @else if (!loading()) {
     <app-file-table
       [files]="files()"
+      [folders]="isSearching() ? [] : folders()"
       [actions]="['download', 'trash', 'star']"
       dateColumnLabel="Modified"
       (download)="downloadFile($event)"
       (trash)="trashFile($event)"
       (star)="toggleStar($event)"
-      (openFile)="openFile($event)" />
+      (openFile)="openFile($event)"
+      (folderOpen)="navigateToFolder($event)"
+      (folderTrash)="trashFolder($event)" />
+
     @if (hasMore()) {
       <div class="show-more-wrap">
         <button class="show-more-btn" (click)="loadMore()" [disabled]="loadingMore()">

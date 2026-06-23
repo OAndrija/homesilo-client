@@ -9,6 +9,30 @@
     </tr>
     </thead>
     <tbody>
+
+    <!-- ── Folder rows (always at top) ──────────────────────── -->
+      @for (folder of folders(); track folder.id) {
+        <tr class="folder-row" (click)="folderOpen.emit(folder)" (dblclick)="$event.stopPropagation()">
+          <td class="file-name">
+            <span class="material-symbols-rounded file-icon folder-icon">folder</span>
+            {{ folder.name }}
+          </td>
+          <td class="cell-muted">—</td>
+          <td>{{ folder.lastModified | date:'medium' }}</td>
+          <td class="actions">
+            @if (hasAction('trash')) {
+              <button
+                class="icon-btn danger"
+                (click)="folderTrash.emit(folder); $event.stopPropagation()"
+                title="Move to trash">
+                <span class="material-symbols-rounded">delete</span>
+              </button>
+            }
+          </td>
+        </tr>
+      }
+
+    <!-- ── File rows ─────────────────────────────────────────── -->
       @for (file of files(); track file.id; let i = $index) {
         <tr
           [class.row-selected]="isSelected(file.id)"
@@ -58,6 +82,7 @@
           </td>
         </tr>
       }
+
     </tbody>
   </table>
 </div>
