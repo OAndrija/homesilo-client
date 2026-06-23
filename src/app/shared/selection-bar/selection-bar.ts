@@ -1,6 +1,6 @@
 import { Component, input, output } from '@angular/core';
 
-export type SelectionBarAction = 'download' | 'trash' | 'restore' | 'deleteForever' | 'star';
+export type SelectionBarAction = 'download' | 'trash' | 'restore' | 'deleteForever' | 'star' | 'move';
 
 @Component({
   selector: 'app-selection-bar',
@@ -17,6 +17,7 @@ export class SelectionBar {
   starAll = output();
   deleteForeverAll = output();
   clearSelection = output();
+  moveAll = output();
 
   hasAction(action: SelectionBarAction): boolean {
     return this.actions().includes(action);

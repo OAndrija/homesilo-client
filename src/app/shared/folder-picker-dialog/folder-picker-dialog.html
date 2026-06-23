@@ -1,0 +1,53 @@
+<div class="dialog-backdrop" (click)="onBackdropClick($event)" data-dialog-backdrop>
+  <div class="dialog">
+    <div class="dialog-header">
+      <h3>Move to</h3>
+      <button class="dialog-close" (click)="cancel.emit()">
+        <span class="material-symbols-rounded">close</span>
+      </button>
+    </div>
+
+    <nav class="dialog-breadcrumb">
+      <button class="dcrumb" (click)="navigateToBreadcrumb(null)">
+        <span class="material-symbols-rounded">home</span>
+        My Files
+      </button>
+      @for (crumb of breadcrumb(); track crumb.id) {
+        <span class="material-symbols-rounded dcrumb-sep">chevron_right</span>
+        <button class="dcrumb" (click)="navigateToBreadcrumb(crumb)">{{ crumb.name }}</button>
+      }
+    </nav>
+
+    <div class="dialog-body">
+      @if (loading()) {
+        <div class="dialog-loading">Loading...</div>
+      } @else if (subfolders().length === 0) {
+        <div class="dialog-empty">
+          <span class="material-symbols-rounded">folder_open</span>
+          <p>No subfolders here</p>
+        </div>
+      } @else {
+        <ul class="folder-list">
+          @for (folder of subfolders(); track folder.id) {
+            <li class="folder-item" (click)="navigateTo(folder)">
+              <span class="material-symbols-rounded folder-icon">folder</span>
+              <span class="folder-name">{{ folder.name }}</span>
+              <span class="material-symbols-rounded folder-chevron">chevron_right</span>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+
+    <div class="dialog-footer">
+      <span class="dialog-location">
+        Moving to:
+        <strong>{{ currentFolder()?.name ?? 'My Files (root)' }}</strong>
+      </span>
+      <div class="dialog-actions">
+        <button class="btn-cancel" (click)="cancel.emit()">Cancel</button>
+        <button class="btn-confirm" (click)="moveHere()">Move here</button>
+      </div>
+    </div>
+  </div>
+</div>

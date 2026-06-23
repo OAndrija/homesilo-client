@@ -20,10 +20,11 @@ import { SelectionBar } from '../../shared/selection-bar/selection-bar';
 import { DashboardStore } from '../../core/services/dashboard-store';
 import { LoadingDelayPipe } from '../../shared/pipes/loading-delay';
 import { Folder } from '../../core/models/folder';
+import { FolderPickerDialog } from '../../shared/folder-picker-dialog/folder-picker-dialog';
 
 @Component({
   selector: 'app-my-files',
-  imports: [FileTable, SelectionBar, LoadingDelayPipe],
+  imports: [FileTable, SelectionBar, LoadingDelayPipe, FolderPickerDialog],
   templateUrl: './my-files.html',
   styleUrl: './my-files.css',
 })
@@ -60,6 +61,8 @@ export class MyFiles {
 
   isSearching = computed(() => this.searchService.query().trim().length > 0);
   isAtRoot = computed(() => this.currentFolderId() === null);
+
+  showMoveDialog = signal(false);
 
   contentSummary = computed(() => {
     const f = this.folders().length;
@@ -326,9 +329,27 @@ export class MyFiles {
       });
   }
 
+  onMoveAll(): void {
+    if ((this.fileTable()?.selectedIds()?.size ?? 0) === 0) return;
+    this.showMoveDialog.set(true);
+  }
+
   private getSelectedFiles(): FileMetadata[] {
     const ids = this.fileTable()?.selectedIds() ?? new Set();
     return this.files().filter((f) => ids.has(f.id));
+  }
+
+  onMoveConfirm(targetFolderId: string | null): void {
+    this.showMoveDialog.set(false);
+    const selected = this.getSelectedFiles();
+    if (selected.length === 0) return;
+
+    from(selected)
+      .pipe(
+        concatMap((file) => this.fileService.moveFile(file.id, targetFolderId)),
+        finalize(() => this.loadContents(this.currentFolderId(), 0)),
+      )
+      .subscribe();
   }
 
   // ── Drag and drop ─────────────────────────────────────────────

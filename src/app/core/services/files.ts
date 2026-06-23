@@ -49,6 +49,10 @@ export class Files {
     return this.http.get(`${API_URL}/${fileId}/preview`, { responseType: 'blob' });
   }
 
+  moveFile(fileId: string, targetFolderId: string | null): Observable<FileMetadata> {
+    return this.http.patch<FileMetadata>(`${API_URL}/${fileId}/move`, { targetFolderId });
+  }
+
   trash(fileId: string): Observable<FileMetadata> {
     return this.http.patch<FileMetadata>(`${API_URL}/${fileId}/trash`, {});
   }

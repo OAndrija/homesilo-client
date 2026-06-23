@@ -28,6 +28,13 @@
         </button>
       }
 
+      @if (hasAction('move')) {
+        <button class="sel-btn" (click)="moveAll.emit()" title="Move to folder">
+          <span class="material-symbols-rounded">drive_file_move</span>
+          {{ selectedCount() === 1 ? 'Move' : 'Move all' }}
+        </button>
+      }
+
       @if (hasAction('trash') || hasAction('restore') || hasAction('deleteForever')) {
         <div class="sel-divider"></div>
       }

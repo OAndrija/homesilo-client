@@ -1,0 +1,249 @@
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: backdrop-in 0.15s ease;
+}
+
+@keyframes backdrop-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.dialog {
+  width: 480px;
+  max-width: calc(100vw - 32px);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-2xl);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: dialog-in 0.18s ease;
+}
+
+@keyframes dialog-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 20px 0;
+}
+
+.dialog-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: var(--font-heading);
+  color: var(--color-text-heading);
+}
+
+.dialog-close {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-dim);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.dialog-close:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text-primary);
+}
+
+.dialog-close .material-symbols-rounded { font-size: 20px; }
+
+.dialog-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 14px 20px 10px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.dcrumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.dcrumb:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text-primary);
+}
+
+.dcrumb:last-child {
+  color: var(--color-text-heading);
+  pointer-events: none;
+}
+
+.dcrumb .material-symbols-rounded { font-size: 15px; }
+
+.dcrumb-sep {
+  font-size: 16px;
+  color: var(--color-text-faint);
+  user-select: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+.dialog-body {
+  min-height: 220px;
+  max-height: 340px;
+  overflow-y: auto;
+  padding: 8px 12px;
+}
+
+.dialog-loading,
+.dialog-empty {
+  height: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--color-text-faint);
+  font-size: 14px;
+}
+
+.dialog-empty .material-symbols-rounded {
+  font-size: 40px;
+  color: var(--color-border-stronger);
+}
+
+.folder-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.folder-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.folder-item:hover {
+  background: var(--color-surface-hover);
+}
+
+.folder-icon {
+  font-size: 20px;
+  color: var(--color-accent);
+  font-variation-settings: 'FILL' 1;
+  flex-shrink: 0;
+}
+
+.folder-name {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-body);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.folder-chevron {
+  font-size: 18px;
+  color: var(--color-text-faint);
+  flex-shrink: 0;
+}
+
+.dialog-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  border-top: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-header);
+}
+
+.dialog-location {
+  font-size: 13px;
+  color: var(--color-text-faint);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dialog-location strong {
+  color: var(--color-text-body);
+  font-weight: 600;
+}
+
+.dialog-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.btn-cancel {
+  padding: 0 16px;
+  height: 36px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.btn-cancel:hover {
+  border-color: var(--color-border-stronger);
+  color: var(--color-text-primary);
+}
+
+.btn-confirm {
+  padding: 0 16px;
+  height: 36px;
+  border: none;
+  border-radius: var(--radius-lg);
+  background: var(--color-accent);
+  color: var(--color-text-on-accent);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+
+.btn-confirm:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}

@@ -122,7 +122,8 @@ export class FileTable {
     const target = event.target as Node;
     const clickedInsideTable = this.elementRef.nativeElement.contains(target);
     const clickedInsideBar = !!(target as Element).closest?.('[data-selection-bar]');
-    if (!clickedInsideTable && !clickedInsideBar) {
+    const clickedInsideFolderPickerDialog = !!(target as Element).closest?.('[data-dialog-backdrop]');
+    if (!clickedInsideTable && !clickedInsideBar && !clickedInsideFolderPickerDialog) {
       this.selectedIds.set(new Set());
       this.lastClickedIndex = null;
     }

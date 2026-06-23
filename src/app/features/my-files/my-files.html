@@ -21,8 +21,9 @@
 
     <app-selection-bar
       [selectedCount]="fileTable()?.selectedIds()?.size ?? 0"
-      [actions]="['download', 'trash', 'star']"
+      [actions]="['download', 'move', 'trash', 'star']"
       (downloadAll)="onDownloadAll()"
+      (moveAll)="onMoveAll()"
       (trashAll)="onTrashAll()"
       (starAll)="onStarAll()"
       (clearSelection)="fileTable()?.clearSelection()">
@@ -110,5 +111,11 @@
         </button>
       </div>
     }
+  }
+
+  @if (showMoveDialog()) {
+    <app-folder-picker-dialog
+      (confirm)="onMoveConfirm($event)"
+      (cancel)="showMoveDialog.set(false)" />
   }
 </div>
