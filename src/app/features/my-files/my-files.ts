@@ -200,11 +200,12 @@ export class MyFiles {
     this.uploadTotal.set(filesToUpload.length);
     this.uploadCompleted.set(0);
     this.uploadFailedCount.set(0);
+    const targetFolderId = this.currentFolderId();
 
     from(filesToUpload)
       .pipe(
         concatMap((file) =>
-          this.fileService.upload(file).pipe(
+          this.fileService.upload(file, targetFolderId).pipe(
             catchError(() => {
               this.uploadFailedCount.update((n) => n + 1);
               return of(null);

@@ -30,9 +30,10 @@ export class Files {
     return this.http.get<PageResponse<FileMetadata>>(`${API_URL}/starred`, { params });
   }
 
-  upload(file: File): Observable<FileMetadata> {
+  upload(file: File, folderId: string | null = null): Observable<FileMetadata> {
     const formData = new FormData();
     formData.append('file', file);
+    if (folderId) formData.append('folderId', folderId);
     return this.http.post<FileMetadata>(`${API_URL}/upload`, formData);
   }
 
