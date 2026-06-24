@@ -303,16 +303,23 @@ export class MyFiles {
   }
 
   onTrashAll(): void {
-    const selected = this.getSelectedFiles();
-    if (selected.length === 0) return;
-    from(selected)
+    const selectedFiles = this.getSelectedFiles();
+    const selectedFolders = this.getSelectedFolders();
+    if (selectedFiles.length === 0 && selectedFolders.length === 0) return;
+
+    from([
+      ...selectedFiles.map((f) => this.fileService.trash(f.id)),
+      ...selectedFolders.map((f) => this.folderService.trashFolder(f.id)),
+    ])
       .pipe(
-        concatMap((file) => this.fileService.trash(file.id)),
+        concatMap((req) => req),
         finalize(() => this.dashboardStore.refresh()),
       )
       .subscribe(() => {
-        const ids = new Set(selected.map((f) => f.id));
-        this.files.update((files) => files.filter((f) => !ids.has(f.id)));
+        const fileIds = new Set(selectedFiles.map((f) => f.id));
+        const folderIds = new Set(selectedFolders.map((f) => f.id));
+        this.files.update((files) => files.filter((f) => !fileIds.has(f.id)));
+        this.folders.update((folders) => folders.filter((f) => !folderIds.has(f.id)));
       });
   }
 
@@ -330,7 +337,9 @@ export class MyFiles {
   }
 
   onMoveAll(): void {
-    if ((this.fileTable()?.selectedIds()?.size ?? 0) === 0) return;
+    const fileCount = this.fileTable()?.selectedIds()?.size ?? 0;
+    const folderCount = this.fileTable()?.selectedFolderIds()?.size ?? 0;
+    if (fileCount === 0 && folderCount === 0) return;
     this.showMoveDialog.set(true);
   }
 
@@ -341,15 +350,32 @@ export class MyFiles {
 
   onMoveConfirm(targetFolderId: string | null): void {
     this.showMoveDialog.set(false);
-    const selected = this.getSelectedFiles();
-    if (selected.length === 0) return;
+    const selectedFiles = this.getSelectedFiles();
+    const selectedFolders = this.getSelectedFolders();
 
-    from(selected)
+    from([
+      ...selectedFiles.map((f) => this.fileService.moveFile(f.id, targetFolderId)),
+      ...selectedFolders.map((f) => this.folderService.moveFolder(f.id, targetFolderId)),
+    ])
       .pipe(
-        concatMap((file) => this.fileService.moveFile(file.id, targetFolderId)),
+        concatMap((req) => req),
         finalize(() => this.loadContents(this.currentFolderId(), 0)),
       )
-      .subscribe();
+      .subscribe({
+        error: (err) => {
+          const msg = err?.error?.message ?? 'Failed to move items.';
+          this.errorMessage.set(msg);
+        },
+      });
+  }
+
+  getSelectedFolderIds(): string[] {
+    return [...(this.fileTable()?.selectedFolderIds() ?? new Set())];
+  }
+
+  private getSelectedFolders(): Folder[] {
+    const ids = this.fileTable()?.selectedFolderIds() ?? new Set();
+    return this.folders().filter((f) => ids.has(f.id));
   }
 
   // ── Drag and drop ─────────────────────────────────────────────

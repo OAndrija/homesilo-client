@@ -1,4 +1,4 @@
-import { Component, inject, output, signal } from '@angular/core';
+import { Component, inject, input, output, signal } from '@angular/core';
 import { Folders } from '../../core/services/folders';
 import { Folder } from '../../core/models/folder';
 
@@ -10,7 +10,8 @@ import { Folder } from '../../core/models/folder';
 export class FolderPickerDialog {
   private folderService = inject(Folders);
 
-  confirm = output<string | null>(); // null = root
+  excludedFolderIds = input<string[]>([]);
+  confirm = output<string | null>();
   cancel = output<void>();
 
   currentFolder = signal<Folder | null>(null);
@@ -33,7 +34,10 @@ export class FolderPickerDialog {
       next: (response) => {
         this.currentFolder.set(response.folder);
         this.breadcrumb.set(response.breadcrumb ?? []);
-        this.subfolders.set(response.subfolders);
+        // Filter out folders being moved — can't move a folder into itself
+        this.subfolders.set(
+          response.subfolders.filter((f) => !this.excludedFolderIds().includes(f.id)),
+        );
         this.loading.set(false);
       },
       error: () => this.loading.set(false),

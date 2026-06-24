@@ -2,51 +2,34 @@
   <div class="selection-bar" data-selection-bar>
     <span class="sel-count">
       <span class="sel-badge">{{ selectedCount() }}</span>
-      {{ selectedCount() === 1 ? 'file' : 'files' }} selected
+      {{ selectedCount() === 1 ? 'item' : 'items' }} selected
     </span>
-
     <div class="sel-actions">
       @if (hasAction('download')) {
         <button class="sel-btn" (click)="downloadAll.emit()" title="Download selected">
           <span class="material-symbols-rounded">download</span>
-          @if (selectedCount() == 1) {
-            Download
-          } @else {
-            Download all
-          }
+          {{ selectedCount() === 1 ? 'Download' : 'Download all' }}
         </button>
       }
-
       @if (hasAction('star')) {
         <button class="sel-btn" (click)="starAll.emit()" title="Star all">
           <span class="material-symbols-rounded">star</span>
-            @if (selectedCount() == 1) {
-              Star
-            } @else {
-              Star all
-            }
+          {{ selectedCount() === 1 ? 'Star' : 'Star all' }}
         </button>
       }
-
       @if (hasAction('move')) {
         <button class="sel-btn" (click)="moveAll.emit()" title="Move to folder">
           <span class="material-symbols-rounded">drive_file_move</span>
           {{ selectedCount() === 1 ? 'Move' : 'Move all' }}
         </button>
       }
-
       @if (hasAction('trash') || hasAction('restore') || hasAction('deleteForever')) {
         <div class="sel-divider"></div>
       }
-
       @if (hasAction('restore')) {
         <button class="sel-btn restore" (click)="restoreAll.emit()">
           <span class="material-symbols-rounded">restore_from_trash</span>
-          @if (selectedCount() == 1) {
-            Restore
-          } @else {
-            Restore all
-          }
+          {{ selectedCount() === 1 ? 'Restore' : 'Restore all' }}
         </button>
       }
       @if (hasAction('trash')) {
@@ -62,7 +45,6 @@
         </button>
       }
     </div>
-
     <button class="sel-clear" (click)="clearSelection.emit()">
       <span class="material-symbols-rounded">close</span>
       Clear
