@@ -15,6 +15,12 @@ import { Folder } from '../../core/models/folder';
 
 export type FileAction = 'download' | 'trash' | 'restore' | 'deleteForever' | 'star';
 
+export interface MovePayload {
+  fileIds: string[];
+  folderIds: string[];
+  targetFolderId: string;
+}
+
 @Component({
   selector: 'app-file-table',
   imports: [DatePipe],
@@ -24,7 +30,6 @@ export type FileAction = 'download' | 'trash' | 'restore' | 'deleteForever' | 's
 export class FileTable {
   private elementRef = inject(ElementRef);
 
-  // File inputs / outputs
   files = input.required<FileMetadata[]>();
   actions = input<FileAction[]>(['download', 'trash', 'star']);
   dateColumnLabel = input('Uploaded');
@@ -35,10 +40,10 @@ export class FileTable {
   deleteForever = output<FileMetadata>();
   openFile = output<FileMetadata>();
 
-  // Folder inputs / outputs
   folders = input<Folder[]>([]);
   folderOpen = output<Folder>();
   folderTrash = output<Folder>();
+  itemsMoved = output<MovePayload>();
 
   errorRowId = signal<string | null>(null);
   private errorTimeout?: ReturnType<typeof setTimeout>;
@@ -48,8 +53,11 @@ export class FileTable {
   private lastClickedIndex: number | null = null;
   private lastClickedFolderIndex: number | null = null;
 
+  // ── Drag state ────────────────────────────────────────────────
+  dragOverFolderId = signal<string | null>(null);
+  private dragPayload: { fileIds: string[]; folderIds: string[] } | null = null;
+
   constructor() {
-    // Prune selected file IDs when the file list changes
     effect(() => {
       const currentFileIds = new Set(this.files().map((f) => f.id));
       this.selectedIds.update((selected) => {
@@ -58,7 +66,6 @@ export class FileTable {
       });
     });
 
-    // Prune selected folder IDs when the folder list changes
     effect(() => {
       const currentFolderIds = new Set(this.folders().map((f) => f.id));
       this.selectedFolderIds.update((selected) => {
@@ -95,6 +102,78 @@ export class FileTable {
     return this.selectedFolderIds().has(folderId);
   }
 
+  // ── Drag handlers ─────────────────────────────────────────────
+
+  onFileDragStart(file: FileMetadata, event: DragEvent): void {
+    // If the dragged file isn't selected, drag just it; otherwise drag all selected
+    const fileIds = this.selectedIds().has(file.id) ? [...this.selectedIds()] : [file.id];
+    const folderIds = this.selectedIds().has(file.id) ? [...this.selectedFolderIds()] : [];
+
+    this.dragPayload = { fileIds, folderIds };
+    event.dataTransfer!.effectAllowed = 'move';
+    event.dataTransfer!.setData('text/plain', 'items');
+  }
+
+  onFolderDragStart(folder: Folder, event: DragEvent): void {
+    // If the dragged folder isn't selected, drag just it; otherwise drag all selected
+    const folderIds = this.selectedFolderIds().has(folder.id)
+      ? [...this.selectedFolderIds()]
+      : [folder.id];
+    const fileIds = this.selectedFolderIds().has(folder.id) ? [...this.selectedIds()] : [];
+
+    this.dragPayload = { fileIds, folderIds };
+    event.dataTransfer!.effectAllowed = 'move';
+    event.dataTransfer!.setData('text/plain', 'items');
+  }
+
+  onFolderDragOver(folder: Folder, event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    // Don't allow dropping onto a folder that is being dragged
+    if (this.dragPayload?.folderIds.includes(folder.id)) {
+      event.dataTransfer!.dropEffect = 'none';
+      return;
+    }
+
+    event.dataTransfer!.dropEffect = 'move';
+    this.dragOverFolderId.set(folder.id);
+  }
+
+  onFolderDragLeave(event: DragEvent): void {
+    event.stopPropagation();
+    this.dragOverFolderId.set(null);
+  }
+
+  onFolderDrop(folder: Folder, event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.dragOverFolderId.set(null);
+
+    if (!this.dragPayload) return;
+
+    // Guard: don't drop a folder into itself
+    if (this.dragPayload.folderIds.includes(folder.id)) {
+      this.dragPayload = null;
+      return;
+    }
+
+    this.itemsMoved.emit({
+      fileIds: this.dragPayload.fileIds,
+      folderIds: this.dragPayload.folderIds,
+      targetFolderId: folder.id,
+    });
+
+    this.dragPayload = null;
+  }
+
+  onDragEnd(): void {
+    this.dragOverFolderId.set(null);
+    this.dragPayload = null;
+  }
+
+  // ── Selection handlers ────────────────────────────────────────
+
   onFolderClick(folder: Folder, index: number, event: MouseEvent): void {
     event.stopPropagation();
     const isToggle = event.ctrlKey || event.metaKey;
@@ -120,12 +199,10 @@ export class FileTable {
         else next.add(folder.id);
         return next;
       });
-      // do NOT touch selectedIds — preserve file selection on Ctrl+click
       this.lastClickedFolderIndex = index;
       return;
     }
 
-    // Plain click — select only this folder, clear everything else
     this.selectedFolderIds.set(new Set([folder.id]));
     this.selectedIds.set(new Set());
     this.lastClickedFolderIndex = index;
@@ -155,12 +232,10 @@ export class FileTable {
         else next.add(file.id);
         return next;
       });
-      // do NOT touch selectedFolderIds — preserve folder selection on Ctrl+click
       this.lastClickedIndex = index;
       return;
     }
 
-    // Plain click — select only this file, clear everything else
     this.selectedIds.set(new Set([file.id]));
     this.selectedFolderIds.set(new Set());
     this.lastClickedIndex = index;

@@ -13,6 +13,13 @@
         <tr
           class="folder-row"
           [class.row-selected]="isFolderSelected(folder.id)"
+          [class.drag-over]="dragOverFolderId() === folder.id"
+          draggable="true"
+          (dragstart)="onFolderDragStart(folder, $event)"
+          (dragend)="onDragEnd()"
+          (dragover)="onFolderDragOver(folder, $event)"
+          (dragleave)="onFolderDragLeave($event)"
+          (drop)="onFolderDrop(folder, $event)"
           (click)="onFolderClick(folder, i, $event)"
           (dblclick)="folderOpen.emit(folder); $event.stopPropagation()">
           <td class="file-name">
@@ -37,6 +44,9 @@
         <tr
           [class.row-selected]="isSelected(file.id)"
           [class.row-error]="errorRowId() === file.id"
+          draggable="true"
+          (dragstart)="onFileDragStart(file, $event)"
+          (dragend)="onDragEnd()"
           (click)="onRowClick(file, i, $event)"
           (dblclick)="openFile.emit(file)">
           <td class="file-name">

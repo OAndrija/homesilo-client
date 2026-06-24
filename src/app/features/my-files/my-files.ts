@@ -13,7 +13,7 @@ import { Files } from '../../core/services/files';
 import { Folders } from '../../core/services/folders';
 import { FileMetadata } from '../../core/models/file-metadata';
 import { catchError, concatMap, finalize, from, of } from 'rxjs';
-import { FileTable } from '../../shared/file-table/file-table';
+import { FileTable, MovePayload } from '../../shared/file-table/file-table';
 import { Search } from '../../core/services/search';
 import { isPreviewable } from '../../core/utils/file-preview.utils';
 import { SelectionBar } from '../../shared/selection-bar/selection-bar';
@@ -356,6 +356,23 @@ export class MyFiles {
     from([
       ...selectedFiles.map((f) => this.fileService.moveFile(f.id, targetFolderId)),
       ...selectedFolders.map((f) => this.folderService.moveFolder(f.id, targetFolderId)),
+    ])
+      .pipe(
+        concatMap((req) => req),
+        finalize(() => this.loadContents(this.currentFolderId(), 0)),
+      )
+      .subscribe({
+        error: (err) => {
+          const msg = err?.error?.message ?? 'Failed to move items.';
+          this.errorMessage.set(msg);
+        },
+      });
+  }
+
+  onItemsMoved(payload: MovePayload): void {
+    from([
+      ...payload.fileIds.map((id) => this.fileService.moveFile(id, payload.targetFolderId)),
+      ...payload.folderIds.map((id) => this.folderService.moveFolder(id, payload.targetFolderId)),
     ])
       .pipe(
         concatMap((req) => req),

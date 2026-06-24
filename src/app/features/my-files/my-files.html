@@ -97,7 +97,8 @@
       (star)="toggleStar($event)"
       (openFile)="openFile($event)"
       (folderOpen)="navigateToFolder($event)"
-      (folderTrash)="trashFolder($event)" />
+      (folderTrash)="trashFolder($event)"
+      (itemsMoved)="onItemsMoved($event)" />
 
     @if (hasMore()) {
       <div class="show-more-wrap">

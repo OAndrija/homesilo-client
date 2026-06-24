@@ -213,3 +213,20 @@ tr:has(.starred):not(:hover) .icon-btn:not(.star) {
 .files-table tbody tr.row-selected:hover {
   background: var(--color-accent-bg-stronger);
 }
+
+.files-table tbody tr.drag-over {
+  background: var(--color-accent-bg-medium);
+  box-shadow: inset 4px 0 var(--color-accent), inset 0 0 0 2px var(--color-accent-bg-stronger);
+}
+
+.files-table tbody tr.drag-over td {
+  color: var(--color-accent);
+}
+
+.files-table tbody tr[draggable="true"] {
+  cursor: grab;
+}
+
+.files-table tbody tr[draggable="true"]:active {
+  cursor: grabbing;
+}
