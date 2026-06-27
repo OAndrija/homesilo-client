@@ -2,6 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Folder, FolderContentsResponse } from '../models/folder';
+import { PageResponse } from '../models/file-metadata';
 
 const API_URL = 'http://localhost:8080/api/v1/folders';
 
@@ -41,5 +42,12 @@ export class Folders {
 
   moveFolder(folderId: string, targetParentId: string | null): Observable<Folder> {
     return this.http.patch<Folder>(`${API_URL}/${folderId}/move`, { targetParentId });
+  }
+
+  // ── Trash ─────────────────────────────────────────────────────
+
+  listTrashed(page = 0, size = 20): Observable<PageResponse<Folder>> {
+    const params = new HttpParams().set('page', page).set('size', size);
+    return this.http.get<PageResponse<Folder>>(`${API_URL}/trash`, { params });
   }
 }

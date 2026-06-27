@@ -2,22 +2,24 @@
   <div class="page-header">
     <div>
       <h2>Trash</h2>
-      <p class="subtitle">{{ files().length }} file{{ files().length !== 1 ? 's' : '' }} in trash</p>
+      <p class="subtitle">{{ totalCount() }} item{{ totalCount() !== 1 ? 's' : '' }} in trash</p>
     </div>
     <app-selection-bar
-      [selectedCount]="fileTable()?.selectedIds()?.size ?? 0"
+      [selectedCount]="(fileTable()?.selectedIds()?.size ?? 0) + (fileTable()?.selectedFolderIds()?.size ?? 0)"
       [actions]="['restore', 'deleteForever']"
       (restoreAll)="onRestoreAll()"
       (deleteForeverAll)="onDeleteForeverAll()"
       (clearSelection)="fileTable()?.clearSelection()">
     </app-selection-bar>
   </div>
+
   @if (errorMessage()) {
     <div class="server-error">{{ errorMessage() }}</div>
   }
+
   @if (loading() | loadingDelay) {
-    <div class="empty-state">Loading files...</div>
-  } @else if (!loading() && files().length === 0) {
+    <div class="empty-state">Loading...</div>
+  } @else if (!loading() && files().length === 0 && folders().length === 0) {
     <div class="empty-state">
       @if (isSearching()) {
         <span class="material-symbols-rounded empty-icon">search_off</span>
@@ -26,16 +28,20 @@
       } @else {
         <span class="material-symbols-rounded empty-icon">delete</span>
         <h3>Trash is empty</h3>
-        <p>Files you move to trash will appear here.</p>
+        <p>Files and folders you move to trash will appear here.</p>
       }
     </div>
   } @else if (!loading()) {
     <app-file-table
       [files]="files()"
+      [folders]="isSearching() ? [] : folders()"
       [actions]="['restore', 'deleteForever']"
       dateColumnLabel="Deleted"
       (restore)="restoreFile($event)"
-      (deleteForever)="deleteFile($event)" />
+      (deleteForever)="deleteFile($event)"
+      (folderRestore)="restoreFolder($event)"
+      (folderDeleteForever)="deleteFolderForever($event)" />
+
     @if (hasMore()) {
       <div class="show-more-wrap">
         <button class="show-more-btn" (click)="loadMore()" [disabled]="loadingMore()">

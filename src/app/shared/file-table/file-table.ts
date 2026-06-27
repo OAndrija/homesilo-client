@@ -43,6 +43,8 @@ export class FileTable {
   folders = input<Folder[]>([]);
   folderOpen = output<Folder>();
   folderTrash = output<Folder>();
+  folderRestore = output<Folder>(); // ← add this
+  folderDeleteForever = output<Folder>();
   itemsMoved = output<MovePayload>();
 
   errorRowId = signal<string | null>(null);
