@@ -13,6 +13,8 @@ import { Files } from '../../core/services/files';
 import { Folders } from '../../core/services/folders';
 import { FileMetadata } from '../../core/models/file-metadata';
 import { catchError, concatMap, finalize, from, of } from 'rxjs';
+import { Router, ActivatedRoute } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FileTable, MovePayload } from '../../shared/file-table/file-table';
 import { Search } from '../../core/services/search';
 import { isPreviewable } from '../../core/utils/file-preview.utils';
@@ -33,11 +35,15 @@ export class MyFiles {
   private folderService = inject(Folders);
   private searchService = inject(Search);
   private dashboardStore = inject(DashboardStore);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
 
   fileTable = viewChild(FileTable);
 
   // ── Navigation state ─────────────────────────────────────────
-  currentFolderId = signal<string | null>(null);
+  currentFolderId = toSignal(this.route.queryParamMap.pipe(map((p) => p.get('folderId'))), {
+    initialValue: null,
+  });
   breadcrumb = signal<Folder[]>([]);
 
   // ── Content ───────────────────────────────────────────────────
@@ -153,12 +159,17 @@ export class MyFiles {
   // ── Folder navigation ─────────────────────────────────────────
 
   navigateToFolder(folder: Folder): void {
-    this.currentFolderId.set(folder.id);
+    this.router.navigate([], {
+      queryParams: { folderId: folder.id },
+      queryParamsHandling: 'merge',
+    });
     this.fileTable()?.clearSelection();
   }
 
   navigateViaBreadcrumb(folder: Folder | null): void {
-    this.currentFolderId.set(folder?.id ?? null);
+    this.router.navigate([], {
+      queryParams: { folderId: folder?.id ?? null },
+    });
     this.fileTable()?.clearSelection();
   }
 
