@@ -205,6 +205,27 @@ export class Trash {
     });
   }
 
+  emptyTrash(): void {
+    const total = this.totalCount();
+    if (total === 0) return;
+    this.requestDelete({ type: 'emptyTrash', count: total }, () => {
+      const fileDeletes = this.files().map((f) => this.fileService.deletePermanently(f.id));
+      const folderDeletes = this.folders().map((f) => this.folderService.deleteFolder(f.id));
+      from([...fileDeletes, ...folderDeletes])
+        .pipe(
+          concatMap((req) => req),
+          finalize(() => this.dashboardStore.refresh()),
+        )
+        .subscribe({
+          next: () => {
+            this.files.set([]);
+            this.folders.set([]);
+          },
+          error: () => this.errorMessage.set('Failed to empty trash.'),
+        });
+    });
+  }
+
   private getSelectedFiles(): FileMetadata[] {
     const ids = this.fileTable()?.selectedIds() ?? new Set();
     return this.files().filter((f) => ids.has(f.id));

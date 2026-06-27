@@ -2,13 +2,16 @@
   width: 100%;
   padding: 0 var(--space-page-x) var(--space-page-x);
   box-sizing: border-box;
+  position: relative;
 }
+
+/* ── Header ──────────────────────────────────────────────────── */
 
 .page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 28px;
+  margin-bottom: 16px;
   position: sticky;
   top: 0;
   z-index: 10;
@@ -29,6 +32,56 @@
   color: var(--color-text-subtitle);
   font-size: 14px;
 }
+
+.header-actions {
+  display: flex;
+  align-items: center;
+}
+
+.empty-trash-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 20px;
+  height: 48px;
+  border: 1px solid var(--color-danger-bg-deep);
+  border-radius: var(--radius-xl);
+  background: transparent;
+  color: var(--color-danger-text);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: var(--transition-base);
+}
+
+.empty-trash-btn:hover:not(:disabled) {
+  background: var(--color-danger-bg-subtle);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px var(--color-danger-bg-deep);
+}
+
+.empty-trash-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* ── Spinner ─────────────────────────────────────────────────── */
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 0, 0, 0.25);
+  border-top-color: var(--color-bg);
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Empty state ─────────────────────────────────────────────── */
 
 .empty-state {
   height: 350px;
@@ -56,6 +109,8 @@
   margin-top: 10px;
 }
 
+/* ── Error ───────────────────────────────────────────────────── */
+
 .server-error {
   margin-bottom: 20px;
   padding: 16px;
@@ -64,6 +119,8 @@
   border: 1px solid var(--color-danger-bg-deep);
   background: var(--color-danger-bg-subtle);
 }
+
+/* ── Show more ───────────────────────────────────────────────── */
 
 .show-more-wrap {
   display: flex;
@@ -95,17 +152,4 @@
 .show-more-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-}
-
-.page-header::after {
-  content: '';
-  flex: 1;
-}
-
-.page-header > div:first-child {
-  flex: 1;
-}
-
-app-selection-bar {
-  flex-shrink: 0;
 }

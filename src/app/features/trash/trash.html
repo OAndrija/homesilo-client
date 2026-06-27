@@ -11,6 +11,16 @@
       (deleteForeverAll)="onDeleteForeverAll()"
       (clearSelection)="fileTable()?.clearSelection()">
     </app-selection-bar>
+
+    <div class="header-actions">
+      <button
+        class="empty-trash-btn"
+        (click)="emptyTrash()"
+        [disabled]="totalCount() === 0">
+        <span class="material-symbols-rounded">delete_sweep</span>
+        Empty Trash
+      </button>
+    </div>
   </div>
 
   @if (errorMessage()) {
