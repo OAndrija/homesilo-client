@@ -9,10 +9,14 @@ import { SelectionBar } from '../../shared/selection-bar/selection-bar';
 import { Search } from '../../core/services/search';
 import { DashboardStore } from '../../core/services/dashboard-store';
 import { LoadingDelayPipe } from '../../shared/pipes/loading-delay';
+import {
+  ConfirmDeleteDialog,
+  DeleteTarget,
+} from '../../shared/confirm-delete-dialog/confirm-delete-dialog';
 
 @Component({
   selector: 'app-trash',
-  imports: [FileTable, SelectionBar, LoadingDelayPipe],
+  imports: [FileTable, SelectionBar, LoadingDelayPipe, ConfirmDeleteDialog],
   templateUrl: './trash.html',
   styleUrl: './trash.css',
 })
@@ -35,6 +39,9 @@ export class Trash {
   isSearching = computed(() => this.searchService.query().trim().length > 0);
 
   totalCount = computed(() => this.files().length + this.folders().length);
+
+  pendingDelete = signal<DeleteTarget | null>(null);
+  private pendingDeleteCallback = signal<(() => void) | null>(null);
 
   constructor() {
     effect(() => {
@@ -106,13 +113,14 @@ export class Trash {
   // ── File actions ──────────────────────────────────────────────
 
   deleteFile(file: FileMetadata): void {
-    if (!confirm(`Permanently delete "${file.originalFileName}"?`)) return;
-    this.fileService.deletePermanently(file.id).subscribe({
-      next: () => {
-        this.files.update((files) => files.filter((f) => f.id !== file.id));
-        this.dashboardStore.refresh();
-      },
-      error: () => this.errorMessage.set('Failed to delete file.'),
+    this.requestDelete({ type: 'file', name: file.originalFileName }, () => {
+      this.fileService.deletePermanently(file.id).subscribe({
+        next: () => {
+          this.files.update((files) => files.filter((f) => f.id !== file.id));
+          this.dashboardStore.refresh();
+        },
+        error: () => this.errorMessage.set('Failed to delete file.'),
+      });
     });
   }
 
@@ -139,18 +147,14 @@ export class Trash {
   }
 
   deleteFolderForever(folder: Folder): void {
-    if (
-      !confirm(
-        `Permanently delete folder "${folder.name}" and all its contents? This cannot be undone.`,
-      )
-    )
-      return;
-    this.folderService.deleteFolder(folder.id).subscribe({
-      next: () => {
-        this.folders.update((folders) => folders.filter((f) => f.id !== folder.id));
-        this.dashboardStore.refresh();
-      },
-      error: () => this.errorMessage.set('Failed to delete folder.'),
+    this.requestDelete({ type: 'folder', name: folder.name }, () => {
+      this.folderService.deleteFolder(folder.id).subscribe({
+        next: () => {
+          this.folders.update((folders) => folders.filter((f) => f.id !== folder.id));
+          this.dashboardStore.refresh();
+        },
+        error: () => this.errorMessage.set('Failed to delete folder.'),
+      });
     });
   }
 
@@ -180,27 +184,25 @@ export class Trash {
   onDeleteForeverAll(): void {
     const selectedFiles = this.getSelectedFiles();
     const selectedFolders = this.getSelectedFolders();
-    if (selectedFiles.length === 0 && selectedFolders.length === 0) return;
     const total = selectedFiles.length + selectedFolders.length;
-    if (
-      !confirm(`Permanently delete ${total} item${total !== 1 ? 's' : ''}? This cannot be undone.`)
-    )
-      return;
+    if (total === 0) return;
 
-    from([
-      ...selectedFiles.map((f) => this.fileService.deletePermanently(f.id)),
-      ...selectedFolders.map((f) => this.folderService.deleteFolder(f.id)),
-    ])
-      .pipe(
-        concatMap((req) => req),
-        finalize(() => this.dashboardStore.refresh()),
-      )
-      .subscribe(() => {
-        const fileIds = new Set(selectedFiles.map((f) => f.id));
-        const folderIds = new Set(selectedFolders.map((f) => f.id));
-        this.files.update((files) => files.filter((f) => !fileIds.has(f.id)));
-        this.folders.update((folders) => folders.filter((f) => !folderIds.has(f.id)));
-      });
+    this.requestDelete({ type: 'bulk', count: total }, () => {
+      from([
+        ...selectedFiles.map((f) => this.fileService.deletePermanently(f.id)),
+        ...selectedFolders.map((f) => this.folderService.deleteFolder(f.id)),
+      ])
+        .pipe(
+          concatMap((req) => req),
+          finalize(() => this.dashboardStore.refresh()),
+        )
+        .subscribe(() => {
+          const fileIds = new Set(selectedFiles.map((f) => f.id));
+          const folderIds = new Set(selectedFolders.map((f) => f.id));
+          this.files.update((files) => files.filter((f) => !fileIds.has(f.id)));
+          this.folders.update((folders) => folders.filter((f) => !folderIds.has(f.id)));
+        });
+    });
   }
 
   private getSelectedFiles(): FileMetadata[] {
@@ -211,5 +213,21 @@ export class Trash {
   private getSelectedFolders(): Folder[] {
     const ids = this.fileTable()?.selectedFolderIds() ?? new Set();
     return this.folders().filter((f) => ids.has(f.id));
+  }
+
+  private requestDelete(target: DeleteTarget, callback: () => void): void {
+    this.pendingDelete.set(target);
+    this.pendingDeleteCallback.set(callback);
+  }
+
+  onDeleteConfirmed(): void {
+    this.pendingDeleteCallback()?.();
+    this.pendingDelete.set(null);
+    this.pendingDeleteCallback.set(null);
+  }
+
+  onDeleteCancelled(): void {
+    this.pendingDelete.set(null);
+    this.pendingDeleteCallback.set(null);
   }
 }

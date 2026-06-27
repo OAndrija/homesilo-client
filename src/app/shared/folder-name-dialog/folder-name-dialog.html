@@ -1,0 +1,41 @@
+<div
+  class="dialog-backdrop"
+  (click)="onBackdropClick($event)"
+  data-dialog-backdrop
+  (keydown)="onKeydown($event)">
+  <div class="dialog" role="dialog" [attr.aria-label]="title">
+    <div class="dialog-header">
+      <h3>{{ title }}</h3>
+      <button class="dialog-close" (click)="cancel.emit()" type="button">
+        <span class="material-symbols-rounded">close</span>
+      </button>
+    </div>
+
+    <div class="dialog-body">
+      <label class="name-label" for="folderNameInput">Name</label>
+      <input
+        #nameInput
+        id="folderNameInput"
+        class="name-input"
+        type="text"
+        [placeholder]="placeholder"
+        [value]="value()"
+        (input)="value.set($any($event.target).value)"
+        autocomplete="off"
+        spellcheck="false" />
+    </div>
+
+    <div class="dialog-footer">
+      <div class="dialog-actions">
+        <button class="btn-cancel" type="button" (click)="cancel.emit()">Cancel</button>
+        <button
+          class="btn-confirm"
+          type="button"
+          [disabled]="!value().trim()"
+          (click)="onConfirm()">
+          {{ confirmLabel }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

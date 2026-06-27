@@ -120,4 +120,11 @@
       (confirm)="onMoveConfirm($event)"
       (cancel)="showMoveDialog.set(false)" />
   }
+
+  @if (showFolderNameDialog()) {
+    <app-folder-name-dialog
+      mode="create"
+      (confirm)="onFolderNameConfirm($event)"
+      (cancel)="showFolderNameDialog.set(false)" />
+  }
 </div>

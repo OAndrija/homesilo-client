@@ -50,4 +50,11 @@
       </div>
     }
   }
+
+  @if (pendingDelete()) {
+    <app-confirm-delete-dialog
+      [target]="pendingDelete()!"
+      (confirm)="onDeleteConfirmed()"
+      (cancel)="onDeleteCancelled()" />
+  }
 </div>

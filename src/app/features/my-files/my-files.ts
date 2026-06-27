@@ -23,10 +23,11 @@ import { DashboardStore } from '../../core/services/dashboard-store';
 import { LoadingDelayPipe } from '../../shared/pipes/loading-delay';
 import { Folder } from '../../core/models/folder';
 import { FolderPickerDialog } from '../../shared/folder-picker-dialog/folder-picker-dialog';
+import { FolderNameDialog } from '../../shared/folder-name-dialog/folder-name-dialog';
 
 @Component({
   selector: 'app-my-files',
-  imports: [FileTable, SelectionBar, LoadingDelayPipe, FolderPickerDialog],
+  imports: [FileTable, SelectionBar, LoadingDelayPipe, FolderPickerDialog, FolderNameDialog],
   templateUrl: './my-files.html',
   styleUrl: './my-files.css',
 })
@@ -69,6 +70,7 @@ export class MyFiles {
   isAtRoot = computed(() => this.currentFolderId() === null);
 
   showMoveDialog = signal(false);
+  showFolderNameDialog = signal(false);
 
   contentSummary = computed(() => {
     const f = this.folders().length;
@@ -174,9 +176,12 @@ export class MyFiles {
   }
 
   createFolder(): void {
-    const name = prompt('Folder name:');
-    if (!name?.trim()) return;
-    this.folderService.createFolder(name.trim(), this.currentFolderId()).subscribe({
+    this.showFolderNameDialog.set(true);
+  }
+
+  onFolderNameConfirm(name: string): void {
+    this.showFolderNameDialog.set(false);
+    this.folderService.createFolder(name, this.currentFolderId()).subscribe({
       next: (folder) => this.folders.update((f) => [...f, folder]),
       error: (err) => {
         const msg = err?.error?.message ?? 'Failed to create folder.';
