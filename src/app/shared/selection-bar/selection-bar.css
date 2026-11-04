@@ -11,8 +11,14 @@
 }
 
 @keyframes bar-slide-in {
-  from { opacity: 0; transform: translateY(4px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .sel-count {
@@ -62,7 +68,9 @@
   font-family: var(--font-body);
   cursor: pointer;
   white-space: nowrap;
-  transition: background var(--transition-fast), color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .sel-btn .material-symbols-rounded {
@@ -107,7 +115,9 @@
   font-family: var(--font-body);
   cursor: pointer;
   margin-left: 4px;
-  transition: background var(--transition-fast), color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .sel-clear .material-symbols-rounded {

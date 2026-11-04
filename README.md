@@ -1,59 +1,48 @@
-# HomesiloClient
+# HomeSilo — client
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.0.1.
+The web UI for [HomeSilo](https://github.com/OAndrija/homesilo-server), a self-hosted
+personal cloud. Angular 22: standalone components, signals, zoneless change detection,
+lazy-loaded routes, strict TypeScript and strict templates.
 
-## Development server
-
-To start a local development server, run:
-
-```bash
-ng serve
-```
-
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## Development
 
 ```bash
-ng generate component component-name
+npm ci
+npm start          # http://localhost:4200, /api is proxied to http://localhost:8080
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+The dev server proxies `/api` to the Spring Boot server (`proxy.conf.json`), so the
+app and API share one origin. That's what lets the session stay in an HttpOnly cookie
+with CSRF protection; there is no token in `localStorage`.
 
 ```bash
-ng generate --help
+npm run test:ci    # Vitest unit tests
+npm run build      # production build → dist/homesilo-client/browser
+npm run format     # Prettier
 ```
 
-## Building
+## Production
 
-To build the project run:
+The `Dockerfile` builds the app and serves it with unprivileged nginx, which also
+reverse-proxies `/api` to the server with request/response streaming (no upload
+buffering), long timeouts for big transfers, gzip, immutable caching for hashed
+assets, and a strict Content-Security-Policy. Fonts and icons are bundled, so the UI
+works fully offline on a home network.
 
-```bash
-ng build
+The easiest way to run everything is the Compose file in the server repository
+(`docker compose up -d --build` from `homesilo-server`, with this repo checked out
+next to it). The image reads two environment variables:
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `API_UPSTREAM` | `http://server:8080` | Where nginx forwards `/api` |
+| `MAX_UPLOAD_SIZE` | `5GB` | nginx `client_max_body_size`; keep in line with the server |
+
+## Structure
+
 ```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
+src/app
+├── core/         api base, models, services (HTTP + state), interceptor, guards, utils
+├── features/     routed pages: auth, home, my-files, starred, trash, settings
+└── shared/       layout shell, file table, dialogs, selection bar, pipes
 ```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.

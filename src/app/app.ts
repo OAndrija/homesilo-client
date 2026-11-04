@@ -1,12 +1,13 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { ThemeService } from './core/services/theme';
 
 @Component({
   selector: 'app-root',
   imports: [RouterOutlet],
-  templateUrl: './app.html',
-  styleUrl: './app.css'
+  template: '<router-outlet />',
 })
 export class App {
-  protected readonly title = signal('homesilo-client');
+  // Instantiated eagerly so the saved theme applies on every page, login included.
+  private readonly theme = inject(ThemeService);
 }

@@ -5,7 +5,7 @@
         <div class="logo-mark">🗄️</div>
         <span class="logo-text">HomeSilo</span>
       </div>
-      <h1>Welcome<br>back.</h1>
+      <h1>Welcome<br />back.</h1>
       <p>Your files are right where you left them — safe, private, and yours.</p>
     </div>
     <div class="vault-rings" aria-hidden="true">
@@ -24,10 +24,17 @@
 
       <form [formGroup]="form" (ngSubmit)="onSubmit()">
         <div class="field">
-          <label for="username">Username</label>
-          <input id="username" type="text" formControlName="username"
-                 placeholder="Your username"
-                 [class.input-error]="submitted && username.errors" />
+          <label for="username">Username or email</label>
+          <input
+            id="username"
+            type="text"
+            formControlName="username"
+            autocomplete="username"
+            autocapitalize="none"
+            spellcheck="false"
+            placeholder="Your username or email"
+            [class.input-error]="submitted && username.errors"
+          />
           @if (submitted && username.errors?.['required']) {
             <span class="error">Username is required</span>
           }
@@ -35,20 +42,27 @@
 
         <div class="field">
           <label for="password">Password</label>
-          <input id="password" type="password" formControlName="password"
-                 placeholder="Your password"
-                 [class.input-error]="submitted && password.errors" />
+          <input
+            id="password"
+            type="password"
+            formControlName="password"
+            autocomplete="current-password"
+            placeholder="Your password"
+            [class.input-error]="submitted && password.errors"
+          />
           @if (submitted && password.errors?.['required']) {
             <span class="error">Password is required</span>
           }
         </div>
 
         @if (errorMessage()) {
-          <div class="server-error">{{ errorMessage() }}</div>
+          <div class="server-error" role="alert">{{ errorMessage() }}</div>
         }
 
         <button type="submit" class="submit-btn" [disabled]="loading()">
-          @if (loading()) { <span class="spinner"></span> }
+          @if (loading()) {
+            <span class="spinner"></span>
+          }
           {{ loading() ? 'Signing in...' : 'Sign in' }}
         </button>
       </form>

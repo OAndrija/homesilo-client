@@ -2,9 +2,9 @@
   class="dialog-backdrop"
   (click)="onBackdropClick($event)"
   (keydown)="onKeydown($event)"
-  data-dialog-backdrop>
+  data-dialog-backdrop
+>
   <div class="dialog" role="alertdialog" [attr.aria-label]="title()">
-
     <div class="dialog-header">
       <div class="header-icon">
         <span class="material-symbols-rounded">delete_forever</span>
@@ -23,6 +23,5 @@
       <button class="btn-cancel" type="button" (click)="cancel.emit()">Cancel</button>
       <button class="btn-danger" type="button" (click)="confirm.emit()">Delete forever</button>
     </div>
-
   </div>
 </div>

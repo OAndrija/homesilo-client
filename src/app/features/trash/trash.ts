@@ -1,5 +1,7 @@
 import { Component, computed, effect, inject, signal, viewChild } from '@angular/core';
-import { catchError, concatMap, finalize, from, forkJoin, of } from 'rxjs';
+import { concatMap, finalize, from, forkJoin } from 'rxjs';
+import { errorMessage } from '../../core/http/http-error';
+import { TrashApi } from '../../core/services/trash';
 import { Files } from '../../core/services/files';
 import { Folders } from '../../core/services/folders';
 import { FileMetadata } from '../../core/models/file-metadata';
@@ -23,6 +25,7 @@ import {
 export class Trash {
   private fileService = inject(Files);
   private folderService = inject(Folders);
+  private trashApi = inject(TrashApi);
   private searchService = inject(Search);
   private dashboardStore = inject(DashboardStore);
 
@@ -39,11 +42,13 @@ export class Trash {
   isSearching = computed(() => this.searchService.query().trim().length > 0);
 
   totalCount = computed(() => this.files().length + this.folders().length);
+  retentionDays = computed(() => this.dashboardStore.stats()?.trashRetentionDays ?? 0);
 
   pendingDelete = signal<DeleteTarget | null>(null);
   private pendingDeleteCallback = signal<(() => void) | null>(null);
 
   constructor() {
+    this.dashboardStore.ensureLoaded();
     effect(() => {
       const query = this.searchService.query().trim();
       this.currentPage.set(0);
@@ -70,10 +75,7 @@ export class Trash {
           this.folders.set(folders.content);
           this.hasMore.set(!files.last);
         },
-        error: (err) => {
-          console.error('Trash load error:', err);
-          this.errorMessage.set('Failed to load trash: ' + err.status + ' ' + err.message);
-        },
+        error: (err) => this.errorMessage.set(errorMessage(err, 'Failed to load trash.')),
       });
   }
 
@@ -88,7 +90,7 @@ export class Trash {
           this.files.set(response.content);
           this.hasMore.set(!response.last);
         },
-        error: () => this.errorMessage.set('Search failed.'),
+        error: (err) => this.errorMessage.set(errorMessage(err, 'Search failed.')),
       });
   }
 
@@ -106,7 +108,7 @@ export class Trash {
         this.currentPage.set(nextPage);
         this.hasMore.set(!response.last);
       },
-      error: () => this.errorMessage.set('Failed to load more.'),
+      error: (err) => this.errorMessage.set(errorMessage(err, 'Failed to load more.')),
     });
   }
 
@@ -119,7 +121,7 @@ export class Trash {
           this.files.update((files) => files.filter((f) => f.id !== file.id));
           this.dashboardStore.refresh();
         },
-        error: () => this.errorMessage.set('Failed to delete file.'),
+        error: (err) => this.errorMessage.set(errorMessage(err, 'Failed to delete file.')),
       });
     });
   }
@@ -130,7 +132,7 @@ export class Trash {
         this.files.update((files) => files.filter((f) => f.id !== file.id));
         this.dashboardStore.refresh();
       },
-      error: () => this.errorMessage.set('Failed to restore file.'),
+      error: (err) => this.errorMessage.set(errorMessage(err, 'Failed to restore file.')),
     });
   }
 
@@ -142,7 +144,7 @@ export class Trash {
         this.folders.update((folders) => folders.filter((f) => f.id !== folder.id));
         this.dashboardStore.refresh();
       },
-      error: () => this.errorMessage.set('Failed to restore folder.'),
+      error: (err) => this.errorMessage.set(errorMessage(err, 'Failed to restore folder.')),
     });
   }
 
@@ -153,7 +155,7 @@ export class Trash {
           this.folders.update((folders) => folders.filter((f) => f.id !== folder.id));
           this.dashboardStore.refresh();
         },
-        error: () => this.errorMessage.set('Failed to delete folder.'),
+        error: (err) => this.errorMessage.set(errorMessage(err, 'Failed to delete folder.')),
       });
     });
   }
@@ -171,13 +173,14 @@ export class Trash {
     ])
       .pipe(
         concatMap((req) => req),
-        finalize(() => this.dashboardStore.refresh()),
+        finalize(() => {
+          this.dashboardStore.refresh();
+          this.loadTrashedItems();
+        }),
       )
-      .subscribe(() => {
-        const fileIds = new Set(selectedFiles.map((f) => f.id));
-        const folderIds = new Set(selectedFolders.map((f) => f.id));
-        this.files.update((files) => files.filter((f) => !fileIds.has(f.id)));
-        this.folders.update((folders) => folders.filter((f) => !folderIds.has(f.id)));
+      .subscribe({
+        error: (err) =>
+          this.errorMessage.set(errorMessage(err, 'Some items could not be restored.')),
       });
   }
 
@@ -194,13 +197,14 @@ export class Trash {
       ])
         .pipe(
           concatMap((req) => req),
-          finalize(() => this.dashboardStore.refresh()),
+          finalize(() => {
+            this.dashboardStore.refresh();
+            this.loadTrashedItems();
+          }),
         )
-        .subscribe(() => {
-          const fileIds = new Set(selectedFiles.map((f) => f.id));
-          const folderIds = new Set(selectedFolders.map((f) => f.id));
-          this.files.update((files) => files.filter((f) => !fileIds.has(f.id)));
-          this.folders.update((folders) => folders.filter((f) => !folderIds.has(f.id)));
+        .subscribe({
+          error: (err) =>
+            this.errorMessage.set(errorMessage(err, 'Some items could not be deleted.')),
         });
     });
   }
@@ -209,19 +213,16 @@ export class Trash {
     const total = this.totalCount();
     if (total === 0) return;
     this.requestDelete({ type: 'emptyTrash', count: total }, () => {
-      const fileDeletes = this.files().map((f) => this.fileService.deletePermanently(f.id));
-      const folderDeletes = this.folders().map((f) => this.folderService.deleteFolder(f.id));
-      from([...fileDeletes, ...folderDeletes])
-        .pipe(
-          concatMap((req) => req),
-          finalize(() => this.dashboardStore.refresh()),
-        )
+      this.trashApi
+        .empty()
+        .pipe(finalize(() => this.dashboardStore.refresh()))
         .subscribe({
           next: () => {
             this.files.set([]);
             this.folders.set([]);
+            this.hasMore.set(false);
           },
-          error: () => this.errorMessage.set('Failed to empty trash.'),
+          error: (err) => this.errorMessage.set(errorMessage(err, 'Failed to empty trash.')),
         });
     });
   }

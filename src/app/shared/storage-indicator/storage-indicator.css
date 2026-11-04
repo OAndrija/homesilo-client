@@ -38,7 +38,9 @@
   font-size: 13px;
   font-weight: 600;
   color: var(--color-text-muted);
-  transition: opacity var(--transition-fast), max-width var(--transition-base);
+  transition:
+    opacity var(--transition-fast),
+    max-width var(--transition-base);
 }
 
 .storage-bar-track {
@@ -49,7 +51,9 @@
   overflow: hidden;
   opacity: 0;
   max-height: 0;
-  transition: opacity var(--transition-fast), max-height var(--transition-base);
+  transition:
+    opacity var(--transition-fast),
+    max-height var(--transition-base);
 }
 
 .storage-bar-fill {
@@ -68,7 +72,10 @@
   font-size: 12px;
   color: var(--color-text-dim);
   padding-left: 23px;
-  transition: opacity var(--transition-fast), max-height var(--transition-base), padding-left var(--transition-sidebar);
+  transition:
+    opacity var(--transition-fast),
+    max-height var(--transition-base),
+    padding-left var(--transition-sidebar);
 }
 
 :host(.open) .storage-text {

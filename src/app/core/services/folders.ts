@@ -1,53 +1,63 @@
-import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
+import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Folder, FolderContentsResponse } from '../models/folder';
+import { API_BASE } from '../api';
 import { PageResponse } from '../models/file-metadata';
+import { Folder, FolderContentsResponse } from '../models/folder';
 
-const API_URL = 'http://localhost:8080/api/v1/folders';
+const FOLDERS_URL = `${API_BASE}/folders`;
 
 @Injectable({ providedIn: 'root' })
 export class Folders {
   private http = inject(HttpClient);
 
-  getRootContents(page = 0, size = 20): Observable<FolderContentsResponse> {
-    const params = new HttpParams().set('page', page).set('size', size);
-    return this.http.get<FolderContentsResponse>(`${API_URL}/root`, { params });
+  getRootContents(page = 0, size = 50): Observable<FolderContentsResponse> {
+    return this.http.get<FolderContentsResponse>(`${FOLDERS_URL}/root`, {
+      params: pageParams(page, size),
+    });
   }
 
-  getFolderContents(folderId: string, page = 0, size = 20): Observable<FolderContentsResponse> {
-    const params = new HttpParams().set('page', page).set('size', size);
-    return this.http.get<FolderContentsResponse>(`${API_URL}/${folderId}/contents`, { params });
+  getFolderContents(folderId: string, page = 0, size = 50): Observable<FolderContentsResponse> {
+    return this.http.get<FolderContentsResponse>(`${FOLDERS_URL}/${folderId}/contents`, {
+      params: pageParams(page, size),
+    });
+  }
+
+  search(query: string): Observable<Folder[]> {
+    return this.http.get<Folder[]>(`${FOLDERS_URL}/search`, { params: { query } });
   }
 
   createFolder(name: string, parentId: string | null = null): Observable<Folder> {
-    return this.http.post<Folder>(API_URL, { name, parentId });
+    return this.http.post<Folder>(FOLDERS_URL, { name, parentId });
   }
 
   renameFolder(folderId: string, name: string): Observable<Folder> {
-    return this.http.patch<Folder>(`${API_URL}/${folderId}/rename`, { name });
-  }
-
-  trashFolder(folderId: string): Observable<Folder> {
-    return this.http.patch<Folder>(`${API_URL}/${folderId}/trash`, {});
-  }
-
-  restoreFolder(folderId: string): Observable<Folder> {
-    return this.http.patch<Folder>(`${API_URL}/${folderId}/restore`, {});
-  }
-
-  deleteFolder(folderId: string): Observable<void> {
-    return this.http.delete<void>(`${API_URL}/${folderId}`);
+    return this.http.patch<Folder>(`${FOLDERS_URL}/${folderId}/rename`, { name });
   }
 
   moveFolder(folderId: string, targetParentId: string | null): Observable<Folder> {
-    return this.http.patch<Folder>(`${API_URL}/${folderId}/move`, { targetParentId });
+    return this.http.patch<Folder>(`${FOLDERS_URL}/${folderId}/move`, { targetParentId });
   }
 
-  // ── Trash ─────────────────────────────────────────────────────
-
-  listTrashed(page = 0, size = 20): Observable<PageResponse<Folder>> {
-    const params = new HttpParams().set('page', page).set('size', size);
-    return this.http.get<PageResponse<Folder>>(`${API_URL}/trash`, { params });
+  trashFolder(folderId: string): Observable<Folder> {
+    return this.http.patch<Folder>(`${FOLDERS_URL}/${folderId}/trash`, {});
   }
+
+  restoreFolder(folderId: string): Observable<Folder> {
+    return this.http.patch<Folder>(`${FOLDERS_URL}/${folderId}/restore`, {});
+  }
+
+  deleteFolder(folderId: string): Observable<void> {
+    return this.http.delete<void>(`${FOLDERS_URL}/${folderId}`);
+  }
+
+  listTrashed(page = 0, size = 50): Observable<PageResponse<Folder>> {
+    return this.http.get<PageResponse<Folder>>(`${FOLDERS_URL}/trash`, {
+      params: pageParams(page, size),
+    });
+  }
+}
+
+function pageParams(page: number, size: number): HttpParams {
+  return new HttpParams().set('page', page).set('size', size);
 }

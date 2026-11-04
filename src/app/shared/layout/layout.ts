@@ -1,4 +1,5 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet, NavigationEnd } from '@angular/router';
 import { Auth } from '../../core/services/auth';
 import { StorageIndicator } from '../storage-indicator/storage-indicator';
@@ -12,8 +13,8 @@ import { ThemeService } from '../../core/services/theme';
   templateUrl: './layout.html',
   styleUrl: './layout.css',
 })
-export class Layout {
-  private auth = inject(Auth);
+export class Layout implements OnInit {
+  protected auth = inject(Auth);
   private router = inject(Router);
   private searchService = inject(Search);
   themeService = inject(ThemeService);
@@ -24,7 +25,10 @@ export class Layout {
 
   constructor() {
     this.router.events
-      .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
+      .pipe(
+        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+        takeUntilDestroyed(inject(DestroyRef)),
+      )
       .subscribe((event) => {
         this.searchInputValue.set('');
         this.searchService.clear();
@@ -61,6 +65,5 @@ export class Layout {
 
   onLogout(): void {
     this.auth.logout();
-    this.router.navigate(['/login']);
   }
 }

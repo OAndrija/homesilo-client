@@ -1,36 +1,52 @@
 import { Routes } from '@angular/router';
-import { Login } from './features/auth/login/login';
-import { Register } from './features/auth/register/register';
-import { authGuard } from './core/guards/auth-guard';
+import { authGuard, guestGuard } from './core/guards/auth-guard';
 import { Layout } from './shared/layout/layout';
-import { MyFiles } from './features/my-files/my-files';
-import { Trash } from './features/trash/trash';
-import { Starred } from './features/starred/starred';
-import { Home } from './features/home/home';
 
 export const routes: Routes = [
   {
-    path: '',
-    redirectTo: 'login',
-    pathMatch: 'full',
-  },
-  {
     path: 'login',
-    component: Login,
+    canActivate: [guestGuard],
+    title: 'Sign in · HomeSilo',
+    loadComponent: () => import('./features/auth/login/login').then((m) => m.Login),
   },
   {
     path: 'register',
-    component: Register,
+    canActivate: [guestGuard],
+    title: 'Create account · HomeSilo',
+    loadComponent: () => import('./features/auth/register/register').then((m) => m.Register),
   },
   {
     path: '',
     canActivate: [authGuard],
     component: Layout,
     children: [
-      { path: 'home', component: Home },
-      { path: 'my-files', component: MyFiles},
-      { path: 'starred', component: Starred},
-      { path: 'trash', component: Trash },
+      { path: '', pathMatch: 'full', redirectTo: 'home' },
+      {
+        path: 'home',
+        title: 'Home · HomeSilo',
+        loadComponent: () => import('./features/home/home').then((m) => m.Home),
+      },
+      {
+        path: 'my-files',
+        title: 'My Files · HomeSilo',
+        loadComponent: () => import('./features/my-files/my-files').then((m) => m.MyFiles),
+      },
+      {
+        path: 'starred',
+        title: 'Starred · HomeSilo',
+        loadComponent: () => import('./features/starred/starred').then((m) => m.Starred),
+      },
+      {
+        path: 'trash',
+        title: 'Trash · HomeSilo',
+        loadComponent: () => import('./features/trash/trash').then((m) => m.Trash),
+      },
+      {
+        path: 'settings',
+        title: 'Settings · HomeSilo',
+        loadComponent: () => import('./features/settings/settings').then((m) => m.Settings),
+      },
     ],
   },
+  { path: '**', redirectTo: '' },
 ];

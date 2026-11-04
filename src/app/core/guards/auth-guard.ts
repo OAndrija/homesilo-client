@@ -1,14 +1,16 @@
+import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { Auth } from '../services/auth';
-import { inject } from '@angular/core';
 
-export const authGuard: CanActivateFn = () => {
+/** Only signed-in users; others go to the login page and come back afterwards. */
+export const authGuard: CanActivateFn = (_route, state) => {
   const auth = inject(Auth);
-  const router = inject(Router);
+  if (auth.isLoggedIn()) return true;
+  return inject(Router).createUrlTree(['/login'], { queryParams: { returnUrl: state.url } });
+};
 
-  if (auth.isLoggedIn()) {
-    return true;
-  }
-
-  return router.createUrlTree(['/login']);
-}
+/** Only signed-out users (login / register); signed-in users go straight to the app. */
+export const guestGuard: CanActivateFn = () => {
+  const auth = inject(Auth);
+  return auth.isLoggedIn() ? inject(Router).createUrlTree(['/home']) : true;
+};

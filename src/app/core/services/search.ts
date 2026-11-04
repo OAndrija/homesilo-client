@@ -5,7 +5,7 @@ import { debounceTime, distinctUntilChanged, Subject, take } from 'rxjs';
 export class Search {
   query = signal('');
 
-  private inputSubject =  new Subject<string>();
+  private inputSubject = new Subject<string>();
 
   constructor() {
     this.inputSubject
@@ -21,5 +21,4 @@ export class Search {
     this.inputSubject.next('');
     this.query.set('');
   }
-
 }

@@ -10,11 +10,12 @@
       (downloadAll)="onDownloadAll()"
       (trashAll)="onTrashAll()"
       (starAll)="onStarAll()"
-      (clearSelection)="fileTable()?.clearSelection()">
+      (clearSelection)="fileTable()?.clearSelection()"
+    >
     </app-selection-bar>
   </div>
   @if (errorMessage()) {
-    <div class="server-error">{{ errorMessage() }}</div>
+    <div class="server-error" role="alert">{{ errorMessage() }}</div>
   }
   @if (loading() | loadingDelay) {
     <div class="empty-state">Loading files...</div>
@@ -39,11 +40,16 @@
       (download)="downloadFile($event)"
       (trash)="trashFile($event)"
       (star)="toggleStar($event)"
-      (openFile)="openFile($event)" />
+      (openFile)="openFile($event)"
+    />
     @if (hasMore()) {
       <div class="show-more-wrap">
         <button class="show-more-btn" (click)="loadMore()" [disabled]="loadingMore()">
-          @if (loadingMore()) { <span class="spinner"></span> Loading... } @else { Show more }
+          @if (loadingMore()) {
+            <span class="spinner"></span> Loading...
+          } @else {
+            Show more
+          }
         </button>
       </div>
     }

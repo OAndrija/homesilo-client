@@ -28,6 +28,6 @@ export class ThemeService {
     if (!isPlatformBrowser(this.platformId)) return 'dark';
     const stored = localStorage.getItem(this.STORAGE_KEY) as Theme | null;
     if (stored === 'light' || stored === 'dark') return stored;
-    return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+    return window.matchMedia?.('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
   }
 }

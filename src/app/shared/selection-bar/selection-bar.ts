@@ -1,6 +1,12 @@
 import { Component, input, output } from '@angular/core';
 
-export type SelectionBarAction = 'download' | 'trash' | 'restore' | 'deleteForever' | 'star' | 'move';
+export type SelectionBarAction =
+  | 'download'
+  | 'trash'
+  | 'restore'
+  | 'deleteForever'
+  | 'star'
+  | 'move';
 
 @Component({
   selector: 'app-selection-bar',

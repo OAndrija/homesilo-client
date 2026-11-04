@@ -1,0 +1,98 @@
+<div class="settings-page">
+  <header class="page-header">
+    <h2>Settings</h2>
+    <p class="subtitle">Your account on this HomeSilo server.</p>
+  </header>
+
+  @if (user(); as user) {
+    <section class="card" aria-labelledby="account-heading">
+      <h3 id="account-heading">Account</h3>
+      <dl class="details">
+        <div>
+          <dt>Username</dt>
+          <dd>{{ user.username }}</dd>
+        </div>
+        <div>
+          <dt>Email</dt>
+          <dd>{{ user.email }}</dd>
+        </div>
+        <div>
+          <dt>Role</dt>
+          <dd>
+            <span class="role-pill" [class.admin]="user.role === 'ADMIN'">
+              {{ user.role === 'ADMIN' ? 'Administrator' : 'User' }}
+            </span>
+          </dd>
+        </div>
+        <div>
+          <dt>Storage quota</dt>
+          <dd>{{ quota() }}</dd>
+        </div>
+        <div>
+          <dt>Member since</dt>
+          <dd>{{ user.createdAt | date: 'longDate' }}</dd>
+        </div>
+      </dl>
+    </section>
+  }
+
+  <section class="card" aria-labelledby="password-heading">
+    <h3 id="password-heading">Change password</h3>
+    <p class="hint">Changing your password signs you out everywhere else.</p>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+      <div class="field">
+        <label for="currentPassword">Current password</label>
+        <input
+          id="currentPassword"
+          type="password"
+          formControlName="currentPassword"
+          autocomplete="current-password"
+          [class.input-error]="submitted() && form.controls.currentPassword.invalid"
+        />
+      </div>
+
+      <div class="field">
+        <label for="newPassword">New password</label>
+        <input
+          id="newPassword"
+          type="password"
+          formControlName="newPassword"
+          autocomplete="new-password"
+          placeholder="At least 8 characters"
+          [class.input-error]="submitted() && form.controls.newPassword.invalid"
+        />
+        @if (submitted() && form.controls.newPassword.errors?.['minlength']) {
+          <span class="error">Password must be at least 8 characters</span>
+        }
+      </div>
+
+      <div class="field">
+        <label for="confirmPassword">Confirm new password</label>
+        <input
+          id="confirmPassword"
+          type="password"
+          formControlName="confirmPassword"
+          autocomplete="new-password"
+          [class.input-error]="
+            submitted() && (form.controls.confirmPassword.invalid || form.errors?.['mismatch'])
+          "
+        />
+        @if (submitted() && form.errors?.['mismatch']) {
+          <span class="error">Passwords don't match</span>
+        }
+      </div>
+
+      @if (errorMessage()) {
+        <div class="message error-message" role="alert">{{ errorMessage() }}</div>
+      }
+      @if (success()) {
+        <div class="message success-message" role="status">Password changed.</div>
+      }
+
+      <button type="submit" class="submit-btn" [disabled]="saving()">
+        {{ saving() ? 'Saving…' : 'Change password' }}
+      </button>
+    </form>
+  </section>
+</div>

@@ -12,8 +12,9 @@ import { DatePipe } from '@angular/common';
 import { FileMetadata } from '../../core/models/file-metadata';
 import { getFileIcon } from '../../core/utils/file-icon.util';
 import { Folder } from '../../core/models/folder';
+import { formatBytes } from '../../core/utils/format';
 
-export type FileAction = 'download' | 'trash' | 'restore' | 'deleteForever' | 'star';
+export type FileAction = 'download' | 'rename' | 'trash' | 'restore' | 'deleteForever' | 'star';
 
 export interface MovePayload {
   fileIds: string[];
@@ -34,6 +35,7 @@ export class FileTable {
   actions = input<FileAction[]>(['download', 'trash', 'star']);
   dateColumnLabel = input('Uploaded');
   download = output<FileMetadata>();
+  rename = output<FileMetadata>();
   trash = output<FileMetadata>();
   star = output<FileMetadata>();
   restore = output<FileMetadata>();
@@ -42,8 +44,10 @@ export class FileTable {
 
   folders = input<Folder[]>([]);
   folderOpen = output<Folder>();
+  folderDownload = output<Folder>();
+  folderRename = output<Folder>();
   folderTrash = output<Folder>();
-  folderRestore = output<Folder>(); // ← add this
+  folderRestore = output<Folder>();
   folderDeleteForever = output<Folder>();
   itemsMoved = output<MovePayload>();
 
@@ -83,12 +87,7 @@ export class FileTable {
 
   getFileIcon = getFileIcon;
 
-  formatSize(bytes: number): string {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 ** 2) return `${(bytes / 1024).toFixed(1)} KB`;
-    if (bytes < 1024 ** 3) return `${(bytes / 1024 ** 2).toFixed(0)} MB`;
-    return `${(bytes / 1024 ** 3).toFixed(2)} GB`;
-  }
+  formatSize = formatBytes;
 
   flashRowError(fileId: string): void {
     clearTimeout(this.errorTimeout);
@@ -259,8 +258,7 @@ export class FileTable {
       '[data-dialog-backdrop]',
     );
     if (!clickedInsideTable && !clickedInsideBar && !clickedInsideFolderPickerDialog) {
-      this.selectedIds.set(new Set());
-      this.lastClickedIndex = null;
+      this.clearSelection();
     }
   }
 }

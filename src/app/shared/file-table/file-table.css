@@ -31,8 +31,12 @@
 }
 
 @keyframes row-error-flash {
-  0%   { background: var(--color-danger-bg-deepest); }
-  100% { background: var(--color-danger-bg); }
+  0% {
+    background: var(--color-danger-bg-deepest);
+  }
+  100% {
+    background: var(--color-danger-bg);
+  }
 }
 
 /* ── Header ──────────────────────────────────────────────────── */
@@ -69,7 +73,7 @@
 }
 
 .files-table tbody tr::after {
-  content: "";
+  content: '';
   position: absolute;
   left: 0;
   right: 0;
@@ -193,13 +197,23 @@ tr:has(.starred):not(:hover) .icon-btn:not(.star) {
 }
 
 .star-icon-glyph {
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
   color: var(--color-text-icon-muted);
-  transition: font-variation-settings var(--transition-fast), color var(--transition-fast);
+  transition:
+    font-variation-settings var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .icon-btn.starred .star-icon-glyph {
-  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  font-variation-settings:
+    'FILL' 1,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
   color: var(--color-star);
 }
 
@@ -216,17 +230,19 @@ tr:has(.starred):not(:hover) .icon-btn:not(.star) {
 
 .files-table tbody tr.drag-over {
   background: var(--color-accent-bg-medium);
-  box-shadow: inset 4px 0 var(--color-accent), inset 0 0 0 2px var(--color-accent-bg-stronger);
+  box-shadow:
+    inset 4px 0 var(--color-accent),
+    inset 0 0 0 2px var(--color-accent-bg-stronger);
 }
 
 .files-table tbody tr.drag-over td {
   color: var(--color-accent);
 }
 
-.files-table tbody tr[draggable="true"] {
+.files-table tbody tr[draggable='true'] {
   cursor: grab;
 }
 
-.files-table tbody tr[draggable="true"]:active {
+.files-table tbody tr[draggable='true']:active {
   cursor: grabbing;
 }

@@ -14,8 +14,12 @@
 }
 
 @keyframes backdrop-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .dialog {
@@ -31,8 +35,14 @@
 }
 
 @keyframes dialog-in {
-  from { opacity: 0; transform: translateY(8px) scale(0.98); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .dialog-header {
@@ -61,7 +71,9 @@
   background: transparent;
   color: var(--color-text-dim);
   cursor: pointer;
-  transition: background var(--transition-fast), color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .dialog-close:hover {
@@ -69,7 +81,9 @@
   color: var(--color-text-primary);
 }
 
-.dialog-close .material-symbols-rounded { font-size: 20px; }
+.dialog-close .material-symbols-rounded {
+  font-size: 20px;
+}
 
 /* ── Body ──────────────────────────────────────────────────── */
 
@@ -98,7 +112,9 @@
   font-family: var(--font-body);
   box-sizing: border-box;
   outline: none;
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
 .name-input:focus {
@@ -137,7 +153,9 @@
   font-weight: 500;
   font-family: var(--font-body);
   cursor: pointer;
-  transition: border-color var(--transition-fast), color var(--transition-fast);
+  transition:
+    border-color var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .btn-cancel:hover {
@@ -156,7 +174,9 @@
   font-weight: 600;
   font-family: var(--font-body);
   cursor: pointer;
-  transition: opacity var(--transition-fast), transform var(--transition-fast);
+  transition:
+    opacity var(--transition-fast),
+    transform var(--transition-fast);
 }
 
 .btn-confirm:hover:not(:disabled) {

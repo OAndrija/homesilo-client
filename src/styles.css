@@ -1,42 +1,42 @@
 :root {
   /* ── Surfaces (darkest → lightest) ── */
-  --color-bg: #0D0F1A;
+  --color-bg: #0d0f1a;
   --color-bg-elevated: #141620;
   --color-surface: #151827;
-  --color-surface-alt: #1A1D2E;
-  --color-surface-header: #181B2B;
-  --color-surface-input: #1C1F2E;
-  --color-surface-hover: #25293C;
+  --color-surface-alt: #1a1d2e;
+  --color-surface-header: #181b2b;
+  --color-surface-input: #1c1f2e;
+  --color-surface-hover: #25293c;
 
   /* ── Borders ── */
   --color-border-faint: #161823;
   --color-border-subtle: #202335;
-  --color-border: #24283B;
+  --color-border: #24283b;
   --color-border-alt: #252840;
-  --color-border-strong: #2D3250;
-  --color-border-stronger: #3A3F5C;
+  --color-border-strong: #2d3250;
+  --color-border-stronger: #3a3f5c;
 
   /* ── Text ── */
-  --color-text-primary: #F0F2FF;
-  --color-text-heading: #F5F7FF;
-  --color-text-heading-alt: #EEF2FF;
-  --color-text-body: #C4C9E0;
-  --color-text-muted: #9BA3C9;
-  --color-text-subtitle: #8F96B3;
-  --color-text-icon-muted: #8C95B6;
-  --color-text-empty: #8A91AF;
-  --color-text-faint: #737A97;
-  --color-text-dim: #6B7099;
-  --color-text-placeholder: #3D4266;
-  --color-text-on-accent: #11131C;
-  --color-text-white: #FFFFFF;
+  --color-text-primary: #f0f2ff;
+  --color-text-heading: #f5f7ff;
+  --color-text-heading-alt: #eef2ff;
+  --color-text-body: #c4c9e0;
+  --color-text-muted: #9ba3c9;
+  --color-text-subtitle: #8f96b3;
+  --color-text-icon-muted: #8c95b6;
+  --color-text-empty: #8a91af;
+  --color-text-faint: #737a97;
+  --color-text-dim: #6b7099;
+  --color-text-placeholder: #3d4266;
+  --color-text-on-accent: #11131c;
+  --color-text-white: #ffffff;
 
   /* ── Accent (amber/brand) ── */
-  --color-accent: #F8B84E;
-  --color-accent-hover: #F5A623;
+  --color-accent: #f8b84e;
+  --color-accent-hover: #f5a623;
   --color-accent-bg-faint: rgba(248, 184, 78, 0.06);
   --color-accent-bg-subtle: rgba(248, 184, 78, 0.08);
-  --color-accent-bg: rgba(248, 184, 78, 0.10);
+  --color-accent-bg: rgba(248, 184, 78, 0.1);
   --color-accent-bg-medium: rgba(248, 184, 78, 0.12);
   --color-accent-bg-strong: rgba(248, 184, 78, 0.15);
   --color-accent-bg-stronger: rgba(248, 184, 78, 0.16);
@@ -44,9 +44,9 @@
   --color-accent-bg-deepest: rgba(248, 184, 78, 0.35);
 
   /* ── Danger (red) ── */
-  --color-danger: #EF4444;
-  --color-danger-text: #FF8080;
-  --color-danger-text-alt: #FF6B6B;
+  --color-danger: #ef4444;
+  --color-danger-text: #ff8080;
+  --color-danger-text-alt: #ff6b6b;
   --color-danger-bg-subtle: rgba(239, 68, 68, 0.08);
   --color-danger-bg: rgba(239, 68, 68, 0.12);
   --color-danger-bg-medium: rgba(239, 68, 68, 0.13);
@@ -55,20 +55,29 @@
   --color-danger-bg-deepest: rgba(239, 68, 68, 0.28);
 
   /* ── Success (green) ── */
-  --color-success: #22C55E;
-  --color-success-bg-subtle: rgba(34, 197, 94, 0.10);
+  --color-success: #22c55e;
+  --color-success-bg-subtle: rgba(34, 197, 94, 0.1);
   --color-success-bg: rgba(34, 197, 94, 0.12);
   --color-success-bg-medium: rgba(34, 197, 94, 0.13);
   --color-success-bg-strong: rgba(34, 197, 94, 0.15);
-  --color-success-bg-stronger: rgba(34, 197, 94, 0.20);
+  --color-success-bg-stronger: rgba(34, 197, 94, 0.2);
 
   /* ── Info (blue) / Star (yellow) / misc accents ── */
-  --color-info: #60A5FA;
+  --color-info: #60a5fa;
   --color-info-bg: rgba(96, 165, 250, 0.12);
-  --color-star: #FBBF24;
+  --color-star: #fbbf24;
   --color-star-bg: rgba(251, 191, 36, 0.12);
-  --color-highlight: #4D74FF;
+  --color-highlight: #4d74ff;
   --color-brand-alt: #7ec07e;
+
+  /* ── Storage categories (dashboard breakdown) ── */
+  --cat-documents: #60a5fa;
+  --cat-images: #a78bfa;
+  --cat-videos: #f472b6;
+  --cat-audio: #fbbf24;
+  --cat-archives: #34d399;
+  --cat-other: #94a3b8;
+  --cat-trash: #f87171;
 
   /* ── Radius ── */
   --radius-sm: 8px;
@@ -85,78 +94,86 @@
   --transition-sidebar: 0.28s cubic-bezier(0.4, 0, 0.2, 1);
 
   /* ── Typography ── */
-  --font-body: 'Inter', system-ui, sans-serif;
+  --font-body: 'Inter Variable', 'Inter', system-ui, sans-serif;
   --font-heading: 'Space Grotesk', system-ui, sans-serif;
 
   /* ── Spacing ── */
   --space-page-x: 36px;
 }
 
-[data-theme="light"] {
+[data-theme='light'] {
   /* ── Surfaces ── */
-  --color-bg: #FFFFFF;                /* page-content card → pure white */
-  --color-bg-elevated: #EAECF4;       /* shell/sidebar stays tinted */
-  --color-surface: #F0F2FA;
-  --color-surface-alt: #E8EBF5;
-  --color-surface-input: #ECEEF8;
-  --color-surface-hover: #E2E6F2;
-  --color-surface-header: #ECF0F8;
+  --color-bg: #ffffff; /* page-content card → pure white */
+  --color-bg-elevated: #eaecf4; /* shell/sidebar stays tinted */
+  --color-surface: #f0f2fa;
+  --color-surface-alt: #e8ebf5;
+  --color-surface-input: #eceef8;
+  --color-surface-hover: #e2e6f2;
+  --color-surface-header: #ecf0f8;
   /* ── Borders ── */
-  --color-border-faint: #D8DCF0;
-  --color-border-subtle: #CDD2E8;
-  --color-border: #C0C5DC;
-  --color-border-alt: #B8BDD8;
-  --color-border-strong: #A8AED0;
-  --color-border-stronger: #9298C0;
+  --color-border-faint: #d8dcf0;
+  --color-border-subtle: #cdd2e8;
+  --color-border: #c0c5dc;
+  --color-border-alt: #b8bdd8;
+  --color-border-strong: #a8aed0;
+  --color-border-stronger: #9298c0;
   /* ── Text ── */
-  --color-text-primary: #0F1124;
-  --color-text-heading: #0A0C1A;
+  --color-text-primary: #0f1124;
+  --color-text-heading: #0a0c1a;
   --color-text-heading-alt: #111328;
-  --color-text-body: #2C3152;
+  --color-text-body: #2c3152;
   --color-text-muted: #434870;
-  --color-text-subtitle: #545A80;
-  --color-text-icon-muted: #585E82;
-  --color-text-empty: #5C6285;
-  --color-text-faint: #6B7099;
-  --color-text-dim: #7B80A0;
-  --color-text-placeholder: #A0A6C2;
-  --color-text-on-accent: #11131C;
-  --color-text-white: #FFFFFF;
+  --color-text-subtitle: #545a80;
+  --color-text-icon-muted: #585e82;
+  --color-text-empty: #5c6285;
+  --color-text-faint: #6b7099;
+  --color-text-dim: #7b80a0;
+  --color-text-placeholder: #a0a6c2;
+  --color-text-on-accent: #11131c;
+  --color-text-white: #ffffff;
   /* ── Accent — unchanged, works on both modes ── */
-  --color-accent: #D4900A;
-  --color-accent-hover: #B87A06;
+  --color-accent: #d4900a;
+  --color-accent-hover: #b87a06;
   --color-accent-bg-faint: rgba(180, 110, 0, 0.07);
   --color-accent-bg-subtle: rgba(180, 110, 0, 0.11);
   --color-accent-bg: rgba(180, 110, 0, 0.15);
   --color-accent-bg-medium: rgba(180, 110, 0, 0.19);
-  --color-accent-bg-strong: rgba(180, 110, 0, 0.24);   /* sidebar active link */
+  --color-accent-bg-strong: rgba(180, 110, 0, 0.24); /* sidebar active link */
   --color-accent-bg-stronger: rgba(180, 110, 0, 0.28);
   --color-accent-bg-deep: rgba(180, 110, 0, 0.34);
   --color-accent-bg-deepest: rgba(180, 110, 0, 0.44);
   /* ── Danger ── */
-  --color-danger: #C0392B;
-  --color-danger-text: #B02020;
-  --color-danger-text-alt: #A01818;
+  --color-danger: #c0392b;
+  --color-danger-text: #b02020;
+  --color-danger-text-alt: #a01818;
   --color-danger-bg-subtle: rgba(192, 57, 43, 0.07);
-  --color-danger-bg: rgba(192, 57, 43, 0.10);
+  --color-danger-bg: rgba(192, 57, 43, 0.1);
   --color-danger-bg-medium: rgba(192, 57, 43, 0.12);
   --color-danger-bg-strong: rgba(192, 57, 43, 0.15);
   --color-danger-bg-deep: rgba(192, 57, 43, 0.22);
   --color-danger-bg-deepest: rgba(192, 57, 43, 0.28);
   /* ── Success ── */
-  --color-success: #16A34A;
+  --color-success: #16a34a;
   --color-success-bg-subtle: rgba(22, 163, 74, 0.08);
   --color-success-bg: rgba(22, 163, 74, 0.11);
   --color-success-bg-medium: rgba(22, 163, 74, 0.13);
   --color-success-bg-strong: rgba(22, 163, 74, 0.16);
   --color-success-bg-stronger: rgba(22, 163, 74, 0.22);
   /* ── Info / Star ── */
-  --color-info: #1D6FC4;
-  --color-info-bg: rgba(29, 111, 196, 0.10);
-  --color-star: #B45309;
-  --color-star-bg: rgba(180, 83, 9, 0.10);
-  --color-highlight: #2D54E8;
-  --color-brand-alt: #3A7D3A;
+  --color-info: #1d6fc4;
+  --color-info-bg: rgba(29, 111, 196, 0.1);
+  --color-star: #b45309;
+  --color-star-bg: rgba(180, 83, 9, 0.1);
+  --color-highlight: #2d54e8;
+  --color-brand-alt: #3a7d3a;
+  /* ── Storage categories ── */
+  --cat-documents: #2563eb;
+  --cat-images: #7c3aed;
+  --cat-videos: #db2777;
+  --cat-audio: #b45309;
+  --cat-archives: #059669;
+  --cat-other: #64748b;
+  --cat-trash: #dc2626;
 }
 
 * {
@@ -167,7 +184,8 @@
   scrollbar-color: var(--color-border-strong) transparent;
 }
 
-html, body {
+html,
+body {
   height: 100%;
 }
 

@@ -2,21 +2,26 @@
   <div class="page-header">
     <div>
       <h2>Trash</h2>
-      <p class="subtitle">{{ totalCount() }} item{{ totalCount() !== 1 ? 's' : '' }} in trash</p>
+      <p class="subtitle">
+        {{ totalCount() }} item{{ totalCount() !== 1 ? 's' : '' }} in trash
+        @if (retentionDays() > 0) {
+          · deleted automatically after {{ retentionDays() }} days
+        }
+      </p>
     </div>
     <app-selection-bar
-      [selectedCount]="(fileTable()?.selectedIds()?.size ?? 0) + (fileTable()?.selectedFolderIds()?.size ?? 0)"
+      [selectedCount]="
+        (fileTable()?.selectedIds()?.size ?? 0) + (fileTable()?.selectedFolderIds()?.size ?? 0)
+      "
       [actions]="['restore', 'deleteForever']"
       (restoreAll)="onRestoreAll()"
       (deleteForeverAll)="onDeleteForeverAll()"
-      (clearSelection)="fileTable()?.clearSelection()">
+      (clearSelection)="fileTable()?.clearSelection()"
+    >
     </app-selection-bar>
 
     <div class="header-actions">
-      <button
-        class="empty-trash-btn"
-        (click)="emptyTrash()"
-        [disabled]="totalCount() === 0">
+      <button class="empty-trash-btn" (click)="emptyTrash()" [disabled]="totalCount() === 0">
         <span class="material-symbols-rounded">delete_sweep</span>
         Empty Trash
       </button>
@@ -24,7 +29,7 @@
   </div>
 
   @if (errorMessage()) {
-    <div class="server-error">{{ errorMessage() }}</div>
+    <div class="server-error" role="alert">{{ errorMessage() }}</div>
   }
 
   @if (loading() | loadingDelay) {
@@ -50,12 +55,17 @@
       (restore)="restoreFile($event)"
       (deleteForever)="deleteFile($event)"
       (folderRestore)="restoreFolder($event)"
-      (folderDeleteForever)="deleteFolderForever($event)" />
+      (folderDeleteForever)="deleteFolderForever($event)"
+    />
 
     @if (hasMore()) {
       <div class="show-more-wrap">
         <button class="show-more-btn" (click)="loadMore()" [disabled]="loadingMore()">
-          @if (loadingMore()) { <span class="spinner"></span> Loading... } @else { Show more }
+          @if (loadingMore()) {
+            <span class="spinner"></span> Loading...
+          } @else {
+            Show more
+          }
         </button>
       </div>
     }
@@ -65,6 +75,7 @@
     <app-confirm-delete-dialog
       [target]="pendingDelete()!"
       (confirm)="onDeleteConfirmed()"
-      (cancel)="onDeleteCancelled()" />
+      (cancel)="onDeleteCancelled()"
+    />
   }
 </div>
