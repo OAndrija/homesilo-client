@@ -1,4 +1,4 @@
-import { Component, inject, input, output, signal } from '@angular/core';
+import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { Folders } from '../../core/services/folders';
 import { Folder } from '../../core/models/folder';
 
@@ -11,6 +11,8 @@ export class FolderPickerDialog {
   private folderService = inject(Folders);
 
   excludedFolderIds = input<string[]>([]);
+  /** Where the items live now (null = My Files root); moving there is a no-op. */
+  sourceFolderId = input<string | null | undefined>(undefined);
   confirm = output<string | null>();
   cancel = output<void>();
 
@@ -18,6 +20,12 @@ export class FolderPickerDialog {
   breadcrumb = signal<Folder[]>([]);
   subfolders = signal<Folder[]>([]);
   loading = signal(false);
+
+  isSource = computed(
+    () =>
+      this.sourceFolderId() !== undefined &&
+      (this.currentFolder()?.id ?? null) === this.sourceFolderId(),
+  );
 
   constructor() {
     this.loadLevel(null);
@@ -53,6 +61,7 @@ export class FolderPickerDialog {
   }
 
   moveHere(): void {
+    if (this.isSource()) return;
     this.confirm.emit(this.currentFolder()?.id ?? null);
   }
 

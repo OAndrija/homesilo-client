@@ -1,53 +1,77 @@
-<div class="dialog-backdrop" (click)="onBackdropClick($event)" data-dialog-backdrop>
-  <div class="dialog">
+<div
+  class="dialog-backdrop"
+  (click)="onBackdropClick($event)"
+  (keydown.escape)="cancel.emit()"
+  data-dialog-backdrop
+>
+  <div class="dialog picker" role="dialog" aria-modal="true" aria-labelledby="move-title">
     <div class="dialog-header">
-      <h3>Move to</h3>
-      <button class="dialog-close" (click)="cancel.emit()">
+      <h2 class="dialog-title" id="move-title">Move to</h2>
+      <button class="icon-btn" type="button" aria-label="Close" (click)="cancel.emit()">
         <span class="material-symbols-rounded">close</span>
       </button>
     </div>
 
-    <nav class="dialog-breadcrumb">
-      <button class="dcrumb" (click)="navigateToBreadcrumb(null)">
-        <span class="material-symbols-rounded">home</span>
+    <nav class="breadcrumb picker-crumbs" aria-label="Location">
+      <button
+        type="button"
+        class="crumb"
+        [class.is-current]="!currentFolder()"
+        (click)="navigateToBreadcrumb(null)"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">home</span>
         My Files
       </button>
-      @for (crumb of breadcrumb(); track crumb.id) {
-        <span class="material-symbols-rounded dcrumb-sep">chevron_right</span>
-        <button class="dcrumb" (click)="navigateToBreadcrumb(crumb)">{{ crumb.name }}</button>
+      @for (crumb of breadcrumb(); track crumb.id; let last = $last) {
+        <span class="material-symbols-rounded crumb-sep" aria-hidden="true">chevron_right</span>
+        <button
+          type="button"
+          class="crumb"
+          [class.is-current]="last"
+          (click)="navigateToBreadcrumb(crumb)"
+        >
+          {{ crumb.name }}
+        </button>
       }
     </nav>
 
-    <div class="dialog-body">
+    <div class="picker-list">
       @if (loading()) {
-        <div class="dialog-loading">Loading...</div>
+        <div class="picker-state"><span class="spinner"></span></div>
       } @else if (subfolders().length === 0) {
-        <div class="dialog-empty">
-          <span class="material-symbols-rounded">folder_open</span>
-          <p>No subfolders here</p>
-        </div>
+        <div class="picker-state">No folders in here</div>
       } @else {
-        <ul class="folder-list">
+        <ul>
           @for (folder of subfolders(); track folder.id) {
-            <li class="folder-item" (click)="navigateTo(folder)">
-              <span class="material-symbols-rounded folder-icon">folder</span>
-              <span class="folder-name">{{ folder.name }}</span>
-              <span class="material-symbols-rounded folder-chevron">chevron_right</span>
+            <li>
+              <button type="button" class="picker-item" (click)="navigateTo(folder)">
+                <span class="material-symbols-rounded is-filled picker-icon" aria-hidden="true"
+                  >folder</span
+                >
+                <span class="picker-name">{{ folder.name }}</span>
+                <span class="material-symbols-rounded picker-chevron" aria-hidden="true"
+                  >chevron_right</span
+                >
+              </button>
             </li>
           }
         </ul>
       }
     </div>
 
-    <div class="dialog-footer">
-      <span class="dialog-location">
-        Moving to:
-        <strong>{{ currentFolder()?.name ?? 'My Files (root)' }}</strong>
-      </span>
-      <div class="dialog-actions">
-        <button class="btn-cancel" (click)="cancel.emit()">Cancel</button>
-        <button class="btn-confirm" (click)="moveHere()">Move here</button>
-      </div>
+    <div class="dialog-footer picker-footer">
+      <button class="btn btn-ghost" type="button" (click)="cancel.emit()">Cancel</button>
+      @if (isSource()) {
+        <span class="picker-hint">Already in this folder</span>
+      }
+      <button
+        class="btn btn-primary"
+        type="button"
+        [disabled]="isSource() || loading()"
+        (click)="moveHere()"
+      >
+        Move to {{ currentFolder()?.name ?? 'My Files' }}
+      </button>
     </div>
   </div>
 </div>

@@ -4,24 +4,27 @@
   (keydown)="onKeydown($event)"
   data-dialog-backdrop
 >
-  <div class="dialog" role="alertdialog" [attr.aria-label]="title()">
+  <div
+    class="dialog"
+    role="alertdialog"
+    aria-modal="true"
+    aria-labelledby="delete-title"
+    aria-describedby="delete-message"
+  >
     <div class="dialog-header">
-      <div class="header-icon">
-        <span class="material-symbols-rounded">delete_forever</span>
-      </div>
-      <button class="dialog-close" type="button" (click)="cancel.emit()">
+      <h2 class="dialog-title" id="delete-title">{{ title() }}</h2>
+      <button class="icon-btn" type="button" aria-label="Close" (click)="cancel.emit()">
         <span class="material-symbols-rounded">close</span>
       </button>
     </div>
-
     <div class="dialog-body">
-      <h3 class="dialog-title">{{ title() }}</h3>
-      <p class="dialog-message">{{ message() }}</p>
+      <p id="delete-message">{{ message() }}</p>
     </div>
-
     <div class="dialog-footer">
-      <button class="btn-cancel" type="button" (click)="cancel.emit()">Cancel</button>
-      <button class="btn-danger" type="button" (click)="confirm.emit()">Delete forever</button>
+      <button #cancelButton class="btn btn-ghost" type="button" (click)="cancel.emit()">
+        Cancel
+      </button>
+      <button class="btn btn-danger" type="button" (click)="confirm.emit()">Delete forever</button>
     </div>
   </div>
 </div>

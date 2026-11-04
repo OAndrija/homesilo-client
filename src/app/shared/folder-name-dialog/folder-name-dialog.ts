@@ -12,7 +12,6 @@ import {
 @Component({
   selector: 'app-folder-name-dialog',
   templateUrl: './folder-name-dialog.html',
-  styleUrl: './folder-name-dialog.css',
 })
 export class FolderNameDialog implements OnInit, AfterViewInit {
   mode = input<'create' | 'rename'>('create');
