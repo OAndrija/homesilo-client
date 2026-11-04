@@ -4,8 +4,8 @@
   (dragenter)="onDragEnter($event)"
   (dragover)="onDragOver($event)"
   (dragleave)="onDragLeave($event)"
-  (drop)="onDrop($event)">
-
+  (drop)="onDrop($event)"
+>
   @if (dragging()) {
     <div class="drop-overlay">
       <span class="material-symbols-rounded drop-icon">cloud_upload</span>
@@ -20,17 +20,23 @@
     </div>
 
     <app-selection-bar
-      [selectedCount]="(fileTable()?.selectedIds()?.size ?? 0) + (fileTable()?.selectedFolderIds()?.size ?? 0)"
+      [selectedCount]="selectedCount()"
       [actions]="['download', 'move', 'star', 'trash']"
       (downloadAll)="onDownloadAll()"
       (moveAll)="onMoveAll()"
       (trashAll)="onTrashAll()"
       (starAll)="onStarAll()"
-      (clearSelection)="fileTable()?.clearSelection()">
+      (clearSelection)="fileTable()?.clearSelection()"
+    >
     </app-selection-bar>
 
     <div class="header-actions">
-      <button class="new-folder-btn" (click)="createFolder()" title="New folder">
+      <button
+        class="new-folder-btn"
+        (click)="showNewFolderDialog.set(true)"
+        title="New folder"
+        aria-label="New folder"
+      >
         <span class="material-symbols-rounded">create_new_folder</span>
       </button>
       <button class="upload-btn" (click)="triggerFilePicker()" [disabled]="uploading()">
@@ -66,7 +72,12 @@
   @if (errorMessage()) {
     <div class="server-error">
       <span>{{ errorMessage() }}</span>
-      <button class="error-dismiss-btn" (click)="errorMessage.set('')" aria-label="Dismiss error" type="button">
+      <button
+        class="error-dismiss-btn"
+        (click)="errorMessage.set('')"
+        aria-label="Dismiss error"
+        type="button"
+      >
         <span class="material-symbols-rounded">close</span>
       </button>
     </div>
@@ -83,22 +94,32 @@
       } @else {
         <span class="material-symbols-rounded empty-icon">cloud_upload</span>
         <h3>{{ isAtRoot() ? 'No files yet' : 'This folder is empty' }}</h3>
-        <p>{{ isAtRoot() ? 'Upload your first backup to homesilo.' : 'Upload files or create a folder to get started.' }}</p>
+        <p>
+          {{
+            isAtRoot()
+              ? 'Upload your first backup to homesilo.'
+              : 'Upload files or create a folder to get started.'
+          }}
+        </p>
       }
     </div>
   } @else if (!loading()) {
     <app-file-table
       [files]="files()"
-      [folders]="isSearching() ? [] : folders()"
-      [actions]="['download', 'trash', 'star']"
+      [folders]="folders()"
+      [actions]="['download', 'rename', 'trash', 'star']"
       dateColumnLabel="Modified"
       (download)="downloadFile($event)"
+      (rename)="renameFile($event)"
+      (folderRename)="renameFolder($event)"
+      (folderDownload)="downloadFolder($event)"
       (trash)="trashFile($event)"
       (star)="toggleStar($event)"
       (openFile)="openFile($event)"
       (folderOpen)="navigateToFolder($event)"
       (folderTrash)="trashFolder($event)"
-      (itemsMoved)="onItemsMoved($event)" />
+      (itemsMoved)="onItemsMoved($event)"
+    />
 
     @if (hasMore()) {
       <div class="show-more-wrap">
@@ -118,13 +139,25 @@
     <app-folder-picker-dialog
       [excludedFolderIds]="getSelectedFolderIds()"
       (confirm)="onMoveConfirm($event)"
-      (cancel)="showMoveDialog.set(false)" />
+      (cancel)="showMoveDialog.set(false)"
+    />
   }
 
-  @if (showFolderNameDialog()) {
+  @if (showNewFolderDialog()) {
     <app-folder-name-dialog
       mode="create"
-      (confirm)="onFolderNameConfirm($event)"
-      (cancel)="showFolderNameDialog.set(false)" />
+      (confirm)="onNewFolderConfirm($event)"
+      (cancel)="showNewFolderDialog.set(false)"
+    />
+  }
+
+  @if (renameTarget(); as target) {
+    <app-folder-name-dialog
+      mode="rename"
+      [itemType]="target.kind"
+      [initialName]="renameInitialName(target)"
+      (confirm)="onRenameConfirm($event)"
+      (cancel)="renameTarget.set(null)"
+    />
   }
 </div>

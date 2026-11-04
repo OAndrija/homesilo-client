@@ -6,8 +6,9 @@ import { FileMetadata } from '../../core/models/file-metadata';
 import { concatMap, finalize, from } from 'rxjs';
 import { FileTable } from '../../shared/file-table/file-table';
 import { SelectionBar } from '../../shared/selection-bar/selection-bar';
-import { isPreviewable } from '../../core/utils/file-preview.utils';
 import { LoadingDelayPipe } from '../../shared/pipes/loading-delay';
+import { FileActions } from '../../core/services/file-actions';
+import { errorMessage } from '../../core/http/http-error';
 
 @Component({
   selector: 'app-starred',
@@ -17,6 +18,7 @@ import { LoadingDelayPipe } from '../../shared/pipes/loading-delay';
 })
 export class Starred {
   private fileService = inject(Files);
+  private fileActions = inject(FileActions);
   private dashboardStore = inject(DashboardStore);
   private searchService = inject(Search);
 
@@ -53,7 +55,7 @@ export class Starred {
           this.files.set(response.content);
           this.hasMore.set(!response.last);
         },
-        error: () => this.errorMessage.set('Search failed.'),
+        error: (err) => this.errorMessage.set(errorMessage(err, 'Search failed.')),
       });
   }
 
@@ -68,7 +70,7 @@ export class Starred {
           this.files.set(response.content);
           this.hasMore.set(!response.last);
         },
-        error: () => this.errorMessage.set('Failed to load starred files.'),
+        error: (err) => this.errorMessage.set(errorMessage(err, 'Failed to load starred files.')),
       });
   }
 
@@ -86,71 +88,51 @@ export class Starred {
         this.currentPage.set(nextPage);
         this.hasMore.set(!response.last);
       },
-      error: () => this.errorMessage.set('Failed to load more starred files.'),
+      error: (err) =>
+        this.errorMessage.set(errorMessage(err, 'Failed to load more starred files.')),
     });
   }
 
   downloadFile(file: FileMetadata): void {
-    this.fileService.download(file.id).subscribe((blob) => {
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = file.originalFileName;
-      a.click();
-      window.URL.revokeObjectURL(url);
-    });
+    this.fileActions.download(file);
   }
 
   trashFile(file: FileMetadata): void {
-    this.fileService.trash(file.id).subscribe(() => {
-      this.files.update((files) => files.filter((f) => f.id !== file.id));
-      this.dashboardStore.refresh();
+    this.fileService.trash(file.id).subscribe({
+      next: () => {
+        this.files.update((files) => files.filter((f) => f.id !== file.id));
+        this.dashboardStore.refresh();
+      },
+      error: (err) => this.errorMessage.set(errorMessage(err, 'Failed to move file to trash.')),
     });
   }
 
+  /** Unstarring removes the file from this view. */
   toggleStar(file: FileMetadata): void {
-    this.fileService.toggleStar(file.id).subscribe((updated) => {
-      this.files.update((files) => files.map((f) => (f.id === updated.id ? updated : f)));
-      this.dashboardStore.silentRefresh();
+    this.fileService.toggleStar(file.id).subscribe({
+      next: (updated) => {
+        this.files.update((files) =>
+          updated.starred
+            ? files.map((f) => (f.id === updated.id ? updated : f))
+            : files.filter((f) => f.id !== updated.id),
+        );
+        this.dashboardStore.silentRefresh();
+      },
+      error: (err) => this.errorMessage.set(errorMessage(err, 'Failed to update star.')),
     });
   }
 
   openFile(file: FileMetadata): void {
-    if (!isPreviewable(file.contentType)) {
+    if (!this.fileActions.open(file)) {
       this.errorMessage.set(
-        `Preview not available for "${file.originalFileName}". Use download instead.`,
+        `Preview isn't available for "${file.originalFileName}". Download it instead.`,
       );
       this.fileTable()?.flashRowError(file.id);
-      return;
     }
-    this.fileService.preview(file.id).subscribe({
-      next: (blob) => {
-        const url = window.URL.createObjectURL(blob);
-        window.open(url, '_blank');
-        setTimeout(() => window.URL.revokeObjectURL(url), 10000);
-      },
-      error: () => {
-        this.errorMessage.set('Failed to open file.');
-        this.fileTable()?.flashRowError(file.id);
-      },
-    });
   }
 
   onDownloadAll(): void {
-    const selected = this.getSelectedFiles();
-    if (selected.length === 0) return;
-    if (selected.length === 1) {
-      this.downloadFile(selected[0]);
-      return;
-    }
-    this.fileService.downloadZip(selected.map((f) => f.id)).subscribe((blob) => {
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'homesilo-files.zip';
-      a.click();
-      window.URL.revokeObjectURL(url);
-    });
+    this.fileActions.downloadSelection(this.getSelectedFiles());
   }
 
   onTrashAll(): void {
@@ -161,9 +143,10 @@ export class Starred {
         concatMap((file) => this.fileService.trash(file.id)),
         finalize(() => this.dashboardStore.refresh()),
       )
-      .subscribe(() => {
-        const ids = new Set(selected.map((f) => f.id));
-        this.files.update((files) => files.filter((f) => !ids.has(f.id)));
+      .subscribe({
+        next: (trashed) => this.files.update((files) => files.filter((f) => f.id !== trashed.id)),
+        error: (err) =>
+          this.errorMessage.set(errorMessage(err, 'Some files could not be moved to trash.')),
       });
   }
 
@@ -176,7 +159,11 @@ export class Starred {
         finalize(() => this.dashboardStore.silentRefresh()),
       )
       .subscribe((updated) => {
-        this.files.update((files) => files.map((f) => (f.id === updated.id ? updated : f)));
+        this.files.update((files) =>
+          updated.starred
+            ? files.map((f) => (f.id === updated.id ? updated : f))
+            : files.filter((f) => f.id !== updated.id),
+        );
       });
   }
 

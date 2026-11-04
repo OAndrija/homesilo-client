@@ -113,7 +113,9 @@
   font-weight: 500;
   font-family: var(--font-body);
   cursor: pointer;
-  transition: background var(--transition-fast), color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .crumb:hover {
@@ -148,7 +150,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ── Empty state ─────────────────────────────────────────────── */

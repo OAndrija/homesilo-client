@@ -4,30 +4,60 @@
   <aside class="sidebar">
     <div class="sidebar-logo">
       <div class="logo-mark">
-        <img src="homesilo-logo-full.png" alt="homesilo logo">
+        <img src="homesilo-logo.png" alt="HomeSilo logo" width="64" height="64" />
       </div>
       <span class="logo-text">homesilo</span>
     </div>
     <nav class="sidebar-nav">
-      <a routerLink="/home" routerLinkActive="active" class="nav-link"
-        title="Home" (click)="closeOnMobile()">
+      <a
+        routerLink="/home"
+        routerLinkActive="active"
+        class="nav-link"
+        title="Home"
+        (click)="closeOnMobile()"
+      >
         <span class="material-symbols-rounded">home</span>
         <span class="nav-label">Home</span>
       </a>
-      <a routerLink="/my-files" routerLinkActive="active" class="nav-link"
-         title="My Files" (click)="closeOnMobile()">
+      <a
+        routerLink="/my-files"
+        routerLinkActive="active"
+        class="nav-link"
+        title="My Files"
+        (click)="closeOnMobile()"
+      >
         <span class="material-symbols-rounded">folder</span>
         <span class="nav-label">My Files</span>
       </a>
-      <a routerLink="/starred" routerLinkActive="active" class="nav-link"
-         title="Starred" (click)="closeOnMobile()">
+      <a
+        routerLink="/starred"
+        routerLinkActive="active"
+        class="nav-link"
+        title="Starred"
+        (click)="closeOnMobile()"
+      >
         <span class="material-symbols-rounded">star</span>
         <span class="nav-label">Starred</span>
       </a>
-      <a routerLink="/trash" routerLinkActive="active" class="nav-link"
-         title="Trash" (click)="closeOnMobile()">
+      <a
+        routerLink="/trash"
+        routerLinkActive="active"
+        class="nav-link"
+        title="Trash"
+        (click)="closeOnMobile()"
+      >
         <span class="material-symbols-rounded">delete</span>
         <span class="nav-label">Trash</span>
+      </a>
+      <a
+        routerLink="/settings"
+        routerLinkActive="active"
+        class="nav-link"
+        title="Settings"
+        (click)="closeOnMobile()"
+      >
+        <span class="material-symbols-rounded">settings</span>
+        <span class="nav-label">Settings</span>
       </a>
     </nav>
 
@@ -52,28 +82,36 @@
             [value]="searchInputValue()"
             (input)="onSearchInput($event)"
             (keydown.escape)="onClearSearch()"
-            aria-label="Search files" />
-        @if (searchInputValue()) {
-          <button
-            class="search-clear-btn"
-            (click)="onClearSearch()"
-            aria-label="Clear search"
-            type="button">
-            <span class="material-symbols-rounded">close</span>
-          </button>
-        }
+            aria-label="Search files"
+          />
+          @if (searchInputValue()) {
+            <button
+              class="search-clear-btn"
+              (click)="onClearSearch()"
+              aria-label="Clear search"
+              type="button"
+            >
+              <span class="material-symbols-rounded">close</span>
+            </button>
+          }
         </div>
       }
       <div class="topbar-user">
         <button
           class="theme-toggle-btn"
           (click)="themeService.toggle()"
-          [attr.aria-label]="themeService.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
-          type="button">
+          [attr.aria-label]="
+            themeService.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'
+          "
+          type="button"
+        >
           <span class="material-symbols-rounded">
             {{ themeService.theme() === 'dark' ? 'light_mode' : 'dark_mode' }}
           </span>
         </button>
+        @if (auth.user(); as user) {
+          <span class="topbar-username" [title]="user.email">{{ user.username }}</span>
+        }
         <button class="logout-btn" (click)="onLogout()">Sign out</button>
       </div>
     </header>
@@ -81,5 +119,4 @@
       <router-outlet></router-outlet>
     </main>
   </div>
-
 </div>

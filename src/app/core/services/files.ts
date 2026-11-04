@@ -1,90 +1,103 @@
-import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
+import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { API_BASE } from '../api';
 import { FileMetadata, PageResponse } from '../models/file-metadata';
 
-const API_URL = 'http://localhost:8080/api/v1/files';
-
+const FILES_URL = `${API_BASE}/files`;
 
 @Injectable({ providedIn: 'root' })
 export class Files {
   private http = inject(HttpClient);
 
-  listActive(page = 0, size = 20): Observable<PageResponse<FileMetadata>> {
-    const params = new HttpParams().set('page', page).set('size', size);
-    return this.http.get<PageResponse<FileMetadata>>(API_URL, { params });
+  listActive(page = 0, size = 50): Observable<PageResponse<FileMetadata>> {
+    return this.http.get<PageResponse<FileMetadata>>(FILES_URL, { params: pageParams(page, size) });
   }
 
   listRecentlyUploadedActive(page = 0, size = 10): Observable<PageResponse<FileMetadata>> {
-    const params = new HttpParams().set('page', page).set('size', size);
-    return this.http.get<PageResponse<FileMetadata>>(`${API_URL}/recent`, { params });
+    return this.http.get<PageResponse<FileMetadata>>(`${FILES_URL}/recent`, {
+      params: pageParams(page, size),
+    });
   }
 
-  listTrashed(page = 0, size = 20): Observable<PageResponse<FileMetadata>> {
-    const params = new HttpParams().set('page', page).set('size', size);
-    return this.http.get<PageResponse<FileMetadata>>(`${API_URL}/trash`, { params });
+  listTrashed(page = 0, size = 50): Observable<PageResponse<FileMetadata>> {
+    return this.http.get<PageResponse<FileMetadata>>(`${FILES_URL}/trash`, {
+      params: pageParams(page, size),
+    });
   }
 
-  listStarred(page = 0, size = 20): Observable<PageResponse<FileMetadata>> {
-    const params = new HttpParams().set('page', page).set('size', size);
-    return this.http.get<PageResponse<FileMetadata>>(`${API_URL}/starred`, { params });
+  listStarred(page = 0, size = 50): Observable<PageResponse<FileMetadata>> {
+    return this.http.get<PageResponse<FileMetadata>>(`${FILES_URL}/starred`, {
+      params: pageParams(page, size),
+    });
+  }
+
+  searchActive(query: string, page = 0, size = 50): Observable<PageResponse<FileMetadata>> {
+    return this.search(`${FILES_URL}/search`, query, page, size);
+  }
+
+  searchTrashed(query: string, page = 0, size = 50): Observable<PageResponse<FileMetadata>> {
+    return this.search(`${FILES_URL}/trash/search`, query, page, size);
+  }
+
+  searchStarred(query: string, page = 0, size = 50): Observable<PageResponse<FileMetadata>> {
+    return this.search(`${FILES_URL}/starred/search`, query, page, size);
   }
 
   upload(file: File, folderId: string | null = null): Observable<FileMetadata> {
     const formData = new FormData();
     formData.append('file', file);
     if (folderId) formData.append('folderId', folderId);
-    return this.http.post<FileMetadata>(`${API_URL}/upload`, formData);
+    return this.http.post<FileMetadata>(`${FILES_URL}/upload`, formData);
   }
 
-  download(fileId: string): Observable<Blob> {
-    return this.http.get(`${API_URL}/${fileId}/download`, { responseType: 'blob' });
-  }
-
-  downloadZip(fileIds: string[]): Observable<Blob> {
-    return this.http.post(`${API_URL}/download-zip`, fileIds, { responseType: 'blob' });
-  }
-
-  preview(fileId: string): Observable<Blob> {
-    return this.http.get(`${API_URL}/${fileId}/preview`, { responseType: 'blob' });
+  rename(fileId: string, name: string): Observable<FileMetadata> {
+    return this.http.patch<FileMetadata>(`${FILES_URL}/${fileId}/rename`, { name });
   }
 
   moveFile(fileId: string, targetFolderId: string | null): Observable<FileMetadata> {
-    return this.http.patch<FileMetadata>(`${API_URL}/${fileId}/move`, { targetFolderId });
+    return this.http.patch<FileMetadata>(`${FILES_URL}/${fileId}/move`, { targetFolderId });
   }
 
   trash(fileId: string): Observable<FileMetadata> {
-    return this.http.patch<FileMetadata>(`${API_URL}/${fileId}/trash`, {});
+    return this.http.patch<FileMetadata>(`${FILES_URL}/${fileId}/trash`, {});
   }
 
   toggleStar(fileId: string): Observable<FileMetadata> {
-    return this.http.patch<FileMetadata>(`${API_URL}/${fileId}/star`, {});
+    return this.http.patch<FileMetadata>(`${FILES_URL}/${fileId}/star`, {});
   }
 
   restore(fileId: string): Observable<FileMetadata> {
-    return this.http.patch<FileMetadata>(`${API_URL}/${fileId}/restore`, {});
+    return this.http.patch<FileMetadata>(`${FILES_URL}/${fileId}/restore`, {});
   }
 
   deletePermanently(fileId: string): Observable<void> {
-    return this.http.delete<void>(`${API_URL}/${fileId}`);
+    return this.http.delete<void>(`${FILES_URL}/${fileId}`);
   }
 
-  getStorageUsage(): Observable<number> {
-    return this.http.get<number>(`${API_URL}/storage-usage`);
+  // URLs the browser fetches directly (with the session cookie), so large files
+  // stream to disk or into a viewer instead of being buffered in JS memory.
+
+  downloadUrl(fileId: string): string {
+    return `${FILES_URL}/${encodeURIComponent(fileId)}/download`;
   }
 
-  searchActive(query: string, page = 0, size = 20): Observable<PageResponse<FileMetadata>> {
-    const params = new HttpParams().set('query', query).set('page', page).set('size', size);
-    return this.http.get<PageResponse<FileMetadata>>(`${API_URL}/search`, { params });
+  previewUrl(fileId: string): string {
+    return `${FILES_URL}/${encodeURIComponent(fileId)}/preview`;
   }
 
-  searchTrashed(query: string, page = 0, size = 20): Observable<PageResponse<FileMetadata>> {
-    const params = new HttpParams().set('query', query).set('page', page).set('size', size);
-    return this.http.get<PageResponse<FileMetadata>>(`${API_URL}/trash/search`, { params });
+  zipUrl(fileIds: string[], folderIds: string[]): string {
+    const params = new HttpParams({ fromObject: { fileIds, folderIds } });
+    return `${FILES_URL}/download-zip?${params.toString()}`;
   }
 
-  searchStarred(query: string, page = 0, size = 20): Observable<PageResponse<FileMetadata>> {
-    const params = new HttpParams().set('query', query).set('page', page).set('size', size);
-    return this.http.get<PageResponse<FileMetadata>>(`${API_URL}/starred/search`, { params });
+  private search(url: string, query: string, page: number, size: number) {
+    return this.http.get<PageResponse<FileMetadata>>(url, {
+      params: pageParams(page, size).set('query', query),
+    });
   }
+}
+
+function pageParams(page: number, size: number): HttpParams {
+  return new HttpParams().set('page', page).set('size', size);
 }

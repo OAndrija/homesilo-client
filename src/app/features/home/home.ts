@@ -1,22 +1,25 @@
 import { Component, inject, signal, computed } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { Files } from '../../core/services/files';
 import { DashboardStore } from '../../core/services/dashboard-store';
 import { FileMetadata } from '../../core/models/file-metadata';
 import { FileTable } from '../../shared/file-table/file-table';
-import { isPreviewable } from '../../core/utils/file-preview.utils';
 import { DatePipe } from '@angular/common';
 import { Auth } from '../../core/services/auth';
 import { LoadingDelayPipe } from '../../shared/pipes/loading-delay';
+import { FileActions } from '../../core/services/file-actions';
+import { formatBytes } from '../../core/utils/format';
 
 // Colours live in styles.css (--cat-*) so they adapt to light/dark themes.
 const CATEGORY_META: Record<string, { color: string; icon: string }> = {
   Documents: { color: 'var(--cat-documents)', icon: 'description' },
   Images: { color: 'var(--cat-images)', icon: 'image' },
   Videos: { color: 'var(--cat-videos)', icon: 'movie' },
+  Audio: { color: 'var(--cat-audio)', icon: 'audiotrack' },
   Archives: { color: 'var(--cat-archives)', icon: 'folder_zip' },
   Other: { color: 'var(--cat-other)', icon: 'draft' },
+  Trash: { color: 'var(--cat-trash)', icon: 'delete' },
 };
 
 @Component({
@@ -29,9 +32,9 @@ export class Home {
   private fileService = inject(Files);
   private store = inject(DashboardStore);
   private authService = inject(Auth);
-  private router = inject(Router);
+  private fileActions = inject(FileActions);
 
-  username = signal(this.authService.getTokenPayload()?.sub ?? '');
+  username = computed(() => this.authService.user()?.username ?? '');
 
   recentFiles = signal<FileMetadata[]>([]);
   loadingRecent = signal(true);
@@ -102,7 +105,7 @@ export class Home {
   });
 
   /** Biggest file type (the breakdown is already sorted by size); null while empty. */
-  topCategory = computed(() => this.breakdownWithPercent()[0] ?? null);
+  topCategory = computed(() => this.breakdownWithPercent().at(0) ?? null);
 
   /** One stacked layer per file type, biggest at the bottom of the tank. */
   tankLayers = computed(() => {
@@ -155,25 +158,11 @@ export class Home {
   }
 
   downloadFile(file: FileMetadata): void {
-    this.fileService.download(file.id).subscribe((blob) => {
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = file.originalFileName;
-      a.click();
-      window.URL.revokeObjectURL(url);
-    });
+    this.fileActions.download(file);
   }
 
   openFile(file: FileMetadata): void {
-    if (!isPreviewable(file.contentType)) return;
-    this.fileService.preview(file.id).subscribe({
-      next: (blob) => {
-        const url = window.URL.createObjectURL(blob);
-        window.open(url, '_blank');
-        setTimeout(() => window.URL.revokeObjectURL(url), 10_000);
-      },
-    });
+    this.fileActions.open(file);
   }
 
   restoreFile(file: FileMetadata): void {
@@ -192,10 +181,5 @@ export class Home {
     return pct < 1 ? '<1%' : `${Math.round(pct)}%`;
   }
 
-  formatSize(bytes: number): string {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-    return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
-  }
+  formatSize = formatBytes;
 }

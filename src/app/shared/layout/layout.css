@@ -65,14 +65,18 @@
   overflow: hidden;
   opacity: 0;
   max-width: 0;
-  transition: opacity var(--transition-fast), max-width var(--transition-base);
+  transition:
+    opacity var(--transition-fast),
+    max-width var(--transition-base);
 }
 
 .app-shell.sidebar-open .logo-text,
 .app-shell.sidebar-open .nav-label {
   opacity: 1;
   max-width: 160px;
-  transition: opacity 0.2s ease 0.1s, max-width var(--transition-base);
+  transition:
+    opacity 0.2s ease 0.1s,
+    max-width var(--transition-base);
 }
 
 .sidebar-nav {
@@ -92,7 +96,10 @@
   font-size: 14px;
   font-weight: 500;
   text-decoration: none;
-  transition: background var(--transition-fast), color var(--transition-fast), padding-left var(--transition-sidebar);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast),
+    padding-left var(--transition-sidebar);
 }
 
 .app-shell.sidebar-open .nav-link {
@@ -147,7 +154,10 @@
   border-radius: var(--radius-pill);
   color: var(--color-text-dim);
   cursor: pointer;
-  transition: border-color var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
 .menu-btn:hover {
@@ -171,7 +181,9 @@
   border-radius: var(--radius-pill);
   padding: 0 18px;
   height: 50px;
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
 .search-bar:focus-within {
@@ -223,7 +235,9 @@
   padding: 12px 14px;
   cursor: pointer;
   white-space: nowrap;
-  transition: border-color var(--transition-fast), color var(--transition-fast);
+  transition:
+    border-color var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .logout-btn:hover {
@@ -251,7 +265,9 @@
   color: var(--color-text-dim);
   cursor: pointer;
   flex-shrink: 0;
-  transition: background var(--transition-fast), color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .search-clear-btn:hover {
@@ -275,8 +291,10 @@
   color: var(--color-text-muted);
   cursor: pointer;
   flex-shrink: 0;
-  transition: border-color var(--transition-fast), color var(--transition-fast),
-  box-shadow var(--transition-fast);
+  transition:
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
 .theme-toggle-btn:hover {
@@ -331,6 +349,22 @@
   }
 
   .username {
+    display: none;
+  }
+}
+
+.topbar-username {
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+  .topbar-username {
     display: none;
   }
 }

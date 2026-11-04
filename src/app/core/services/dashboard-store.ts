@@ -1,10 +1,16 @@
+import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
-import { Dashboard } from './dashboard';
+import { API_BASE } from '../api';
 import { DashboardStats } from '../models/dashboard-stats';
 
+/**
+ * Shared, lazily loaded dashboard stats (storage usage, counts). Root singleton:
+ * {@link reset} must run on every login/logout so one account never sees
+ * another's cached numbers.
+ */
 @Injectable({ providedIn: 'root' })
 export class DashboardStore {
-  private dashboardService = inject(Dashboard);
+  private http = inject(HttpClient);
 
   private statsSignal = signal<DashboardStats | null>(null);
   private loadingSignal = signal(false);
@@ -13,49 +19,37 @@ export class DashboardStore {
   readonly stats = this.statsSignal.asReadonly();
   readonly loading = this.loadingSignal.asReadonly();
 
-  /** Loads stats only if not already loaded/loading. Safe to call from multiple components. */
+  /** Loads stats unless already loaded or loading. Safe to call from many components. */
   ensureLoaded(): void {
     if (this.loadedOnce || this.loadingSignal()) return;
-    this.fetch();
+    this.fetch(true);
   }
 
-  /** Forces a refetch — call after upload/trash/restore/delete actions. */
+  /** Refetch after anything that changes usage (upload, trash, restore, delete). */
   refresh(): void {
-    this.fetch();
+    this.fetch(true);
   }
 
+  /** Refetch without flipping the loading flag, so nothing flickers. */
   silentRefresh(): void {
-    this.dashboardService.getStats().subscribe({
-      next: (stats) => {
-        this.statsSignal.set(stats);
-        this.loadedOnce = true;
-      },
-    });
+    this.fetch(false);
   }
 
-  /**
-   * Clears cached stats and the loadedOnce flag. Must be called on logout
-   * (and ideally on login) — this store is a root singleton, so without an
-   * explicit reset it keeps serving the previous user's cached data after
-   * an account switch.
-   */
   reset(): void {
     this.statsSignal.set(null);
     this.loadingSignal.set(false);
     this.loadedOnce = false;
   }
 
-  private fetch(): void {
-    this.loadingSignal.set(true);
-    this.dashboardService.getStats().subscribe({
+  private fetch(showLoading: boolean): void {
+    if (showLoading) this.loadingSignal.set(true);
+    this.http.get<DashboardStats>(`${API_BASE}/dashboard/stats`).subscribe({
       next: (stats) => {
         this.statsSignal.set(stats);
         this.loadedOnce = true;
         this.loadingSignal.set(false);
       },
-      error: () => {
-        this.loadingSignal.set(false);
-      },
+      error: () => this.loadingSignal.set(false),
     });
   }
 }

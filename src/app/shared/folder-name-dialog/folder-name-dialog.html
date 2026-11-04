@@ -2,7 +2,8 @@
   class="dialog-backdrop"
   (click)="onBackdropClick($event)"
   data-dialog-backdrop
-  (keydown)="onKeydown($event)">
+  (keydown)="onKeydown($event)"
+>
   <div class="dialog" role="dialog" [attr.aria-label]="title">
     <div class="dialog-header">
       <h3>{{ title }}</h3>
@@ -21,8 +22,10 @@
         [placeholder]="placeholder"
         [value]="value()"
         (input)="value.set($any($event.target).value)"
+        maxlength="255"
         autocomplete="off"
-        spellcheck="false" />
+        spellcheck="false"
+      />
     </div>
 
     <div class="dialog-footer">
@@ -32,7 +35,8 @@
           class="btn-confirm"
           type="button"
           [disabled]="!value().trim()"
-          (click)="onConfirm()">
+          (click)="onConfirm()"
+        >
           {{ confirmLabel }}
         </button>
       </div>

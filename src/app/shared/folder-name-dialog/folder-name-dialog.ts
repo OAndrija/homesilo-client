@@ -1,11 +1,12 @@
 import {
+  AfterViewInit,
   Component,
+  ElementRef,
   input,
+  OnInit,
   output,
   signal,
-  ElementRef,
   viewChild,
-  AfterViewInit,
 } from '@angular/core';
 
 @Component({
@@ -13,8 +14,10 @@ import {
   templateUrl: './folder-name-dialog.html',
   styleUrl: './folder-name-dialog.css',
 })
-export class FolderNameDialog implements AfterViewInit {
+export class FolderNameDialog implements OnInit, AfterViewInit {
   mode = input<'create' | 'rename'>('create');
+  /** What is being named; only changes the wording. */
+  itemType = input<'folder' | 'file'>('folder');
   initialName = input('');
 
   confirm = output<string>();
@@ -23,22 +26,29 @@ export class FolderNameDialog implements AfterViewInit {
   nameInput = viewChild<ElementRef<HTMLInputElement>>('nameInput');
   value = signal('');
 
-  ngAfterViewInit(): void {
-    // Seed value from input and focus
+  ngOnInit(): void {
+    // Seed before the first render so the selection below isn't reset by the value binding.
     this.value.set(this.initialName());
+  }
+
+  ngAfterViewInit(): void {
     const el = this.nameInput()?.nativeElement;
     if (el) {
+      el.value = this.value();
       el.focus();
-      el.select();
+      // For files, pre-select only the base name so the extension survives typing.
+      const dot = this.itemType() === 'file' ? this.initialName().lastIndexOf('.') : -1;
+      if (dot > 0) el.setSelectionRange(0, dot);
+      else el.select();
     }
   }
 
   get title(): string {
-    return this.mode() === 'rename' ? 'Rename folder' : 'New folder';
+    return this.mode() === 'rename' ? `Rename ${this.itemType()}` : `New ${this.itemType()}`;
   }
 
   get placeholder(): string {
-    return this.mode() === 'rename' ? 'Folder name' : 'Untitled folder';
+    return this.mode() === 'rename' ? 'Name' : `Untitled ${this.itemType()}`;
   }
 
   get confirmLabel(): string {
@@ -47,7 +57,10 @@ export class FolderNameDialog implements AfterViewInit {
 
   onConfirm(): void {
     const name = this.value().trim();
-    if (!name) return;
+    if (!name || name === this.initialName()) {
+      if (name) this.cancel.emit();
+      return;
+    }
     this.confirm.emit(name);
   }
 

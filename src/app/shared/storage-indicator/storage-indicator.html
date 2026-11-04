@@ -6,7 +6,5 @@
   <div class="storage-bar-track">
     <div class="storage-bar-fill" [style.width.%]="percentUsed()"></div>
   </div>
-  <p class="storage-text">
-    {{ formatGB(usedBytes()) }}GB of {{ formatGB(maxBytes()) }}GB used
-  </p>
+  <p class="storage-text">{{ formatGB(usedBytes()) }}GB of {{ formatGB(maxBytes()) }}GB used</p>
 </div>
