@@ -1,5 +1,5 @@
 # Rendered by the nginx image's envsubst step: only ${API_UPSTREAM} and
-# ${MAX_UPLOAD_SIZE} are substituted; nginx's own $variables are left alone.
+# ${NGINX_MAX_BODY_SIZE} are substituted; nginx's own $variables are left alone.
 
 server {
     listen 8080;
@@ -29,7 +29,7 @@ server {
         proxy_set_header X-Forwarded-Host $host;
 
         # Stream uploads and downloads instead of spooling them through nginx.
-        client_max_body_size ${MAX_UPLOAD_SIZE};
+        client_max_body_size ${NGINX_MAX_BODY_SIZE};
         proxy_request_buffering off;
         proxy_buffering off;
         proxy_read_timeout 1h;

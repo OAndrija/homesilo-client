@@ -10,6 +10,7 @@ RUN npm run build
 
 # ── Runtime: nginx serves the SPA and proxies /api to the server ──────────────
 FROM nginxinc/nginx-unprivileged:1.27-alpine
+COPY --chmod=755 nginx/15-upload-size.envsh /docker-entrypoint.d/15-upload-size.envsh
 COPY nginx/security-headers.conf /etc/nginx/snippets/security-headers.conf
 COPY nginx/default.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=build /app/dist/homesilo-client/browser /usr/share/nginx/html
