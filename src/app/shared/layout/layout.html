@@ -1,122 +1,133 @@
-<div class="app-shell" [class.sidebar-open]="sidebarOpen()">
-  <div class="backdrop" (click)="toggleSidebar()"></div>
+<div class="shell" [class.sidebar-open]="sidebarOpen()">
+  <a class="skip-link" href="#main">Skip to content</a>
 
-  <aside class="sidebar">
-    <div class="sidebar-logo">
-      <div class="logo-mark">
-        <img src="homesilo-logo.png" alt="HomeSilo logo" width="64" height="64" />
-      </div>
-      <span class="logo-text">homesilo</span>
-    </div>
-    <nav class="sidebar-nav">
-      <a
-        routerLink="/home"
-        routerLinkActive="active"
-        class="nav-link"
-        title="Home"
-        (click)="closeOnMobile()"
-      >
-        <span class="material-symbols-rounded">home</span>
-        <span class="nav-label">Home</span>
+  <aside class="sidebar" aria-label="Main navigation">
+    <a class="brand" routerLink="/home" aria-label="HomeSilo home">
+      <img src="homesilo-logo.png" alt="" width="36" height="36" />
+      <span class="wordmark">HomeSilo</span>
+    </a>
+
+    <nav class="nav">
+      <a routerLink="/home" routerLinkActive="is-active" class="nav-link">
+        <span class="material-symbols-rounded" aria-hidden="true">home</span>
+        Home
       </a>
-      <a
-        routerLink="/my-files"
-        routerLinkActive="active"
-        class="nav-link"
-        title="My Files"
-        (click)="closeOnMobile()"
-      >
-        <span class="material-symbols-rounded">folder</span>
-        <span class="nav-label">My Files</span>
+      <a routerLink="/my-files" routerLinkActive="is-active" class="nav-link">
+        <span class="material-symbols-rounded" aria-hidden="true">folder</span>
+        My Files
       </a>
-      <a
-        routerLink="/starred"
-        routerLinkActive="active"
-        class="nav-link"
-        title="Starred"
-        (click)="closeOnMobile()"
-      >
-        <span class="material-symbols-rounded">star</span>
-        <span class="nav-label">Starred</span>
+      <a routerLink="/starred" routerLinkActive="is-active" class="nav-link">
+        <span class="material-symbols-rounded" aria-hidden="true">star</span>
+        Starred
       </a>
-      <a
-        routerLink="/trash"
-        routerLinkActive="active"
-        class="nav-link"
-        title="Trash"
-        (click)="closeOnMobile()"
-      >
-        <span class="material-symbols-rounded">delete</span>
-        <span class="nav-label">Trash</span>
-      </a>
-      <a
-        routerLink="/settings"
-        routerLinkActive="active"
-        class="nav-link"
-        title="Settings"
-        (click)="closeOnMobile()"
-      >
-        <span class="material-symbols-rounded">settings</span>
-        <span class="nav-label">Settings</span>
+      <a routerLink="/trash" routerLinkActive="is-active" class="nav-link">
+        <span class="material-symbols-rounded" aria-hidden="true">delete</span>
+        Trash
       </a>
     </nav>
 
-    <app-storage-indicator [sidebarOpen]="sidebarOpen()" />
+    <div class="sidebar-foot">
+      <app-storage-indicator />
+
+      <div class="account" #account>
+        @if (accountMenuOpen()) {
+          <div class="menu account-menu" role="menu">
+            @if (auth.user(); as user) {
+              <div class="account-summary">
+                <span class="account-name">{{ user.username }}</span>
+                <span class="account-email">{{ user.email }}</span>
+              </div>
+            }
+            <div class="menu-divider"></div>
+            <a class="menu-item" role="menuitem" routerLink="/settings">
+              <span class="material-symbols-rounded" aria-hidden="true">settings</span>
+              Settings
+            </a>
+            <div class="theme-switch" role="radiogroup" aria-label="Theme">
+              @for (option of themeOptions; track option.value) {
+                <button
+                  type="button"
+                  role="radio"
+                  class="theme-option"
+                  [class.is-selected]="theme.preference() === option.value"
+                  [attr.aria-checked]="theme.preference() === option.value"
+                  [attr.aria-label]="option.label + ' theme'"
+                  [title]="option.label"
+                  (click)="setTheme(option.value)"
+                >
+                  <span class="material-symbols-rounded" aria-hidden="true">{{ option.icon }}</span>
+                </button>
+              }
+            </div>
+            <div class="menu-divider"></div>
+            <button type="button" class="menu-item" role="menuitem" (click)="signOut()">
+              <span class="material-symbols-rounded" aria-hidden="true">logout</span>
+              Sign out
+            </button>
+          </div>
+        }
+
+        <button
+          type="button"
+          class="account-trigger"
+          aria-haspopup="menu"
+          [attr.aria-expanded]="accountMenuOpen()"
+          (click)="toggleAccountMenu()"
+        >
+          <span class="avatar" aria-hidden="true">{{ initial() }}</span>
+          <span class="account-trigger-name">{{ auth.user()?.username }}</span>
+          <span class="material-symbols-rounded" aria-hidden="true">unfold_more</span>
+        </button>
+      </div>
+    </div>
   </aside>
 
-  <div class="main-area">
+  <div class="scrim" (click)="sidebarOpen.set(false)" aria-hidden="true"></div>
+
+  <div class="main">
     <header class="topbar">
-      <button class="menu-btn" (click)="toggleSidebar()" aria-label="Toggle sidebar">
-        <span class="material-symbols-rounded">
-          {{ sidebarOpen() ? 'chevron_left' : 'chevron_right' }}
-        </span>
+      <button
+        type="button"
+        class="icon-btn menu-toggle"
+        aria-label="Open navigation"
+        (click)="sidebarOpen.set(true)"
+      >
+        <span class="material-symbols-rounded">menu</span>
       </button>
 
-      @if (!isHome()) {
-        <div class="search-bar">
-          <span class="material-symbols-rounded">search</span>
-          <input
-            type="text"
-            class="search-input"
-            placeholder="Search in homesilo..."
-            [value]="searchInputValue()"
-            (input)="onSearchInput($event)"
-            (keydown.escape)="onClearSearch()"
-            aria-label="Search files"
-          />
-          @if (searchInputValue()) {
-            <button
-              class="search-clear-btn"
-              (click)="onClearSearch()"
-              aria-label="Clear search"
-              type="button"
-            >
-              <span class="material-symbols-rounded">close</span>
-            </button>
-          }
-        </div>
-      }
-      <div class="topbar-user">
-        <button
-          class="theme-toggle-btn"
-          (click)="themeService.toggle()"
-          [attr.aria-label]="
-            themeService.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'
-          "
-          type="button"
-        >
-          <span class="material-symbols-rounded">
-            {{ themeService.theme() === 'dark' ? 'light_mode' : 'dark_mode' }}
-          </span>
-        </button>
-        @if (auth.user(); as user) {
-          <span class="topbar-username" [title]="user.email">{{ user.username }}</span>
+      <div class="search" role="search">
+        <span class="material-symbols-rounded search-icon" aria-hidden="true">search</span>
+        <input
+          #searchInput
+          type="search"
+          class="search-input"
+          [placeholder]="searchPlaceholder()"
+          [value]="searchService.text()"
+          (input)="onSearchInput($event)"
+          (keydown.escape)="clearSearch(); searchInput.blur()"
+          aria-label="Search"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        @if (searchService.text()) {
+          <button
+            type="button"
+            class="icon-btn search-clear"
+            aria-label="Clear search"
+            (click)="clearSearch()"
+          >
+            <span class="material-symbols-rounded">close</span>
+          </button>
+        } @else {
+          <kbd class="search-hint" aria-hidden="true">/</kbd>
         }
-        <button class="logout-btn" (click)="onLogout()">Sign out</button>
       </div>
     </header>
-    <main class="page-content">
-      <router-outlet></router-outlet>
+
+    <main class="content" id="main" tabindex="-1">
+      <router-outlet />
     </main>
   </div>
 </div>
+
+<app-toast-host />

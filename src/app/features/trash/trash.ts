@@ -1,6 +1,7 @@
 import { Component, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { concatMap, finalize, from, forkJoin } from 'rxjs';
 import { errorMessage } from '../../core/http/http-error';
+import { ToastService } from '../../core/services/toast';
 import { TrashApi } from '../../core/services/trash';
 import { Files } from '../../core/services/files';
 import { Folders } from '../../core/services/folders';
@@ -20,7 +21,6 @@ import {
   selector: 'app-trash',
   imports: [FileTable, SelectionBar, LoadingDelayPipe, ConfirmDeleteDialog],
   templateUrl: './trash.html',
-  styleUrl: './trash.css',
 })
 export class Trash {
   private fileService = inject(Files);
@@ -28,6 +28,7 @@ export class Trash {
   private trashApi = inject(TrashApi);
   private searchService = inject(Search);
   private dashboardStore = inject(DashboardStore);
+  private toast = inject(ToastService);
 
   fileTable = viewChild(FileTable);
 
@@ -35,7 +36,6 @@ export class Trash {
   folders = signal<Folder[]>([]);
   loading = signal(true);
   loadingMore = signal(false);
-  errorMessage = signal('');
   currentPage = signal(0);
   hasMore = signal(false);
 
@@ -75,7 +75,7 @@ export class Trash {
           this.folders.set(folders.content);
           this.hasMore.set(!files.last);
         },
-        error: (err) => this.errorMessage.set(errorMessage(err, 'Failed to load trash.')),
+        error: (err) => this.toast.error(errorMessage(err, 'Couldn’t load the trash.')),
       });
   }
 
@@ -90,7 +90,7 @@ export class Trash {
           this.files.set(response.content);
           this.hasMore.set(!response.last);
         },
-        error: (err) => this.errorMessage.set(errorMessage(err, 'Search failed.')),
+        error: (err) => this.toast.error(errorMessage(err, 'Search failed.')),
       });
   }
 
@@ -108,7 +108,7 @@ export class Trash {
         this.currentPage.set(nextPage);
         this.hasMore.set(!response.last);
       },
-      error: (err) => this.errorMessage.set(errorMessage(err, 'Failed to load more.')),
+      error: (err) => this.toast.error(errorMessage(err, 'Couldn’t load more items.')),
     });
   }
 
@@ -120,8 +120,9 @@ export class Trash {
         next: () => {
           this.files.update((files) => files.filter((f) => f.id !== file.id));
           this.dashboardStore.refresh();
+          this.toast.success(`Deleted “${file.originalFileName}” forever`);
         },
-        error: (err) => this.errorMessage.set(errorMessage(err, 'Failed to delete file.')),
+        error: (err) => this.toast.error(errorMessage(err, 'Couldn’t delete the file.')),
       });
     });
   }
@@ -131,8 +132,13 @@ export class Trash {
       next: () => {
         this.files.update((files) => files.filter((f) => f.id !== file.id));
         this.dashboardStore.refresh();
+        this.toast.success(
+          file.folderName
+            ? `Restored “${file.originalFileName}” to ${file.folderName}`
+            : `Restored “${file.originalFileName}”`,
+        );
       },
-      error: (err) => this.errorMessage.set(errorMessage(err, 'Failed to restore file.')),
+      error: (err) => this.toast.error(errorMessage(err, 'Couldn’t restore the file.')),
     });
   }
 
@@ -140,11 +146,12 @@ export class Trash {
 
   restoreFolder(folder: Folder): void {
     this.folderService.restoreFolder(folder.id).subscribe({
-      next: () => {
+      next: (restored) => {
         this.folders.update((folders) => folders.filter((f) => f.id !== folder.id));
         this.dashboardStore.refresh();
+        this.toast.success(`Restored “${restored.name}”`);
       },
-      error: (err) => this.errorMessage.set(errorMessage(err, 'Failed to restore folder.')),
+      error: (err) => this.toast.error(errorMessage(err, 'Couldn’t restore the folder.')),
     });
   }
 
@@ -154,8 +161,9 @@ export class Trash {
         next: () => {
           this.folders.update((folders) => folders.filter((f) => f.id !== folder.id));
           this.dashboardStore.refresh();
+          this.toast.success(`Deleted “${folder.name}” forever`);
         },
-        error: (err) => this.errorMessage.set(errorMessage(err, 'Failed to delete folder.')),
+        error: (err) => this.toast.error(errorMessage(err, 'Couldn’t delete the folder.')),
       });
     });
   }
@@ -179,8 +187,7 @@ export class Trash {
         }),
       )
       .subscribe({
-        error: (err) =>
-          this.errorMessage.set(errorMessage(err, 'Some items could not be restored.')),
+        error: (err) => this.toast.error(errorMessage(err, 'Some items couldn’t be restored.')),
       });
   }
 
@@ -203,8 +210,7 @@ export class Trash {
           }),
         )
         .subscribe({
-          error: (err) =>
-            this.errorMessage.set(errorMessage(err, 'Some items could not be deleted.')),
+          error: (err) => this.toast.error(errorMessage(err, 'Some items couldn’t be deleted.')),
         });
     });
   }
@@ -217,12 +223,14 @@ export class Trash {
         .empty()
         .pipe(finalize(() => this.dashboardStore.refresh()))
         .subscribe({
-          next: () => {
+          next: (result) => {
             this.files.set([]);
             this.folders.set([]);
             this.hasMore.set(false);
+            const count = result.files + result.folders;
+            this.toast.success(`Deleted ${count} item${count !== 1 ? 's' : ''} forever`);
           },
-          error: (err) => this.errorMessage.set(errorMessage(err, 'Failed to empty trash.')),
+          error: (err) => this.toast.error(errorMessage(err, 'Couldn’t empty the trash.')),
         });
     });
   }
@@ -251,5 +259,12 @@ export class Trash {
   onDeleteCancelled(): void {
     this.pendingDelete.set(null);
     this.pendingDeleteCallback.set(null);
+  }
+
+  selectedCount(): number {
+    return (
+      (this.fileTable()?.selectedIds().size ?? 0) +
+      (this.fileTable()?.selectedFolderIds().size ?? 0)
+    );
   }
 }

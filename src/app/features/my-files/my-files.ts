@@ -20,6 +20,7 @@ import { FileActions } from '../../core/services/file-actions';
 import { Files } from '../../core/services/files';
 import { Folders } from '../../core/services/folders';
 import { Search } from '../../core/services/search';
+import { ToastService } from '../../core/services/toast';
 import { FileTable, MovePayload } from '../../shared/file-table/file-table';
 import { FolderNameDialog } from '../../shared/folder-name-dialog/folder-name-dialog';
 import { FolderPickerDialog } from '../../shared/folder-picker-dialog/folder-picker-dialog';
@@ -40,6 +41,7 @@ export class MyFiles {
   private fileActions = inject(FileActions);
   private searchService = inject(Search);
   private dashboardStore = inject(DashboardStore);
+  private toast = inject(ToastService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
 
@@ -57,14 +59,11 @@ export class MyFiles {
   files = signal<FileMetadata[]>([]);
   loading = signal(true);
   loadingMore = signal(false);
-  errorMessage = signal('');
+  loadFailed = signal(false);
   currentPage = signal(0);
   hasMore = signal(false);
 
-  // ── Upload ───────────────────────────────────────────────────
   uploading = signal(false);
-  uploadTotal = signal(0);
-  uploadCompleted = signal(0);
   dragging = signal(false);
   private dragCounter = 0;
 
@@ -73,8 +72,16 @@ export class MyFiles {
   showNewFolderDialog = signal(false);
   renameTarget = signal<RenameTarget | null>(null);
 
-  isSearching = computed(() => this.searchService.query().trim().length > 0);
+  query = computed(() => this.searchService.query().trim());
+  isSearching = computed(() => this.query().length > 0);
   isAtRoot = computed(() => this.currentFolderId() === null);
+  currentFolder = computed(() => this.breadcrumb().at(-1) ?? null);
+  /** Ancestors shown above the title (the title itself is the current folder). */
+  ancestors = computed(() => this.breadcrumb().slice(0, -1));
+  title = computed(() => {
+    if (this.isSearching()) return 'Search results';
+    return this.isAtRoot() ? 'My Files' : (this.currentFolder()?.name ?? 'My Files');
+  });
   selectedCount = computed(
     () =>
       (this.fileTable()?.selectedIds().size ?? 0) +
@@ -82,25 +89,23 @@ export class MyFiles {
   );
 
   contentSummary = computed(() => {
+    if (this.isSearching()) return `Matches for “${this.query()}” across all your files`;
     const folderCount = this.folders().length;
     const fileCount = this.files().length;
     const parts: string[] = [];
     if (folderCount > 0) parts.push(`${folderCount} folder${folderCount !== 1 ? 's' : ''}`);
-    if (fileCount > 0) parts.push(`${fileCount} file${fileCount !== 1 ? 's' : ''}`);
-    if (parts.length > 0) return parts.join(', ');
-    return this.isSearching() ? 'No matches' : 'Empty folder';
+    if (fileCount > 0)
+      parts.push(`${fileCount}${this.hasMore() ? '+' : ''} file${fileCount !== 1 ? 's' : ''}`);
+    return parts.length > 0 ? parts.join(', ') : 'Empty';
   });
 
   constructor() {
     effect(() => {
-      const query = this.searchService.query().trim();
+      const query = this.query();
       const folderId = this.currentFolderId(); // re-run on navigation
       this.currentPage.set(0);
-      if (query === '') {
-        this.loadContents(folderId, 0);
-      } else {
-        this.runSearch(query);
-      }
+      if (query === '') this.loadContents(folderId, 0);
+      else this.runSearch(query);
     });
   }
 
@@ -108,6 +113,7 @@ export class MyFiles {
 
   private loadContents(folderId: string | null, page: number): void {
     this.loading.set(true);
+    this.loadFailed.set(false);
     const request$ =
       folderId === null
         ? this.folderService.getRootContents(page)
@@ -125,11 +131,12 @@ export class MyFiles {
       },
       error: (err) => {
         if (folderId !== null && err?.status === 404) {
-          // Stale link to a folder that was deleted or moved to trash.
+          this.toast.info('That folder no longer exists.');
           this.navigateViaBreadcrumb(null);
           return;
         }
-        this.errorMessage.set(errorMessage(err, 'Failed to load files.'));
+        this.loadFailed.set(true);
+        this.toast.error(errorMessage(err, 'Couldn’t load your files.'));
       },
     });
   }
@@ -137,6 +144,7 @@ export class MyFiles {
   /** Searches all files and folders, not just the current folder. */
   private runSearch(query: string): void {
     this.loading.set(true);
+    this.loadFailed.set(false);
     forkJoin({
       files: this.fileService.searchActive(query, 0),
       folders: this.folderService.search(query).pipe(catchError(() => of([] as Folder[]))),
@@ -148,22 +156,28 @@ export class MyFiles {
           this.folders.set(folders);
           this.hasMore.set(!files.last);
         },
-        error: (err) => this.errorMessage.set(errorMessage(err, 'Search failed.')),
+        error: (err) => {
+          this.loadFailed.set(true);
+          this.toast.error(errorMessage(err, 'Search failed.'));
+        },
       });
+  }
+
+  retry(): void {
+    if (this.isSearching()) this.runSearch(this.query());
+    else this.reload();
   }
 
   loadMore(): void {
     const nextPage = this.currentPage() + 1;
-    const query = this.searchService.query().trim();
     const folderId = this.currentFolderId();
     this.loadingMore.set(true);
 
-    const request$ =
-      query !== ''
-        ? this.fileService.searchActive(query, nextPage)
-        : folderId === null
-          ? this.folderService.getRootContents(nextPage).pipe(map((r) => r.files))
-          : this.folderService.getFolderContents(folderId, nextPage).pipe(map((r) => r.files));
+    const request$ = this.isSearching()
+      ? this.fileService.searchActive(this.query(), nextPage)
+      : folderId === null
+        ? this.folderService.getRootContents(nextPage).pipe(map((r) => r.files))
+        : this.folderService.getFolderContents(folderId, nextPage).pipe(map((r) => r.files));
 
     request$.pipe(finalize(() => this.loadingMore.set(false))).subscribe({
       next: (response) => {
@@ -171,7 +185,7 @@ export class MyFiles {
         this.currentPage.set(nextPage);
         this.hasMore.set(!response.last);
       },
-      error: (err) => this.errorMessage.set(errorMessage(err, 'Failed to load more files.')),
+      error: (err) => this.toast.error(errorMessage(err, 'Couldn’t load more files.')),
     });
   }
 
@@ -197,9 +211,11 @@ export class MyFiles {
   onNewFolderConfirm(name: string): void {
     this.showNewFolderDialog.set(false);
     this.folderService.createFolder(name, this.currentFolderId()).subscribe({
-      next: (folder) =>
-        this.folders.update((f) => [...f, folder].sort((a, b) => a.name.localeCompare(b.name))),
-      error: (err) => this.errorMessage.set(errorMessage(err, 'Failed to create folder.')),
+      next: (folder) => {
+        this.folders.update((f) => [...f, folder].sort((a, b) => a.name.localeCompare(b.name)));
+        this.toast.success(`Created folder “${folder.name}”`);
+      },
+      error: (err) => this.toast.error(errorMessage(err, 'Couldn’t create the folder.')),
     });
   }
 
@@ -208,8 +224,12 @@ export class MyFiles {
       next: () => {
         this.folders.update((f) => f.filter((fo) => fo.id !== folder.id));
         this.dashboardStore.refresh();
+        this.toast.success(`Moved “${folder.name}” to trash`, {
+          label: 'Undo',
+          run: () => this.undo([this.folderService.restoreFolder(folder.id)]),
+        });
       },
-      error: (err) => this.errorMessage.set(errorMessage(err, 'Failed to move folder to trash.')),
+      error: (err) => this.toast.error(errorMessage(err, 'Couldn’t move the folder to trash.')),
     });
   }
 
@@ -240,13 +260,13 @@ export class MyFiles {
       this.fileService.rename(target.item.id, name).subscribe({
         next: (updated) =>
           this.files.update((f) => f.map((x) => (x.id === updated.id ? updated : x))),
-        error: (err) => this.errorMessage.set(errorMessage(err, 'Failed to rename file.')),
+        error: (err) => this.toast.error(errorMessage(err, 'Couldn’t rename the file.')),
       });
     } else {
       this.folderService.renameFolder(target.item.id, name).subscribe({
         next: (updated) =>
           this.folders.update((f) => f.map((x) => (x.id === updated.id ? updated : x))),
-        error: (err) => this.errorMessage.set(errorMessage(err, 'Failed to rename folder.')),
+        error: (err) => this.toast.error(errorMessage(err, 'Couldn’t rename the folder.')),
       });
     }
   }
@@ -259,25 +279,26 @@ export class MyFiles {
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-      this.uploadFiles(Array.from(input.files));
-    }
+    if (input.files && input.files.length > 0) this.uploadFiles(Array.from(input.files));
     input.value = '';
   }
 
   private uploadFiles(filesToUpload: File[]): void {
     const targetFolderId = this.currentFolderId();
+    const total = filesToUpload.length;
     const failures: string[] = [];
+    let done = 0;
+    const progressLabel = () =>
+      total === 1 ? `Uploading “${filesToUpload[0].name}”…` : `Uploading ${done + 1} of ${total}…`;
+    const toastId = this.toast.progress(progressLabel());
     this.uploading.set(true);
-    this.uploadTotal.set(filesToUpload.length);
-    this.uploadCompleted.set(0);
 
     from(filesToUpload)
       .pipe(
         concatMap((file) =>
           this.fileService.upload(file, targetFolderId).pipe(
             catchError((err) => {
-              failures.push(errorMessage(err, `"${file.name}" failed to upload.`));
+              failures.push(errorMessage(err, `“${file.name}” failed to upload.`));
               return of(null);
             }),
           ),
@@ -285,17 +306,33 @@ export class MyFiles {
         finalize(() => {
           this.uploading.set(false);
           this.dashboardStore.refresh();
-          if (failures.length === 1) {
-            this.errorMessage.set(failures[0]);
-          } else if (failures.length > 1) {
-            this.errorMessage.set(
-              `${failures.length} of ${filesToUpload.length} files failed to upload. ${failures[0]}`,
+          const succeeded = total - failures.length;
+          if (failures.length === 0) {
+            this.toast.update(
+              toastId,
+              'success',
+              total === 1 ? 'Upload complete' : `Uploaded ${total} files`,
+            );
+          } else if (succeeded === 0) {
+            this.toast.update(
+              toastId,
+              'error',
+              failures.length === 1
+                ? failures[0]
+                : `None of the ${total} files uploaded. ${failures[0]}`,
+            );
+          } else {
+            this.toast.update(
+              toastId,
+              'error',
+              `Uploaded ${succeeded} of ${total} files. ${failures[0]}`,
             );
           }
         }),
       )
       .subscribe((uploaded) => {
-        this.uploadCompleted.update((n) => n + 1);
+        done++;
+        if (done < total) this.toast.update(toastId, 'progress', progressLabel());
         // The upload is idempotent, so a re-upload may return an entry we already show.
         if (uploaded && !this.isSearching() && this.currentFolderId() === targetFolderId) {
           this.files.update((files) => [uploaded, ...files.filter((f) => f.id !== uploaded.id)]);
@@ -309,9 +346,10 @@ export class MyFiles {
 
   openFile(file: FileMetadata): void {
     if (!this.fileActions.open(file)) {
-      this.errorMessage.set(
-        `Preview isn't available for "${file.originalFileName}". Download it instead.`,
-      );
+      this.toast.info(`“${file.originalFileName}” can’t be previewed. Download it instead.`, {
+        label: 'Download',
+        run: () => this.fileActions.download(file),
+      });
       this.fileTable()?.flashRowError(file.id);
     }
   }
@@ -321,8 +359,12 @@ export class MyFiles {
       next: () => {
         this.files.update((files) => files.filter((f) => f.id !== file.id));
         this.dashboardStore.refresh();
+        this.toast.success(`Moved “${file.originalFileName}” to trash`, {
+          label: 'Undo',
+          run: () => this.undo([this.fileService.restore(file.id)]),
+        });
       },
-      error: (err) => this.errorMessage.set(errorMessage(err, 'Failed to move file to trash.')),
+      error: (err) => this.toast.error(errorMessage(err, 'Couldn’t move the file to trash.')),
     });
   }
 
@@ -332,7 +374,7 @@ export class MyFiles {
         this.files.update((files) => files.map((f) => (f.id === updated.id ? updated : f)));
         this.dashboardStore.silentRefresh();
       },
-      error: (err) => this.errorMessage.set(errorMessage(err, 'Failed to update star.')),
+      error: (err) => this.toast.error(errorMessage(err, 'Couldn’t update the star.')),
     });
   }
 
@@ -345,25 +387,36 @@ export class MyFiles {
   onTrashAll(): void {
     const files = this.getSelectedFiles();
     const folders = this.getSelectedFolders();
+    const count = files.length + folders.length;
     this.runSequentially(
       [
         ...files.map((f) => this.fileService.trash(f.id)),
         ...folders.map((f) => this.folderService.trashFolder(f.id)),
       ],
-      'Some items could not be moved to trash.',
+      'Some items couldn’t be moved to trash.',
       () => {
         const fileIds = new Set(files.map((f) => f.id));
         const folderIds = new Set(folders.map((f) => f.id));
         this.files.update((list) => list.filter((f) => !fileIds.has(f.id)));
         this.folders.update((list) => list.filter((f) => !folderIds.has(f.id)));
         this.dashboardStore.refresh();
+        this.toast.success(`Moved ${count} item${count !== 1 ? 's' : ''} to trash`, {
+          label: 'Undo',
+          run: () =>
+            this.undo([
+              ...files.map((f) => this.fileService.restore(f.id)),
+              ...folders.map((f) => this.folderService.restoreFolder(f.id)),
+            ]),
+        });
       },
     );
   }
 
   onStarAll(): void {
     const files = this.getSelectedFiles();
-    from(files)
+    // Star everything unless everything is already starred, then unstar.
+    const target = !files.every((f) => f.starred);
+    from(files.filter((f) => f.starred !== target))
       .pipe(
         concatMap((file) => this.fileService.toggleStar(file.id)),
         finalize(() => this.dashboardStore.silentRefresh()),
@@ -371,7 +424,7 @@ export class MyFiles {
       .subscribe({
         next: (updated) =>
           this.files.update((list) => list.map((f) => (f.id === updated.id ? updated : f))),
-        error: (err) => this.errorMessage.set(errorMessage(err, 'Failed to update stars.')),
+        error: (err) => this.toast.error(errorMessage(err, 'Couldn’t update stars.')),
       });
   }
 
@@ -397,14 +450,26 @@ export class MyFiles {
   }
 
   private moveItems(fileIds: string[], folderIds: string[], targetFolderId: string | null): void {
+    const count = fileIds.length + folderIds.length;
     this.runSequentially(
       [
         ...fileIds.map((id) => this.fileService.moveFile(id, targetFolderId)),
         ...folderIds.map((id) => this.folderService.moveFolder(id, targetFolderId)),
       ],
-      'Some items could not be moved.',
-      () => this.reload(),
+      'Some items couldn’t be moved.',
+      () => {
+        this.reload();
+        this.toast.success(`Moved ${count} item${count !== 1 ? 's' : ''}`);
+      },
     );
+  }
+
+  private undo(requests: Observable<unknown>[]): void {
+    this.runSequentially(requests, 'Couldn’t undo.', () => {
+      this.reload();
+      this.dashboardStore.refresh();
+      this.toast.info('Restored');
+    });
   }
 
   /** Runs requests one at a time, keeps going past failures, then calls `done` once. */
@@ -427,7 +492,7 @@ export class MyFiles {
         ),
         finalize(() => {
           if (firstError) {
-            this.errorMessage.set(errorMessage(firstError, failureMessage));
+            this.toast.error(errorMessage(firstError, failureMessage));
             this.reload();
           } else {
             done();
@@ -460,9 +525,10 @@ export class MyFiles {
   }
 
   onDragEnter(event: DragEvent): void {
+    if (!this.hasFiles(event)) return;
     event.preventDefault();
     this.dragCounter++;
-    if (this.hasFiles(event)) this.dragging.set(true);
+    this.dragging.set(true);
   }
 
   onDragOver(event: DragEvent): void {
@@ -470,7 +536,7 @@ export class MyFiles {
   }
 
   onDragLeave(event: DragEvent): void {
-    event.preventDefault();
+    if (!this.hasFiles(event)) return;
     this.dragCounter--;
     if (this.dragCounter <= 0) {
       this.dragCounter = 0;
