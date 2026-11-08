@@ -1,5 +1,7 @@
 @if (selectedCount() > 0) {
-  <div class="selection-bar" data-selection-bar>
+  <!-- Keeps the last rows scrollable out from under the floating bar. -->
+  <div class="sel-spacer" aria-hidden="true"></div>
+  <div class="selection-bar" data-selection-bar role="toolbar" aria-label="Selected items">
     <span class="sel-count">
       <span class="sel-badge">{{ selectedCount() }}</span>
       {{ selectedCount() === 1 ? 'item' : 'items' }} selected
@@ -8,46 +10,46 @@
       @if (hasAction('download')) {
         <button class="sel-btn" (click)="downloadAll.emit()" title="Download selected">
           <span class="material-symbols-rounded">download</span>
-          {{ selectedCount() === 1 ? 'Download' : 'Download all' }}
+          <span class="sel-label">{{ selectedCount() === 1 ? 'Download' : 'Download all' }}</span>
         </button>
       }
       @if (hasAction('star')) {
         <button class="sel-btn" (click)="starAll.emit()" title="Star all">
           <span class="material-symbols-rounded">star</span>
-          {{ selectedCount() === 1 ? 'Star' : 'Star all' }}
+          <span class="sel-label">{{ selectedCount() === 1 ? 'Star' : 'Star all' }}</span>
         </button>
       }
       @if (hasAction('move')) {
         <button class="sel-btn" (click)="moveAll.emit()" title="Move to folder">
           <span class="material-symbols-rounded">drive_file_move</span>
-          {{ selectedCount() === 1 ? 'Move' : 'Move all' }}
+          <span class="sel-label">{{ selectedCount() === 1 ? 'Move' : 'Move all' }}</span>
         </button>
       }
       @if (hasAction('trash') || hasAction('restore') || hasAction('deleteForever')) {
         <div class="sel-divider"></div>
       }
       @if (hasAction('restore')) {
-        <button class="sel-btn restore" (click)="restoreAll.emit()">
+        <button class="sel-btn restore" (click)="restoreAll.emit()" title="Restore selected">
           <span class="material-symbols-rounded">restore_from_trash</span>
-          {{ selectedCount() === 1 ? 'Restore' : 'Restore all' }}
+          <span class="sel-label">{{ selectedCount() === 1 ? 'Restore' : 'Restore all' }}</span>
         </button>
       }
       @if (hasAction('trash')) {
-        <button class="sel-btn danger" (click)="trashAll.emit()">
+        <button class="sel-btn danger" (click)="trashAll.emit()" title="Move to trash">
           <span class="material-symbols-rounded">delete</span>
-          Move to trash
+          <span class="sel-label">Move to trash</span>
         </button>
       }
       @if (hasAction('deleteForever')) {
-        <button class="sel-btn danger" (click)="deleteForeverAll.emit()">
+        <button class="sel-btn danger" (click)="deleteForeverAll.emit()" title="Delete forever">
           <span class="material-symbols-rounded">delete_forever</span>
-          Delete forever
+          <span class="sel-label">Delete forever</span>
         </button>
       }
     </div>
-    <button class="sel-clear" (click)="clearSelection.emit()">
+    <button class="sel-clear" (click)="clearSelection.emit()" aria-label="Clear selection">
       <span class="material-symbols-rounded">close</span>
-      Clear
+      <span class="sel-label">Clear</span>
     </button>
   </div>
 }

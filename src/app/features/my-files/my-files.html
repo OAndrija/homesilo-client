@@ -19,17 +19,6 @@
       <p class="subtitle">{{ contentSummary() }}</p>
     </div>
 
-    <app-selection-bar
-      [selectedCount]="selectedCount()"
-      [actions]="['download', 'move', 'star', 'trash']"
-      (downloadAll)="onDownloadAll()"
-      (moveAll)="onMoveAll()"
-      (trashAll)="onTrashAll()"
-      (starAll)="onStarAll()"
-      (clearSelection)="fileTable()?.clearSelection()"
-    >
-    </app-selection-bar>
-
     <div class="header-actions">
       <button
         class="new-folder-btn"
@@ -160,4 +149,15 @@
       (cancel)="renameTarget.set(null)"
     />
   }
+
+  <app-selection-bar
+    [selectedCount]="selectedCount()"
+    [actions]="['download', 'move', 'star', 'trash']"
+    (downloadAll)="onDownloadAll()"
+    (moveAll)="onMoveAll()"
+    (trashAll)="onTrashAll()"
+    (starAll)="onStarAll()"
+    (clearSelection)="fileTable()?.clearSelection()"
+  >
+  </app-selection-bar>
 </div>

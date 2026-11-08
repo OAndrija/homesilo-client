@@ -1,4 +1,6 @@
 .app-shell {
+  /* Read by floating UI (the selection bar) to centre itself on the content area. */
+  --sidebar-width: 92px;
   display: flex;
   height: 100vh;
   background: var(--color-bg-elevated);
@@ -19,6 +21,10 @@
   padding: 5px 12px;
   overflow: hidden;
   transition: width var(--transition-sidebar);
+}
+
+.app-shell.sidebar-open {
+  --sidebar-width: 228px;
 }
 
 .app-shell.sidebar-open .sidebar {
@@ -308,6 +314,11 @@
 }
 
 @media (max-width: 767px) {
+  .app-shell,
+  .app-shell.sidebar-open {
+    --sidebar-width: 0px;
+  }
+
   .sidebar {
     position: fixed;
     top: 0;

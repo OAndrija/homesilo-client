@@ -4,15 +4,6 @@
       <h2>Starred</h2>
       <p class="subtitle">{{ files().length }} starred file{{ files().length !== 1 ? 's' : '' }}</p>
     </div>
-    <app-selection-bar
-      [selectedCount]="fileTable()?.selectedIds()?.size ?? 0"
-      [actions]="['download', 'trash', 'star']"
-      (downloadAll)="onDownloadAll()"
-      (trashAll)="onTrashAll()"
-      (starAll)="onStarAll()"
-      (clearSelection)="fileTable()?.clearSelection()"
-    >
-    </app-selection-bar>
   </div>
   @if (errorMessage()) {
     <div class="server-error" role="alert">{{ errorMessage() }}</div>
@@ -54,4 +45,14 @@
       </div>
     }
   }
+
+  <app-selection-bar
+    [selectedCount]="fileTable()?.selectedIds()?.size ?? 0"
+    [actions]="['download', 'trash', 'star']"
+    (downloadAll)="onDownloadAll()"
+    (trashAll)="onTrashAll()"
+    (starAll)="onStarAll()"
+    (clearSelection)="fileTable()?.clearSelection()"
+  >
+  </app-selection-bar>
 </div>

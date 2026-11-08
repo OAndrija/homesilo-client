@@ -9,16 +9,6 @@
         }
       </p>
     </div>
-    <app-selection-bar
-      [selectedCount]="
-        (fileTable()?.selectedIds()?.size ?? 0) + (fileTable()?.selectedFolderIds()?.size ?? 0)
-      "
-      [actions]="['restore', 'deleteForever']"
-      (restoreAll)="onRestoreAll()"
-      (deleteForeverAll)="onDeleteForeverAll()"
-      (clearSelection)="fileTable()?.clearSelection()"
-    >
-    </app-selection-bar>
 
     <div class="header-actions">
       <button class="empty-trash-btn" (click)="emptyTrash()" [disabled]="totalCount() === 0">
@@ -78,4 +68,15 @@
       (cancel)="onDeleteCancelled()"
     />
   }
+
+  <app-selection-bar
+    [selectedCount]="
+      (fileTable()?.selectedIds()?.size ?? 0) + (fileTable()?.selectedFolderIds()?.size ?? 0)
+    "
+    [actions]="['restore', 'deleteForever']"
+    (restoreAll)="onRestoreAll()"
+    (deleteForeverAll)="onDeleteForeverAll()"
+    (clearSelection)="fileTable()?.clearSelection()"
+  >
+  </app-selection-bar>
 </div>
