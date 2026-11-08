@@ -106,7 +106,7 @@
 
 .show-more-btn:hover:not(:disabled) {
   border-color: var(--color-accent);
-  color: var(--color-accent);
+  color: var(--color-accent-text);
 }
 
 .show-more-btn:disabled {

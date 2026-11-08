@@ -162,7 +162,7 @@
 
 .show-more-btn:hover:not(:disabled) {
   border-color: var(--color-accent);
-  color: var(--color-accent);
+  color: var(--color-accent-text);
 }
 
 .show-more-btn:disabled {
@@ -184,7 +184,7 @@
   background: rgba(13, 15, 26, 0.92);
   border: 2px dashed var(--color-accent);
   border-radius: var(--radius-2xl);
-  color: var(--color-accent);
+  color: var(--color-accent-text);
   font-size: 18px;
   font-weight: 600;
   pointer-events: none;

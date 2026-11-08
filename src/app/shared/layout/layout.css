@@ -126,7 +126,7 @@
 
 .nav-link.active {
   background: var(--color-accent-bg-strong);
-  color: var(--color-accent);
+  color: var(--color-accent-text);
 }
 
 .main-area {
@@ -168,7 +168,7 @@
 
 .menu-btn:hover {
   border-color: var(--color-accent);
-  color: var(--color-accent);
+  color: var(--color-accent-text);
   box-shadow: 0 0 0 3px var(--color-accent-bg-subtle);
 }
 
@@ -248,7 +248,7 @@
 
 .logout-btn:hover {
   border-color: var(--color-accent);
-  color: var(--color-accent);
+  color: var(--color-accent-text);
 }
 
 .page-content {
@@ -305,7 +305,7 @@
 
 .theme-toggle-btn:hover {
   border-color: var(--color-accent);
-  color: var(--color-accent);
+  color: var(--color-accent-text);
   box-shadow: 0 0 0 3px var(--color-accent-bg-subtle);
 }
 

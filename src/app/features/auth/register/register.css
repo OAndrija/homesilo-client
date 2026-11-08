@@ -275,7 +275,7 @@ input.input-error:focus {
 }
 
 .switch-auth a {
-  color: var(--color-accent);
+  color: var(--color-accent-text);
   font-weight: 500;
   text-decoration: none;
 }

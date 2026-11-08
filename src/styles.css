@@ -33,6 +33,9 @@
 
   /* ── Accent (amber/brand) ── */
   --color-accent: #f8b84e;
+  /* Accent used as text or an icon colour. */
+  --color-accent-text: #f8b84e;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   /* Floating UI (selection bar): lifted clear of the table it hovers over. */
   --color-floating-bg: rgba(40, 45, 68, 0.86);
   --color-floating-border: rgba(248, 184, 78, 0.28);
@@ -109,82 +112,86 @@
 }
 
 [data-theme='light'] {
+  /* Daylight: clean near-neutral greys (a hint of warmth to sit with the barn red and
+     silo green), a bright golden accent for fills, and a deeper amber for text. */
   /* ── Surfaces ── */
-  --color-bg: #ffffff; /* page-content card → pure white */
-  --color-bg-elevated: #eaecf4; /* shell/sidebar stays tinted */
-  --color-surface: #f0f2fa;
-  --color-surface-alt: #e8ebf5;
-  --color-surface-input: #eceef8;
-  --color-surface-hover: #e2e6f2;
-  --color-surface-header: #ecf0f8;
+  --color-bg: #ffffff; /* page content */
+  --color-bg-elevated: #f3f3f1; /* shell: sidebar and top bar */
+  --color-surface: #ffffff;
+  --color-surface-alt: #f7f7f5;
+  --color-surface-input: #f5f5f3;
+  --color-surface-hover: #efefec;
+  --color-surface-header: #f9f9f8;
   /* ── Borders ── */
-  --color-border-faint: #d8dcf0;
-  --color-border-subtle: #cdd2e8;
-  --color-border: #c0c5dc;
-  --color-border-alt: #b8bdd8;
-  --color-border-strong: #a8aed0;
-  --color-border-stronger: #9298c0;
+  --color-border-faint: #f0f0ed;
+  --color-border-subtle: #ebebe7;
+  --color-border: #e2e2dd;
+  --color-border-alt: #dbdbd5;
+  --color-border-strong: #cfcfc8;
+  --color-border-stronger: #a9a9a1;
   /* ── Text ── */
-  --color-text-primary: #0f1124;
-  --color-text-heading: #0a0c1a;
-  --color-text-heading-alt: #111328;
-  --color-text-body: #2c3152;
-  --color-text-muted: #434870;
-  --color-text-subtitle: #545a80;
-  --color-text-icon-muted: #585e82;
-  --color-text-empty: #5c6285;
-  --color-text-faint: #6b7099;
-  --color-text-dim: #7b80a0;
-  --color-text-placeholder: #a0a6c2;
-  --color-text-on-accent: #11131c;
+  --color-text-primary: #1b1b18;
+  --color-text-heading: #161614;
+  --color-text-heading-alt: #1f1f1c;
+  --color-text-body: #3a3a35;
+  --color-text-muted: #54544e;
+  --color-text-subtitle: #6a6a63;
+  --color-text-icon-muted: #74746c;
+  --color-text-empty: #74746c;
+  --color-text-faint: #85857d;
+  --color-text-dim: #95958d;
+  --color-text-placeholder: #a8a8a0;
+  --color-text-on-accent: #22190a;
   --color-text-white: #ffffff;
-  /* ── Accent — unchanged, works on both modes ── */
-  --color-accent: #d4900a;
-  --color-floating-bg: rgba(255, 255, 255, 0.9);
-  --color-floating-border: rgba(212, 144, 10, 0.35);
-  --shadow-floating: 0 18px 44px rgba(24, 30, 60, 0.18), 0 2px 8px rgba(24, 30, 60, 0.08);
-  --color-accent-hover: #b87a06;
-  --color-accent-bg-faint: rgba(180, 110, 0, 0.07);
-  --color-accent-bg-subtle: rgba(180, 110, 0, 0.11);
-  --color-accent-bg: rgba(180, 110, 0, 0.15);
-  --color-accent-bg-medium: rgba(180, 110, 0, 0.19);
-  --color-accent-bg-strong: rgba(180, 110, 0, 0.24); /* sidebar active link */
-  --color-accent-bg-stronger: rgba(180, 110, 0, 0.28);
-  --color-accent-bg-deep: rgba(180, 110, 0, 0.34);
-  --color-accent-bg-deepest: rgba(180, 110, 0, 0.44);
+  /* ── Accent ── */
+  --color-accent: #f2a628;
+  --color-accent-text: #9a5b00;
+  --color-accent-hover: #e6970f;
+  --color-accent-bg-faint: rgba(242, 166, 40, 0.07);
+  --color-accent-bg-subtle: rgba(242, 166, 40, 0.1);
+  --color-accent-bg: rgba(242, 166, 40, 0.14);
+  --color-accent-bg-medium: rgba(242, 166, 40, 0.18);
+  --color-accent-bg-strong: rgba(242, 166, 40, 0.2); /* sidebar active link */
+  --color-accent-bg-stronger: rgba(242, 166, 40, 0.26);
+  --color-accent-bg-deep: rgba(242, 166, 40, 0.32);
+  --color-accent-bg-deepest: rgba(242, 166, 40, 0.42);
+  --color-floating-bg: rgba(255, 255, 255, 0.92);
+  --color-floating-border: rgba(0, 0, 0, 0.08);
+  --shadow-floating: 0 16px 40px rgba(30, 28, 20, 0.14), 0 2px 6px rgba(30, 28, 20, 0.06);
+  --shadow-sm: 0 1px 2px rgba(30, 28, 20, 0.04), 0 2px 8px rgba(30, 28, 20, 0.04);
   /* ── Danger ── */
-  --color-danger: #c0392b;
-  --color-danger-text: #b02020;
-  --color-danger-text-alt: #a01818;
-  --color-danger-bg-subtle: rgba(192, 57, 43, 0.07);
-  --color-danger-bg: rgba(192, 57, 43, 0.1);
-  --color-danger-bg-medium: rgba(192, 57, 43, 0.12);
-  --color-danger-bg-strong: rgba(192, 57, 43, 0.15);
-  --color-danger-bg-deep: rgba(192, 57, 43, 0.22);
-  --color-danger-bg-deepest: rgba(192, 57, 43, 0.28);
+  --color-danger: #dc2626;
+  --color-danger-text: #b91c1c;
+  --color-danger-text-alt: #991b1b;
+  --color-danger-bg-subtle: rgba(220, 38, 38, 0.05);
+  --color-danger-bg: rgba(220, 38, 38, 0.08);
+  --color-danger-bg-medium: rgba(220, 38, 38, 0.1);
+  --color-danger-bg-strong: rgba(220, 38, 38, 0.12);
+  --color-danger-bg-deep: rgba(220, 38, 38, 0.2);
+  --color-danger-bg-deepest: rgba(220, 38, 38, 0.26);
   /* ── Success ── */
   --color-success: #16a34a;
-  --color-success-bg-subtle: rgba(22, 163, 74, 0.08);
-  --color-success-bg: rgba(22, 163, 74, 0.11);
-  --color-success-bg-medium: rgba(22, 163, 74, 0.13);
-  --color-success-bg-strong: rgba(22, 163, 74, 0.16);
-  --color-success-bg-stronger: rgba(22, 163, 74, 0.22);
+  --color-success-bg-subtle: rgba(22, 163, 74, 0.06);
+  --color-success-bg: rgba(22, 163, 74, 0.09);
+  --color-success-bg-medium: rgba(22, 163, 74, 0.11);
+  --color-success-bg-strong: rgba(22, 163, 74, 0.14);
+  --color-success-bg-stronger: rgba(22, 163, 74, 0.2);
   /* ── Info / Star ── */
-  --color-info: #1d6fc4;
-  --color-info-bg: rgba(29, 111, 196, 0.1);
-  --color-star: #b45309;
+  --color-info: #2563eb;
+  --color-info-bg: rgba(37, 99, 235, 0.08);
+  --color-star: #e09400;
+  --color-star-bg: rgba(224, 148, 0, 0.1);
   --color-warning: #d97706;
   --silo-green: #2f8a5c;
-  --color-star-bg: rgba(180, 83, 9, 0.1);
   --color-highlight: #2d54e8;
   --color-brand-alt: #3a7d3a;
   /* ── Storage categories ── */
   --cat-documents: #2563eb;
   --cat-images: #7c3aed;
   --cat-videos: #db2777;
-  --cat-audio: #b45309;
+  --cat-audio: #d97706;
   --cat-archives: #059669;
-  --cat-other: #64748b;
+  --cat-other: #71717a;
   --cat-trash: #dc2626;
 }
 
@@ -304,7 +311,7 @@ body {
 
 .header-btn.icon-only:hover:not(:disabled) {
   border-color: var(--color-accent);
-  color: var(--color-accent);
+  color: var(--color-accent-text);
   background: var(--color-accent-bg);
   box-shadow: none;
 }

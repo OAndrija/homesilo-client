@@ -176,7 +176,7 @@
 
 .folder-icon {
   font-size: 20px;
-  color: var(--color-accent);
+  color: var(--color-accent-text);
   font-variation-settings: 'FILL' 1;
   flex-shrink: 0;
 }

@@ -326,7 +326,7 @@ tr:has(.starred):not(:hover) .icon-btn:not(.star) {
 }
 
 .files-table tbody tr.drag-over td {
-  color: var(--color-accent);
+  color: var(--color-accent-text);
 }
 
 .files-table tbody tr[draggable='true'] {
