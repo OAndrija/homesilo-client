@@ -1,15 +1,18 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { finalize } from 'rxjs';
+import { catchError, concatMap, finalize, from, of } from 'rxjs';
 import { Files } from '../../core/services/files';
+import { Folders } from '../../core/services/folders';
 import { DashboardStore } from '../../core/services/dashboard-store';
 import { FileMetadata } from '../../core/models/file-metadata';
+import { Folder } from '../../core/models/folder';
 import { FileTable } from '../../shared/file-table/file-table';
-import { DatePipe } from '@angular/common';
 import { Auth } from '../../core/services/auth';
-import { LoadingDelayPipe } from '../../shared/pipes/loading-delay';
 import { FileActions } from '../../core/services/file-actions';
+import { errorMessage } from '../../core/http/http-error';
 import { formatBytes } from '../../core/utils/format';
+import { getFileIcon } from '../../core/utils/file-icon.util';
+import { FriendlyDatePipe } from '../../shared/pipes/friendly-date';
 
 // Colours live in styles.css (--cat-*) so they adapt to light/dark themes.
 const CATEGORY_META: Record<string, { color: string; icon: string }> = {
@@ -24,12 +27,13 @@ const CATEGORY_META: Record<string, { color: string; icon: string }> = {
 
 @Component({
   selector: 'app-home',
-  imports: [FileTable, RouterLink, DatePipe, LoadingDelayPipe],
+  imports: [FileTable, RouterLink, FriendlyDatePipe],
   templateUrl: './home.html',
   styleUrl: './home.css',
 })
 export class Home {
   private fileService = inject(Files);
+  private folderService = inject(Folders);
   private store = inject(DashboardStore);
   private authService = inject(Auth);
   private fileActions = inject(FileActions);
@@ -38,14 +42,32 @@ export class Home {
 
   recentFiles = signal<FileMetadata[]>([]);
   loadingRecent = signal(true);
+  starredFiles = signal<FileMetadata[]>([]);
+  folders = signal<Folder[]>([]);
+  loadingFolders = signal(true);
+
+  // Uploads (button or drag-and-drop) go to the root of My Files.
+  uploading = signal(false);
+  uploadTotal = signal(0);
+  uploadCompleted = signal(0);
+  errorMessage = signal('');
+  notice = signal('');
+  dragging = signal(false);
+  private dragCounter = 0;
 
   // Derived straight from the store — no local copies that can drift out of sync.
   totalFiles = computed(() => this.store.stats()?.totalFiles ?? 0);
   filesThisWeek = computed(() => this.store.stats()?.filesThisWeek ?? 0);
   storageUsedBytes = computed(() => this.store.stats()?.storageUsedBytes ?? 0);
   storageLimitBytes = computed(() => this.store.stats()?.storageQuotaBytes ?? 1);
-  trashedFiles = computed(() => this.store.stats()?.recentlyTrashed ?? []);
-  loadingTrashed = computed(() => this.store.loading());
+  /** A brand-new account: nothing uploaded, no folders yet. */
+  isEmpty = computed(
+    () =>
+      !!this.store.stats() &&
+      !this.loadingFolders() &&
+      this.totalFiles() === 0 &&
+      this.folders().length === 0,
+  );
 
   starredCount = computed(() => this.store.stats()?.starredCount ?? 0);
 
@@ -120,6 +142,8 @@ export class Home {
   constructor() {
     this.store.ensureLoaded();
     this.loadRecentFiles();
+    this.loadStarred();
+    this.loadFolders();
   }
 
   private loadRecentFiles(): void {
@@ -127,9 +151,22 @@ export class Home {
       .listRecentlyUploadedActive(0)
       .pipe(finalize(() => this.loadingRecent.set(false)))
       .subscribe({
-        next: (response) => {
-          this.recentFiles.set(response.content.slice(0, 10));
-        },
+        next: (response) => this.recentFiles.set(response.content.slice(0, 8)),
+      });
+  }
+
+  private loadStarred(): void {
+    this.fileService.listStarred(0).subscribe({
+      next: (response) => this.starredFiles.set(response.content.slice(0, 6)),
+    });
+  }
+
+  private loadFolders(): void {
+    this.folderService
+      .getRootContents(0)
+      .pipe(finalize(() => this.loadingFolders.set(false)))
+      .subscribe({
+        next: (contents) => this.folders.set(contents.subfolders.slice(0, 8)),
       });
   }
 
@@ -137,19 +174,84 @@ export class Home {
     this.fileActions.download(file);
   }
 
-  openFile(file: FileMetadata): void {
-    this.fileActions.open(file);
+  /** Previews what the browser can show; anything else is downloaded. */
+  openOrDownload(file: FileMetadata): void {
+    if (!this.fileActions.open(file)) this.fileActions.download(file);
   }
 
-  restoreFile(file: FileMetadata): void {
-    this.fileService.restore(file.id).subscribe(() => {
-      // Restoring moves the file back into the active/non-trashed count,
-      // which changes storageUsedBytes, totalFiles, and recentlyTrashed —
-      // refresh the store so every subscriber (sidebar included) updates.
-      this.store.silentRefresh();
-      this.loadRecentFiles();
-    });
+  // ── Upload ────────────────────────────────────────────────────
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) this.upload(Array.from(input.files));
+    input.value = '';
   }
+
+  private upload(files: File[]): void {
+    const failures: string[] = [];
+    this.errorMessage.set('');
+    this.notice.set('');
+    this.uploading.set(true);
+    this.uploadTotal.set(files.length);
+    this.uploadCompleted.set(0);
+
+    from(files)
+      .pipe(
+        concatMap((file) =>
+          this.fileService.upload(file, null).pipe(
+            catchError((err) => {
+              failures.push(errorMessage(err, `"${file.name}" failed to upload.`));
+              return of(null);
+            }),
+          ),
+        ),
+        finalize(() => {
+          this.uploading.set(false);
+          this.store.refresh();
+          this.loadRecentFiles();
+          const done = files.length - failures.length;
+          if (failures.length === 1) this.errorMessage.set(failures[0]);
+          else if (failures.length > 1)
+            this.errorMessage.set(
+              `${failures.length} of ${files.length} files failed to upload. ${failures[0]}`,
+            );
+          else this.notice.set(`Uploaded ${done} file${done === 1 ? '' : 's'} to My Files.`);
+        }),
+      )
+      .subscribe(() => this.uploadCompleted.update((n) => n + 1));
+  }
+
+  // ── Drag and drop anywhere on the page ────────────────────────
+
+  onDragEnter(event: DragEvent): void {
+    if (!hasFiles(event)) return;
+    event.preventDefault();
+    this.dragCounter++;
+    this.dragging.set(true);
+  }
+
+  onDragOver(event: DragEvent): void {
+    if (!hasFiles(event)) return;
+    event.preventDefault();
+    event.dataTransfer!.dropEffect = 'copy';
+  }
+
+  onDragLeave(event: DragEvent): void {
+    if (!hasFiles(event)) return;
+    this.dragCounter = Math.max(0, this.dragCounter - 1);
+    if (this.dragCounter === 0) this.dragging.set(false);
+  }
+
+  onDrop(event: DragEvent): void {
+    if (!hasFiles(event)) return;
+    event.preventDefault();
+    this.dragCounter = 0;
+    this.dragging.set(false);
+    const dropped = event.dataTransfer?.files;
+    if (dropped && dropped.length > 0 && !this.uploading()) this.upload(Array.from(dropped));
+  }
+
+  readonly getFileIcon = getFileIcon;
 
   /** "<1%" for tiny shares so a real file type never reads as 0%. */
   formatPercent(pct: number): string {
@@ -158,4 +260,8 @@ export class Home {
   }
 
   formatSize = formatBytes;
+}
+
+function hasFiles(event: DragEvent): boolean {
+  return Array.from(event.dataTransfer?.types ?? []).includes('Files');
 }
