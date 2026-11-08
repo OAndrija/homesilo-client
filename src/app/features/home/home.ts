@@ -62,7 +62,7 @@ export class Home {
   });
   storageFreeLabel = computed(() => this.formatSize(this.storageFreeBytes()));
 
-  // Clamped so an over-quota account can't push the tank or percentages out of range.
+  // Clamped so an over-quota account can't push the silo or percentages out of range.
   storagePercent = computed(() =>
     Math.min(
       100,
@@ -77,9 +77,19 @@ export class Home {
     return p >= 90 ? 'critical' : p >= 75 ? 'warn' : 'ok';
   });
 
-  // ── Tank geometry (must match the SVG in home.html) ──
-  readonly tankBottom = 290;
-  readonly tankHeight = 220;
+  // ── Silo geometry (must match the SVG in home.html) ──
+  readonly siloX = 40;
+  readonly siloWidth = 100;
+  readonly siloTop = 103;
+  readonly siloBottom = 284;
+  readonly siloHeight = this.siloBottom - this.siloTop;
+  /** Four panel columns, shaded dark to light like the logo. */
+  readonly siloColumns = [0, 1, 2, 3].map((i) => ({
+    x: this.siloX + i * 25,
+    tone: `col-${i + 1}`,
+  }));
+  /** Horizontal panel seams. */
+  readonly siloRows = [1, 2, 3].map((i) => this.siloTop + (this.siloHeight * i) / 4);
 
   breakdownWithPercent = computed(() => {
     const used = this.storageUsedBytes();
@@ -107,38 +117,13 @@ export class Home {
   /** Biggest file type (the breakdown is already sorted by size); null while empty. */
   topCategory = computed(() => this.breakdownWithPercent().at(0) ?? null);
 
-  /** One stacked layer per file type, biggest at the bottom of the tank. */
-  tankLayers = computed(() => {
-    const raw = this.breakdownWithPercent().map((t) => ({
-      ...t,
-      h: Math.max(t.ofCapacity * this.tankHeight, 2),
-    }));
-    const total = raw.reduce((sum, l) => sum + l.h, 0);
-    const scale = total > this.tankHeight ? this.tankHeight / total : 1;
-    let cursor = this.tankBottom;
-    return raw.map((l) => {
-      const height = l.h * scale;
-      cursor -= height;
-      return { label: l.label, color: l.color, y: cursor, height };
-    });
-  });
-
-  /** Y of the liquid surface; the wave rides here. */
-  tankSurfaceY = computed(() => {
-    const layers = this.tankLayers();
-    return layers.length ? layers[layers.length - 1].y : this.tankBottom;
-  });
-  tankWaveColor = computed(() => {
-    const layers = this.tankLayers();
-    return layers.length ? layers[layers.length - 1].color : 'transparent';
-  });
-
-  tankTicks = computed(() => {
-    const gb = this.storageLimitGB();
-    return [0, 25, 50, 75, 100].map((pct) => ({
-      y: this.tankBottom - (this.tankHeight * pct) / 100,
-      label: `${Math.round((gb * pct) / 100)}${pct === 100 ? ' GB' : ''}`,
-    }));
+  /** Top of the green fill; any usage at all shows at least a sliver. */
+  siloFillY = computed(() => {
+    const used = this.storageUsedBytes();
+    const limit = this.storageLimitBytes();
+    if (used <= 0 || limit <= 0) return this.siloBottom;
+    const height = Math.max(Math.min(used / limit, 1) * this.siloHeight, 3);
+    return this.siloBottom - height;
   });
 
   constructor() {

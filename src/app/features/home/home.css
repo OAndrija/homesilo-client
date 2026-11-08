@@ -21,34 +21,63 @@
   gap: 16px;
 }
 
-/* ── Hero: the storage tank ─────────────────────────────── */
+/* ── Hero: the storage silo ─────────────────────────────── */
+/* Built like the stat cards beside it (one --hue drives border, glow and top line),
+   in the green of the HomeSilo logo; it turns amber or red as storage runs out. */
 .hero {
-  --tone: var(--color-accent); /* glow */
-  --status: var(--color-success); /* pill */
+  --hue: var(--silo-green);
+  --fill-1: #2f7b56;
+  --fill-2: #43976a;
+  --fill-3: #5fae80;
+  --fill-4: #86c9a0;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   display: grid;
   grid-template-columns: 200px minmax(0, 1fr);
   align-items: center;
   gap: 28px;
   padding: 28px;
-  border: 1px solid var(--color-border);
+  border: 1px solid color-mix(in srgb, var(--hue) 30%, var(--color-border));
   border-radius: var(--radius-2xl);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-sm);
   background:
     radial-gradient(
-      460px 300px at 12% 80%,
-      color-mix(in srgb, var(--tone) 13%, transparent),
+      70% 90% at 100% 0%,
+      color-mix(in srgb, var(--hue) 16%, transparent),
+      transparent 60%
+    ),
+    radial-gradient(
+      60% 80% at 0% 100%,
+      color-mix(in srgb, var(--hue) 12%, transparent),
       transparent 70%
     ),
     var(--color-surface);
 }
 
+.hero::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  z-index: -1;
+  background: linear-gradient(90deg, transparent, var(--hue), transparent);
+  opacity: 0.7;
+}
+
 .hero[data-level='warn'] {
-  --tone: var(--color-warning);
-  --status: var(--color-warning);
+  --hue: var(--color-warning);
+  --fill-1: #b06d0e;
+  --fill-2: #cf8a1c;
+  --fill-3: #e6a73c;
+  --fill-4: #f3c470;
 }
 .hero[data-level='critical'] {
-  --tone: var(--color-danger);
-  --status: var(--color-danger);
+  --hue: var(--color-danger);
+  --fill-1: #9c2a2a;
+  --fill-2: #bb3a3a;
+  --fill-3: #d65555;
+  --fill-4: #ea8080;
 }
 
 .hero-visual {
@@ -56,90 +85,88 @@
   justify-content: center;
 }
 
-.tank {
+.silo {
   width: 100%;
   max-width: 200px;
   height: auto;
   overflow: visible;
-  filter: drop-shadow(0 14px 22px rgba(0, 0, 0, 0.25));
+  filter: drop-shadow(0 14px 20px rgba(0, 0, 0, 0.28));
 }
 
-:host-context([data-theme='light']) .tank {
-  filter: drop-shadow(0 10px 16px rgba(16, 24, 40, 0.14));
+:host-context([data-theme='light']) .silo {
+  filter: drop-shadow(0 10px 14px rgba(16, 24, 40, 0.12));
 }
 
-.tank-floor {
-  fill: #000;
-  opacity: 0.25;
+/* Roof and cupola always wear the logo green. */
+.roof-1 {
+  fill: #2c7451;
 }
-:host-context([data-theme='light']) .tank-floor {
-  opacity: 0.1;
+.roof-2 {
+  fill: #3a8a60;
 }
-.tank-interior {
-  fill: var(--color-bg);
+.roof-3 {
+  fill: #4f9f74;
+}
+.roof-4 {
+  fill: #74bd92;
+}
+.roof-lip {
+  fill: #24603f;
 }
 
-.tank-steel {
-  fill: var(--color-surface-hover);
-  stroke: var(--color-border-stronger);
+.col-1 {
+  fill: var(--fill-1);
+}
+.col-2 {
+  fill: var(--fill-2);
+}
+.col-3 {
+  fill: var(--fill-3);
+}
+.col-4 {
+  fill: var(--fill-4);
+}
+
+/* The unused part of the silo: the same shaded panels in the logo green, faded. */
+.silo-empty rect {
+  fill-opacity: 0.34;
+}
+.silo-empty .col-1 {
+  fill: #2f7b56;
+}
+.silo-empty .col-2 {
+  fill: #43976a;
+}
+.silo-empty .col-3 {
+  fill: #5fae80;
+}
+.silo-empty .col-4 {
+  fill: #86c9a0;
+}
+
+:host-context([data-theme='light']) .silo-empty rect {
+  fill-opacity: 0.26;
+}
+
+.silo-level {
+  fill: #fff;
+  opacity: 0.55;
+}
+
+.silo-seam {
+  stroke: #123826;
+  stroke-opacity: 0.45;
   stroke-width: 1.5;
 }
 
-.tank-dome-shine {
-  fill: none;
-  stroke: #fff;
-  stroke-opacity: 0.2;
+.silo-ground {
+  stroke: #24603f;
   stroke-width: 3;
   stroke-linecap: round;
 }
 
-.tank-seam {
-  stroke: #fff;
-  stroke-opacity: 0.3;
-  stroke-width: 1;
-}
-
-/* The liquid is drawn at its final level straight away; only the surface ripple moves. */
-.tank-wave {
-  animation: tank-wave 4s linear infinite;
-}
-
-.tank-shine {
-  fill: #fff;
-  opacity: 0.14;
-}
-.tank-ring {
-  fill: var(--color-border-stronger);
-  opacity: 0.8;
-}
-.tank-ring.thin {
-  opacity: 0.35;
-}
-
-.tank-outline {
-  fill: none;
-  stroke: var(--color-border-stronger);
-  stroke-width: 2;
-  stroke-linejoin: round;
-}
-
-.tank-tick line {
-  stroke: var(--color-border-stronger);
-  stroke-width: 1.5;
-}
-.tank-tick text {
-  fill: var(--color-text-faint);
-  font-size: 10px;
-  font-family: var(--font-body);
-}
-
-@keyframes tank-wave {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-60px);
-  }
+.silo-grass {
+  fill: #3a8a60;
 }
 
 /* ── Hero text ───────────────────────────────────────────── */
@@ -161,10 +188,12 @@
 .level-pill {
   font-size: 12px;
   font-weight: 600;
-  padding: 3px 10px;
+  padding: 4px 10px;
   border-radius: var(--radius-pill);
-  color: var(--status);
-  background: color-mix(in srgb, var(--status) 14%, transparent);
+  white-space: nowrap;
+  color: color-mix(in srgb, var(--hue) 70%, var(--color-text-heading));
+  background: color-mix(in srgb, var(--hue) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--hue) 28%, transparent);
 }
 
 .free {
@@ -208,7 +237,7 @@
   color: var(--color-text-empty);
 }
 
-/* Segmented capacity bar — same proportions as the tank layers */
+/* Segmented capacity bar: one segment per file type, to scale */
 .meter {
   display: flex;
   gap: 2px;
@@ -603,8 +632,8 @@
     gap: 40px;
     padding: 28px 40px 28px 32px;
   }
-  .tank {
-    max-width: 260px;
+  .silo {
+    max-width: 240px;
   }
   .free-num {
     font-size: 64px;
@@ -614,15 +643,15 @@
   }
 }
 
-/* Narrow: tank above its text, cards 2 x 2 */
+/* Narrow: silo above its text, cards 2 x 2 */
 @container dash (max-width: 760px) {
   .hero {
     grid-template-columns: 1fr;
     padding: 24px;
     gap: 20px;
   }
-  .tank {
-    max-width: 220px;
+  .silo {
+    max-width: 200px;
   }
   .free-num {
     font-size: 52px;
@@ -656,9 +685,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tank-wave {
-    animation: none;
-  }
   .stat-card,
   .stat-watermark,
   .stat-go {

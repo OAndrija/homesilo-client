@@ -70,6 +70,9 @@
   --color-info: #60a5fa;
   --color-info-bg: rgba(96, 165, 250, 0.12);
   --color-star: #fbbf24;
+  --color-warning: #f59e0b;
+  /* The green of the HomeSilo logo's silo. */
+  --silo-green: #5fae80;
   --color-star-bg: rgba(251, 191, 36, 0.12);
   --color-highlight: #4d74ff;
   --color-brand-alt: #7ec07e;
@@ -170,6 +173,8 @@
   --color-info: #1d6fc4;
   --color-info-bg: rgba(29, 111, 196, 0.1);
   --color-star: #b45309;
+  --color-warning: #d97706;
+  --silo-green: #2f8a5c;
   --color-star-bg: rgba(180, 83, 9, 0.1);
   --color-highlight: #2d54e8;
   --color-brand-alt: #3a7d3a;
