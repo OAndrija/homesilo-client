@@ -16,10 +16,9 @@
       <!-- ── Storage silo ─────────────────────────────────────── -->
       <section class="hero" [attr.data-level]="storageLevel()">
         <div class="hero-visual">
-          <!-- The HomeSilo silo from the logo; its body fills with green as storage is used. -->
-          <svg
+          <!-- The silo from the HomeSilo logo: greyed out when empty, its colour rising as storage fills. -->
+          <div
             class="silo"
-            viewBox="0 50 180 240"
             role="img"
             [attr.aria-label]="
               storageUsedGB() +
@@ -30,107 +29,19 @@
               ' free'
             "
           >
-            <defs>
-              <clipPath id="silo-body">
-                <rect
-                  [attr.x]="siloX"
-                  [attr.y]="siloTop"
-                  [attr.width]="siloWidth"
-                  [attr.height]="siloHeight"
-                />
-              </clipPath>
-              <clipPath id="silo-fill">
-                <rect
-                  [attr.x]="siloX"
-                  [attr.y]="siloFillY()"
-                  [attr.width]="siloWidth"
-                  [attr.height]="siloBottom - siloFillY()"
-                />
-              </clipPath>
-            </defs>
-
-            <!-- cupola, seated on the flat top of the roof -->
-            <path class="roof-3" d="M79 68 L90 60 L101 68 Z" />
-            <rect class="roof-2" x="83" y="68" width="14" height="12" />
-
-            <!-- short faceted roof (a truncated cone) -->
-            @for (facet of siloRoofFacets; track facet.points) {
-              <polygon [attr.class]="facet.tone" [attr.points]="facet.points" />
+            <img class="silo-empty" src="homesilo-silo.png" alt="" width="340" height="638" />
+            <img
+              class="silo-full"
+              src="homesilo-silo.png"
+              alt=""
+              width="340"
+              height="638"
+              [style.clip-path]="'inset(' + siloFillTop() + '% 0 0 0)'"
+            />
+            @if (storageUsedBytes() > 0) {
+              <span class="silo-level" [style.top.%]="siloFillTop()"></span>
             }
-            <rect class="roof-lip" x="76" y="78" width="28" height="3" rx="1" />
-            <rect class="roof-lip" x="18" y="106" width="144" height="6" rx="1" />
-
-            <!-- body: an empty silhouette, then the used part in full colour -->
-            <g clip-path="url(#silo-body)">
-              <g class="silo-empty">
-                @for (col of siloColumns; track col.x) {
-                  <rect
-                    [attr.class]="col.tone"
-                    [attr.x]="col.x"
-                    [attr.y]="siloTop"
-                    [attr.width]="siloColumnWidth"
-                    [attr.height]="siloHeight"
-                  />
-                }
-              </g>
-              <g clip-path="url(#silo-fill)">
-                @for (col of siloColumns; track col.x) {
-                  <rect
-                    [attr.class]="col.tone"
-                    [attr.x]="col.x"
-                    [attr.y]="siloTop"
-                    [attr.width]="siloColumnWidth"
-                    [attr.height]="siloHeight"
-                  />
-                }
-              </g>
-              @if (storageUsedBytes() > 0) {
-                <rect
-                  class="silo-level"
-                  [attr.x]="siloX"
-                  [attr.y]="siloFillY()"
-                  [attr.width]="siloWidth"
-                  height="2"
-                />
-              }
-              <!-- panel seams -->
-              @for (y of siloRows; track y) {
-                <line
-                  class="silo-seam"
-                  [attr.x1]="siloX"
-                  [attr.x2]="siloX + siloWidth"
-                  [attr.y1]="y"
-                  [attr.y2]="y"
-                />
-              }
-              @for (col of siloColumns.slice(1); track col.x) {
-                <line
-                  class="silo-seam"
-                  [attr.x1]="col.x"
-                  [attr.x2]="col.x"
-                  [attr.y1]="siloTop"
-                  [attr.y2]="siloBottom"
-                />
-              }
-            </g>
-
-            <!-- ground and grass -->
-            <line
-              class="silo-ground"
-              x1="6"
-              x2="174"
-              [attr.y1]="siloBottom"
-              [attr.y2]="siloBottom"
-            />
-            <path
-              class="silo-grass"
-              d="M16 284 Q14 271 7 264 Q19 269 23 279 Q25 267 33 260 Q29 272 30 284 Z"
-            />
-            <path
-              class="silo-grass"
-              d="M150 284 Q150 273 144 266 Q155 271 157 280 Q160 269 169 263 Q163 274 163 284 Z"
-            />
-          </svg>
+          </div>
         </div>
 
         <div class="hero-body">

@@ -77,30 +77,9 @@ export class Home {
     return p >= 90 ? 'critical' : p >= 75 ? 'warn' : 'ok';
   });
 
-  // ── Silo geometry (must match the SVG in home.html) ──
-  readonly siloX = 30;
-  readonly siloWidth = 120;
-  readonly siloTop = 112;
-  readonly siloBottom = 284;
-  readonly siloHeight = this.siloBottom - this.siloTop;
-  readonly siloColumnWidth = this.siloWidth / 4;
-  /** Four panel columns, shaded dark to light like the logo. */
-  readonly siloColumns = [0, 1, 2, 3].map((i) => ({
-    x: this.siloX + i * this.siloColumnWidth,
-    tone: `col-${i + 1}`,
-  }));
-  /** Horizontal panel seams. */
-  readonly siloRows = [1, 2, 3].map((i) => this.siloTop + (this.siloHeight * i) / 4);
-  /** Roof facets: a short truncated cone from the eaves (y 106) up to the cupola (y 80). */
-  readonly siloRoofFacets = (() => {
-    const eaves = [18, 47, 76, 104, 133, 162];
-    const top = [78, 83, 88, 92, 97, 102];
-    const tones = ['roof-1', 'roof-2', 'roof-3', 'roof-4', 'roof-3'];
-    return tones.map((tone, i) => ({
-      tone,
-      points: `${top[i]},80 ${top[i + 1]},80 ${eaves[i + 1]},106 ${eaves[i]},106`,
-    }));
-  })();
+  // ── Silo (homesilo-silo.png): the body spans 26% → 99% of the image height ──
+  private readonly siloBodyTop = 26;
+  private readonly siloBodyBottom = 99;
 
   breakdownWithPercent = computed(() => {
     const used = this.storageUsedBytes();
@@ -128,13 +107,14 @@ export class Home {
   /** Biggest file type (the breakdown is already sorted by size); null while empty. */
   topCategory = computed(() => this.breakdownWithPercent().at(0) ?? null);
 
-  /** Top of the green fill; any usage at all shows at least a sliver. */
-  siloFillY = computed(() => {
+  /** Where the colour starts, as a % from the top of the image; any usage shows a sliver. */
+  siloFillTop = computed(() => {
     const used = this.storageUsedBytes();
     const limit = this.storageLimitBytes();
-    if (used <= 0 || limit <= 0) return this.siloBottom;
-    const height = Math.max(Math.min(used / limit, 1) * this.siloHeight, 3);
-    return this.siloBottom - height;
+    const body = this.siloBodyBottom - this.siloBodyTop;
+    if (used <= 0 || limit <= 0) return 100;
+    const filled = Math.max(Math.min(used / limit, 1) * body, 1.5);
+    return Math.round((this.siloBodyBottom - filled) * 10) / 10;
   });
 
   constructor() {
