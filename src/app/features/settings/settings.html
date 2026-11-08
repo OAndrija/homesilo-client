@@ -1,18 +1,13 @@
-<div class="page settings">
+<div class="settings-page">
   <header class="page-header">
-    <div>
-      <h1 class="page-title">Settings</h1>
-      <p class="page-subtitle">Your account on this HomeSilo server.</p>
-    </div>
+    <h2>Settings</h2>
+    <p class="subtitle">Your account on this HomeSilo server.</p>
   </header>
 
   @if (user(); as user) {
-    <section class="setting-group" aria-labelledby="account-heading">
-      <div class="group-intro">
-        <h2 class="section-title" id="account-heading">Account</h2>
-        <p>Managed by this server’s administrator.</p>
-      </div>
-      <dl class="panel details">
+    <section class="card" aria-labelledby="account-heading">
+      <h3 id="account-heading">Account</h3>
+      <dl class="details">
         <div>
           <dt>Username</dt>
           <dd>{{ user.username }}</dd>
@@ -24,14 +19,14 @@
         <div>
           <dt>Role</dt>
           <dd>
-            <span class="badge" [class.is-accent]="user.role === 'ADMIN'">{{
-              user.role === 'ADMIN' ? 'Administrator' : 'User'
-            }}</span>
+            <span class="role-pill" [class.admin]="user.role === 'ADMIN'">
+              {{ user.role === 'ADMIN' ? 'Administrator' : 'User' }}
+            </span>
           </dd>
         </div>
         <div>
           <dt>Storage quota</dt>
-          <dd class="tabular">{{ quota() }}</dd>
+          <dd>{{ quota() }}</dd>
         </div>
         <div>
           <dt>Member since</dt>
@@ -41,98 +36,63 @@
     </section>
   }
 
-  <section class="setting-group" aria-labelledby="appearance-heading">
-    <div class="group-intro">
-      <h2 class="section-title" id="appearance-heading">Appearance</h2>
-      <p>Saved in this browser.</p>
-    </div>
-    <div class="panel theme-picker" role="radiogroup" aria-labelledby="appearance-heading">
-      @for (option of themeOptions; track option.value) {
-        <button
-          type="button"
-          role="radio"
-          class="theme-card"
-          [class.is-selected]="theme.preference() === option.value"
-          [attr.aria-checked]="theme.preference() === option.value"
-          (click)="theme.setPreference(option.value)"
-        >
-          <span class="swatch" [attr.data-swatch]="option.value" aria-hidden="true">
-            <span></span><span></span>
-          </span>
-          <span class="theme-label">{{ option.label }}</span>
-          <span class="theme-hint">{{ option.hint }}</span>
-        </button>
-      }
-    </div>
-  </section>
+  <section class="card" aria-labelledby="password-heading">
+    <h3 id="password-heading">Change password</h3>
+    <p class="hint">Changing your password signs you out everywhere else.</p>
 
-  <section class="setting-group" aria-labelledby="password-heading">
-    <div class="group-intro">
-      <h2 class="section-title" id="password-heading">Password</h2>
-      <p>Changing it signs you out on every other device.</p>
-    </div>
-    <form class="panel password-form" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
-      <label class="field">
-        <span class="field-label">Current password</span>
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+      <div class="field">
+        <label for="currentPassword">Current password</label>
         <input
           id="currentPassword"
-          class="input"
           type="password"
           formControlName="currentPassword"
           autocomplete="current-password"
-          [class.is-invalid]="submitted() && form.controls.currentPassword.invalid"
+          [class.input-error]="submitted() && form.controls.currentPassword.invalid"
         />
-      </label>
+      </div>
 
-      <label class="field">
-        <span class="field-label">New password</span>
+      <div class="field">
+        <label for="newPassword">New password</label>
         <input
           id="newPassword"
-          class="input"
           type="password"
           formControlName="newPassword"
           autocomplete="new-password"
-          [class.is-invalid]="submitted() && form.controls.newPassword.invalid"
+          placeholder="At least 8 characters"
+          [class.input-error]="submitted() && form.controls.newPassword.invalid"
         />
         @if (submitted() && form.controls.newPassword.errors?.['minlength']) {
-          <span class="field-error">Use at least 8 characters</span>
-        } @else {
-          <span class="field-hint">At least 8 characters</span>
+          <span class="error">Password must be at least 8 characters</span>
         }
-      </label>
+      </div>
 
-      <label class="field">
-        <span class="field-label">Confirm new password</span>
+      <div class="field">
+        <label for="confirmPassword">Confirm new password</label>
         <input
           id="confirmPassword"
-          class="input"
           type="password"
           formControlName="confirmPassword"
           autocomplete="new-password"
-          [class.is-invalid]="
+          [class.input-error]="
             submitted() && (form.controls.confirmPassword.invalid || form.errors?.['mismatch'])
           "
         />
         @if (submitted() && form.errors?.['mismatch']) {
-          <span class="field-error">The passwords don’t match</span>
+          <span class="error">Passwords don't match</span>
         }
-      </label>
+      </div>
 
       @if (errorMessage()) {
-        <div class="form-alert is-error" role="alert">{{ errorMessage() }}</div>
+        <div class="message error-message" role="alert">{{ errorMessage() }}</div>
       }
       @if (success()) {
-        <div class="form-alert is-success" role="status">Password changed.</div>
+        <div class="message success-message" role="status">Password changed.</div>
       }
 
-      <div class="form-actions">
-        <button type="submit" class="btn btn-primary" [disabled]="saving()">
-          @if (saving()) {
-            <span class="spinner" aria-hidden="true"></span>
-          }
-          Change password
-        </button>
-      </div>
+      <button type="submit" class="submit-btn" [disabled]="saving()">
+        {{ saving() ? 'Saving…' : 'Change password' }}
+      </button>
     </form>
   </section>
 </div>

@@ -11,7 +11,6 @@ import {
 import { finalize } from 'rxjs';
 import { errorMessage } from '../../core/http/http-error';
 import { Auth } from '../../core/services/auth';
-import { ThemePreference, ThemeService } from '../../core/services/theme';
 import { formatBytes } from '../../core/utils/format';
 
 function passwordsMatch(group: AbstractControl): ValidationErrors | null {
@@ -28,13 +27,6 @@ function passwordsMatch(group: AbstractControl): ValidationErrors | null {
 })
 export class Settings {
   private auth = inject(Auth);
-  protected theme = inject(ThemeService);
-
-  readonly themeOptions: { value: ThemePreference; label: string; hint: string }[] = [
-    { value: 'system', label: 'System', hint: 'Match your device' },
-    { value: 'light', label: 'Light', hint: 'Always light' },
-    { value: 'dark', label: 'Dark', hint: 'Always dark' },
-  ];
 
   user = this.auth.user;
   quota = computed(() => formatBytes(this.user()?.storageQuotaBytes ?? 0));

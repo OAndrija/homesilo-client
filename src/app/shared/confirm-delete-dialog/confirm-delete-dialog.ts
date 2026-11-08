@@ -1,12 +1,4 @@
-import {
-  AfterViewInit,
-  Component,
-  computed,
-  ElementRef,
-  input,
-  output,
-  viewChild,
-} from '@angular/core';
+import { Component, input, output, computed } from '@angular/core';
 
 export interface DeleteTarget {
   type: 'file' | 'folder' | 'bulk' | 'emptyTrash';
@@ -17,15 +9,9 @@ export interface DeleteTarget {
 @Component({
   selector: 'app-confirm-delete-dialog',
   templateUrl: './confirm-delete-dialog.html',
+  styleUrl: './confirm-delete-dialog.css',
 })
-export class ConfirmDeleteDialog implements AfterViewInit {
-  private cancelButton = viewChild<ElementRef<HTMLButtonElement>>('cancelButton');
-
-  /** Focus the safe choice, so Enter never deletes by accident. */
-  ngAfterViewInit(): void {
-    this.cancelButton()?.nativeElement.focus();
-  }
-
+export class ConfirmDeleteDialog {
   target = input.required<DeleteTarget>();
 
   confirm = output<void>();
@@ -34,11 +20,11 @@ export class ConfirmDeleteDialog implements AfterViewInit {
   title = computed(() => {
     switch (this.target().type) {
       case 'emptyTrash':
-        return 'Empty trash?';
+        return 'Empty trash';
       case 'bulk':
-        return `Delete ${this.target().count} items forever?`;
+        return `Delete ${this.target().count} items`;
       default:
-        return 'Delete forever?';
+        return 'Delete forever';
     }
   });
 

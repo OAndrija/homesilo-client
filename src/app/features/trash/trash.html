@@ -1,40 +1,49 @@
-<div class="page">
-  <header class="page-header">
+<div class="files-page">
+  <div class="page-header">
     <div>
-      <h1 class="page-title">Trash</h1>
-      <p class="page-subtitle">
+      <h2>Trash</h2>
+      <p class="subtitle">
+        {{ totalCount() }} item{{ totalCount() !== 1 ? 's' : '' }} in trash
         @if (retentionDays() > 0) {
-          Items in trash are deleted forever after {{ retentionDays() }} days.
-        } @else {
-          Items stay here until you delete them.
+          · deleted automatically after {{ retentionDays() }} days
         }
       </p>
     </div>
-    <div class="page-actions">
-      <button
-        type="button"
-        class="btn btn-danger-quiet empty-trash-btn"
-        (click)="emptyTrash()"
-        [disabled]="totalCount() === 0"
-      >
-        <span class="material-symbols-rounded" aria-hidden="true">delete_sweep</span>
-        Empty trash
+    <app-selection-bar
+      [selectedCount]="
+        (fileTable()?.selectedIds()?.size ?? 0) + (fileTable()?.selectedFolderIds()?.size ?? 0)
+      "
+      [actions]="['restore', 'deleteForever']"
+      (restoreAll)="onRestoreAll()"
+      (deleteForeverAll)="onDeleteForeverAll()"
+      (clearSelection)="fileTable()?.clearSelection()"
+    >
+    </app-selection-bar>
+
+    <div class="header-actions">
+      <button class="empty-trash-btn" (click)="emptyTrash()" [disabled]="totalCount() === 0">
+        <span class="material-symbols-rounded">delete_sweep</span>
+        Empty Trash
       </button>
     </div>
-  </header>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="server-error" role="alert">{{ errorMessage() }}</div>
+  }
 
   @if (loading() | loadingDelay) {
-    <div class="state" aria-busy="true"><span class="spinner"></span></div>
+    <div class="empty-state">Loading...</div>
   } @else if (!loading() && files().length === 0 && folders().length === 0) {
-    <div class="state">
+    <div class="empty-state">
       @if (isSearching()) {
-        <span class="material-symbols-rounded" aria-hidden="true">search_off</span>
-        <h3>No matches</h3>
-        <p>Nothing in trash matches that search.</p>
+        <span class="material-symbols-rounded empty-icon">search_off</span>
+        <h3>No results found</h3>
+        <p>Try a different search term.</p>
       } @else {
-        <span class="material-symbols-rounded" aria-hidden="true">delete</span>
+        <span class="material-symbols-rounded empty-icon">delete</span>
         <h3>Trash is empty</h3>
-        <p>Files and folders you delete stay here for a while, so you can restore them.</p>
+        <p>Files and folders you move to trash will appear here.</p>
       }
     </div>
   } @else if (!loading()) {
@@ -48,30 +57,19 @@
       (folderRestore)="restoreFolder($event)"
       (folderDeleteForever)="deleteFolderForever($event)"
     />
+
     @if (hasMore()) {
-      <div class="show-more">
-        <button
-          type="button"
-          class="btn btn-secondary"
-          (click)="loadMore()"
-          [disabled]="loadingMore()"
-        >
+      <div class="show-more-wrap">
+        <button class="show-more-btn" (click)="loadMore()" [disabled]="loadingMore()">
           @if (loadingMore()) {
-            <span class="spinner" aria-hidden="true"></span>
+            <span class="spinner"></span> Loading...
+          } @else {
+            Show more
           }
-          Show more
         </button>
       </div>
     }
   }
-
-  <app-selection-bar
-    [selectedCount]="selectedCount()"
-    [actions]="['restore', 'deleteForever']"
-    (restoreAll)="onRestoreAll()"
-    (deleteForeverAll)="onDeleteForeverAll()"
-    (clearSelection)="fileTable()?.clearSelection()"
-  />
 
   @if (pendingDelete()) {
     <app-confirm-delete-dialog

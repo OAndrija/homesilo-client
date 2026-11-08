@@ -1,144 +1,143 @@
 <div
-  class="page files-page"
-  [class.is-dragging]="dragging()"
+  class="files-page"
+  [class.drag-active]="dragging()"
   (dragenter)="onDragEnter($event)"
   (dragover)="onDragOver($event)"
   (dragleave)="onDragLeave($event)"
   (drop)="onDrop($event)"
 >
   @if (dragging()) {
-    <div class="drop-overlay" aria-hidden="true">
-      <span class="material-symbols-rounded">upload</span>
-      <p>
-        Drop to upload to <strong>{{ title() }}</strong>
-      </p>
+    <div class="drop-overlay">
+      <span class="material-symbols-rounded drop-icon">cloud_upload</span>
+      <p>Drop files to upload</p>
     </div>
   }
 
-  @if (!isAtRoot() && !isSearching()) {
-    <nav class="breadcrumb" aria-label="Folder path">
-      <button type="button" class="crumb" (click)="navigateViaBreadcrumb(null)">
-        <span class="material-symbols-rounded" aria-hidden="true">home</span>
+  <div class="page-header">
+    <div>
+      <h2>My Files</h2>
+      <p class="subtitle">{{ contentSummary() }}</p>
+    </div>
+
+    <app-selection-bar
+      [selectedCount]="selectedCount()"
+      [actions]="['download', 'move', 'star', 'trash']"
+      (downloadAll)="onDownloadAll()"
+      (moveAll)="onMoveAll()"
+      (trashAll)="onTrashAll()"
+      (starAll)="onStarAll()"
+      (clearSelection)="fileTable()?.clearSelection()"
+    >
+    </app-selection-bar>
+
+    <div class="header-actions">
+      <button
+        class="new-folder-btn"
+        (click)="showNewFolderDialog.set(true)"
+        title="New folder"
+        aria-label="New folder"
+      >
+        <span class="material-symbols-rounded">create_new_folder</span>
+      </button>
+      <button class="upload-btn" (click)="triggerFilePicker()" [disabled]="uploading()">
+        @if (uploading()) {
+          <span class="spinner"></span>
+          Uploading {{ uploadCompleted() }} of {{ uploadTotal() }}...
+        } @else {
+          <span class="material-symbols-rounded">upload</span>
+          Upload Files
+        }
+      </button>
+    </div>
+
+    <input #fileInput hidden type="file" multiple (change)="onFileSelected($event)" />
+  </div>
+
+  <!-- ── Breadcrumb ─────────────────────────────────────────── -->
+  @if (!isAtRoot() || breadcrumb().length > 0) {
+    <nav class="breadcrumb">
+      <button class="crumb crumb-root" (click)="navigateViaBreadcrumb(null)">
+        <span class="material-symbols-rounded">home</span>
         My Files
       </button>
-      @for (crumb of ancestors(); track crumb.id) {
-        <span class="material-symbols-rounded crumb-sep" aria-hidden="true">chevron_right</span>
-        <button type="button" class="crumb" (click)="navigateViaBreadcrumb(crumb)">
+      @for (crumb of breadcrumb(); track crumb.id) {
+        <span class="material-symbols-rounded crumb-sep">chevron_right</span>
+        <button class="crumb" (click)="navigateViaBreadcrumb(crumb)">
           {{ crumb.name }}
         </button>
       }
-      <span class="material-symbols-rounded crumb-sep" aria-hidden="true">chevron_right</span>
     </nav>
   }
 
-  <header class="page-header">
-    <div>
-      <h1 class="page-title">{{ title() }}</h1>
-      @if (!loading() || files().length > 0) {
-        <p class="page-subtitle">{{ contentSummary() }}</p>
-      }
+  @if (errorMessage()) {
+    <div class="server-error">
+      <span>{{ errorMessage() }}</span>
+      <button
+        class="error-dismiss-btn"
+        (click)="errorMessage.set('')"
+        aria-label="Dismiss error"
+        type="button"
+      >
+        <span class="material-symbols-rounded">close</span>
+      </button>
     </div>
-
-    @if (!isSearching()) {
-      <div class="page-actions">
-        <button type="button" class="btn btn-secondary" (click)="showNewFolderDialog.set(true)">
-          <span class="material-symbols-rounded" aria-hidden="true">create_new_folder</span>
-          New folder
-        </button>
-        <button
-          type="button"
-          class="btn btn-primary"
-          (click)="triggerFilePicker()"
-          [disabled]="uploading()"
-        >
-          @if (uploading()) {
-            <span class="spinner" aria-hidden="true"></span>
-            Uploading…
-          } @else {
-            <span class="material-symbols-rounded" aria-hidden="true">upload</span>
-            Upload
-          }
-        </button>
-        <input #fileInput hidden type="file" multiple (change)="onFileSelected($event)" />
-      </div>
-    }
-  </header>
+  }
 
   @if (loading() | loadingDelay) {
-    <div class="state" aria-busy="true"><span class="spinner"></span></div>
-  } @else if (!loading() && loadFailed() && files().length === 0 && folders().length === 0) {
-    <div class="state">
-      <span class="material-symbols-rounded" aria-hidden="true">cloud_off</span>
-      <h3>Couldn’t load this folder</h3>
-      <p>Check that the server is running, then try again.</p>
-      <button type="button" class="btn btn-secondary" (click)="retry()">Try again</button>
-    </div>
+    <div class="empty-state">Loading files...</div>
   } @else if (!loading() && folders().length === 0 && files().length === 0) {
-    <div class="state">
+    <div class="empty-state">
       @if (isSearching()) {
-        <span class="material-symbols-rounded" aria-hidden="true">search_off</span>
-        <h3>No matches</h3>
-        <p>Nothing is named like “{{ query() }}”. Try a shorter or different word.</p>
+        <span class="material-symbols-rounded empty-icon">search_off</span>
+        <h3>No results found</h3>
+        <p>Try a different search term.</p>
       } @else {
-        <span class="material-symbols-rounded" aria-hidden="true">cloud_upload</span>
+        <span class="material-symbols-rounded empty-icon">cloud_upload</span>
         <h3>{{ isAtRoot() ? 'No files yet' : 'This folder is empty' }}</h3>
-        <p>Drag files here, or upload them from your computer.</p>
-        <button type="button" class="btn btn-primary" (click)="triggerFilePicker()">
-          <span class="material-symbols-rounded" aria-hidden="true">upload</span>
-          Upload files
-        </button>
+        <p>
+          {{
+            isAtRoot()
+              ? 'Upload your first backup to homesilo.'
+              : 'Upload files or create a folder to get started.'
+          }}
+        </p>
       }
     </div>
   } @else if (!loading()) {
     <app-file-table
       [files]="files()"
       [folders]="folders()"
-      [actions]="['download', 'rename', 'move', 'star', 'trash']"
+      [actions]="['download', 'rename', 'trash', 'star']"
       dateColumnLabel="Modified"
-      (openFile)="openFile($event)"
       (download)="downloadFile($event)"
       (rename)="renameFile($event)"
+      (folderRename)="renameFolder($event)"
+      (folderDownload)="downloadFolder($event)"
       (trash)="trashFile($event)"
       (star)="toggleStar($event)"
+      (openFile)="openFile($event)"
       (folderOpen)="navigateToFolder($event)"
-      (folderDownload)="downloadFolder($event)"
-      (folderRename)="renameFolder($event)"
       (folderTrash)="trashFolder($event)"
-      (moveRequested)="onMoveAll()"
       (itemsMoved)="onItemsMoved($event)"
     />
 
     @if (hasMore()) {
-      <div class="show-more">
-        <button
-          type="button"
-          class="btn btn-secondary"
-          (click)="loadMore()"
-          [disabled]="loadingMore()"
-        >
+      <div class="show-more-wrap">
+        <button class="show-more-btn" (click)="loadMore()" [disabled]="loadingMore()">
           @if (loadingMore()) {
-            <span class="spinner" aria-hidden="true"></span>
+            <span class="spinner"></span>
+            Loading...
+          } @else {
+            Show more
           }
-          Show more
         </button>
       </div>
     }
   }
 
-  <app-selection-bar
-    [selectedCount]="selectedCount()"
-    [actions]="['download', 'move', 'star', 'trash']"
-    (downloadAll)="onDownloadAll()"
-    (moveAll)="onMoveAll()"
-    (starAll)="onStarAll()"
-    (trashAll)="onTrashAll()"
-    (clearSelection)="fileTable()?.clearSelection()"
-  />
-
   @if (showMoveDialog()) {
     <app-folder-picker-dialog
       [excludedFolderIds]="getSelectedFolderIds()"
-      [sourceFolderId]="isSearching() ? undefined : currentFolderId()"
       (confirm)="onMoveConfirm($event)"
       (cancel)="showMoveDialog.set(false)"
     />

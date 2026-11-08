@@ -1,93 +1,73 @@
-<div class="auth">
-  <aside class="brand-side">
-    <div class="brand">
-      <img src="homesilo-logo.png" alt="" width="40" height="40" />
-      <span class="wordmark">HomeSilo</span>
+<div class="auth-page">
+  <div class="brand-panel">
+    <div class="brand-content">
+      <div class="logo">
+        <div class="logo-mark">🗄️</div>
+        <span class="logo-text">HomeSilo</span>
+      </div>
+      <h1>Welcome<br />back.</h1>
+      <p>Your files are right where you left them — safe, private, and yours.</p>
     </div>
-    <div class="pitch">
-      <h1>Your files,<br />kept at home.</h1>
-      <p>Sign in to the HomeSilo server running on your own hardware.</p>
+    <div class="vault-rings" aria-hidden="true">
+      <div class="ring ring-1"></div>
+      <div class="ring ring-2"></div>
+      <div class="ring ring-3"></div>
     </div>
-    <p class="footnote">
-      <span class="material-symbols-rounded" aria-hidden="true">lock</span>
-      Self-hosted. Nothing is sent to anyone else’s cloud.
-    </p>
-    <svg class="silo-art" viewBox="0 0 200 300" aria-hidden="true">
-      <defs>
-        <clipPath id="silo-body">
-          <path d="M40 90 H160 V270 H40 Z" />
-        </clipPath>
-      </defs>
-      <g clip-path="url(#silo-body)">
-        <rect class="grain" x="40" y="218" width="120" height="52" />
-        <rect class="grain g2" x="40" y="184" width="120" height="34" />
-        <rect class="grain g3" x="40" y="160" width="120" height="24" />
-      </g>
-      <g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round">
-        <path d="M40 90 C40 40 160 40 160 90" />
-        <path d="M40 90 V270 M160 90 V270" />
-        <path d="M30 270 H170" />
-        <path d="M40 90 H160 M40 130 H160 M40 175 H160 M40 220 H160" stroke-opacity="0.5" />
-        <rect x="92" y="34" width="16" height="12" rx="2" />
-      </g>
-    </svg>
-  </aside>
+  </div>
 
-  <main class="form-side">
-    <div class="form-card">
-      <h2>Sign in</h2>
-      <p class="form-lead">Welcome back. Use your username or email.</p>
+  <div class="form-panel">
+    <div class="form-container">
+      <div class="form-header">
+        <h2>Sign in</h2>
+        <p>Enter your credentials to access your silo.</p>
+      </div>
 
-      @if (errorMessage()) {
-        <div class="form-alert is-error" role="alert">{{ errorMessage() }}</div>
-      }
-
-      <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
-        <label class="field">
-          <span class="field-label">Username or email</span>
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <div class="field">
+          <label for="username">Username or email</label>
           <input
             id="username"
-            class="input"
             type="text"
             formControlName="username"
             autocomplete="username"
             autocapitalize="none"
             spellcheck="false"
-            [class.is-invalid]="submitted && username.errors"
-            [attr.aria-invalid]="submitted && !!username.errors"
+            placeholder="Your username or email"
+            [class.input-error]="submitted && username.errors"
           />
           @if (submitted && username.errors?.['required']) {
-            <span class="field-error">Enter your username or email</span>
+            <span class="error">Username is required</span>
           }
-        </label>
+        </div>
 
-        <label class="field">
-          <span class="field-label">Password</span>
+        <div class="field">
+          <label for="password">Password</label>
           <input
             id="password"
-            class="input"
             type="password"
             formControlName="password"
             autocomplete="current-password"
-            [class.is-invalid]="submitted && password.errors"
-            [attr.aria-invalid]="submitted && !!password.errors"
+            placeholder="Your password"
+            [class.input-error]="submitted && password.errors"
           />
           @if (submitted && password.errors?.['required']) {
-            <span class="field-error">Enter your password</span>
+            <span class="error">Password is required</span>
           }
-        </label>
+        </div>
 
-        <button type="submit" class="btn btn-primary btn-block" [disabled]="loading()">
+        @if (errorMessage()) {
+          <div class="server-error" role="alert">{{ errorMessage() }}</div>
+        }
+
+        <button type="submit" class="submit-btn" [disabled]="loading()">
           @if (loading()) {
-            <span class="spinner" aria-hidden="true"></span>
-            Signing in…
-          } @else {
-            Sign in
+            <span class="spinner"></span>
           }
+          {{ loading() ? 'Signing in...' : 'Sign in' }}
         </button>
       </form>
 
-      <p class="switch">New here? <a routerLink="/register">Create an account</a></p>
+      <p class="switch-auth">Don't have an account? <a routerLink="/register">Register</a></p>
     </div>
-  </main>
+  </div>
 </div>

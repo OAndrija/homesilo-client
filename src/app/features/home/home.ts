@@ -5,14 +5,11 @@ import { Files } from '../../core/services/files';
 import { DashboardStore } from '../../core/services/dashboard-store';
 import { FileMetadata } from '../../core/models/file-metadata';
 import { FileTable } from '../../shared/file-table/file-table';
+import { DatePipe } from '@angular/common';
 import { Auth } from '../../core/services/auth';
 import { LoadingDelayPipe } from '../../shared/pipes/loading-delay';
 import { FileActions } from '../../core/services/file-actions';
 import { formatBytes } from '../../core/utils/format';
-import { getFileIcon } from '../../core/utils/file-icon.util';
-import { ToastService } from '../../core/services/toast';
-import { errorMessage } from '../../core/http/http-error';
-import { FriendlyDatePipe } from '../../shared/pipes/friendly-date';
 
 // Colours live in styles.css (--cat-*) so they adapt to light/dark themes.
 const CATEGORY_META: Record<string, { color: string; icon: string }> = {
@@ -27,7 +24,7 @@ const CATEGORY_META: Record<string, { color: string; icon: string }> = {
 
 @Component({
   selector: 'app-home',
-  imports: [FileTable, RouterLink, LoadingDelayPipe, FriendlyDatePipe],
+  imports: [FileTable, RouterLink, DatePipe, LoadingDelayPipe],
   templateUrl: './home.html',
   styleUrl: './home.css',
 })
@@ -36,7 +33,6 @@ export class Home {
   private store = inject(DashboardStore);
   private authService = inject(Auth);
   private fileActions = inject(FileActions);
-  private toast = inject(ToastService);
 
   username = computed(() => this.authService.user()?.username ?? '');
 
@@ -52,19 +48,6 @@ export class Home {
   loadingTrashed = computed(() => this.store.loading());
 
   starredCount = computed(() => this.store.stats()?.starredCount ?? 0);
-  totalFolders = computed(() => this.store.stats()?.totalFolders ?? 0);
-  trashedLabel = computed(() => this.formatSize(this.store.stats()?.trashedBytes ?? 0));
-  storageUsedLabel = computed(() => this.formatSize(this.storageUsedBytes()));
-  storageLimitLabel = computed(() => this.formatSize(this.storageLimitBytes()));
-
-  summary = computed(() => {
-    if (!this.store.stats()) return ' ';
-    const files = this.totalFiles();
-    const folders = this.totalFolders();
-    if (files === 0 && folders === 0) return 'Your silo is empty. Upload something to get started.';
-    const f = `${files} file${files !== 1 ? 's' : ''}`;
-    return folders > 0 ? `${f} in ${folders} folder${folders !== 1 ? 's' : ''}` : f;
-  });
 
   storageUsedGB = computed(() => (this.storageUsedBytes() / 1024 ** 3).toFixed(1));
   storageLimitGB = computed(() => Math.round(this.storageLimitBytes() / 1024 ** 3));
@@ -124,18 +107,12 @@ export class Home {
   /** Biggest file type (the breakdown is already sorted by size); null while empty. */
   topCategory = computed(() => this.breakdownWithPercent().at(0) ?? null);
 
-  /**
-   * One stacked layer per file type, biggest at the bottom of the tank. Trash stays
-   * in the breakdown list but not in the tank: it's on its way out, and as the top
-   * layer it would tint the whole surface red.
-   */
+  /** One stacked layer per file type, biggest at the bottom of the tank. */
   tankLayers = computed(() => {
-    const raw = this.breakdownWithPercent()
-      .filter((t) => t.label !== 'Trash')
-      .map((t) => ({
-        ...t,
-        h: Math.max(t.ofCapacity * this.tankHeight, 2),
-      }));
+    const raw = this.breakdownWithPercent().map((t) => ({
+      ...t,
+      h: Math.max(t.ofCapacity * this.tankHeight, 2),
+    }));
     const total = raw.reduce((sum, l) => sum + l.h, 0);
     const scale = total > this.tankHeight ? this.tankHeight / total : 1;
     let cursor = this.tankBottom;
@@ -188,21 +165,13 @@ export class Home {
     this.fileActions.open(file);
   }
 
-  iconFor(file: FileMetadata) {
-    return getFileIcon(file.originalFileName);
-  }
-
   restoreFile(file: FileMetadata): void {
-    this.fileService.restore(file.id).subscribe({
-      error: (err) => this.toast.error(errorMessage(err, 'Couldn’t restore the file.')),
-      next: () => {
-        this.toast.success(`Restored “${file.originalFileName}”`);
-        // Restoring moves the file back into the active/non-trashed count,
-        // which changes storageUsedBytes, totalFiles, and recentlyTrashed —
-        // refresh the store so every subscriber (sidebar included) updates.
-        this.store.silentRefresh();
-        this.loadRecentFiles();
-      },
+    this.fileService.restore(file.id).subscribe(() => {
+      // Restoring moves the file back into the active/non-trashed count,
+      // which changes storageUsedBytes, totalFiles, and recentlyTrashed —
+      // refresh the store so every subscriber (sidebar included) updates.
+      this.store.silentRefresh();
+      this.loadRecentFiles();
     });
   }
 

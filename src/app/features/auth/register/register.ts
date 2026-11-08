@@ -12,7 +12,7 @@ const USERNAME_PATTERN = /^[A-Za-z0-9._-]+$/;
   selector: 'app-register',
   imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './register.html',
-  styleUrl: '../auth.css',
+  styleUrl: './register.css',
 })
 export class Register {
   private auth = inject(Auth);

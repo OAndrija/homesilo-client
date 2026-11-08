@@ -1,62 +1,53 @@
 @if (selectedCount() > 0) {
-  <div class="selection-bar" data-selection-bar role="toolbar" aria-label="Selected items">
-    <button
-      type="button"
-      class="icon-btn clear"
-      aria-label="Clear selection"
-      (click)="clearSelection.emit()"
-    >
-      <span class="material-symbols-rounded">close</span>
-    </button>
-    <span class="count tabular">{{ selectedCount() }} selected</span>
-
-    <div class="actions">
+  <div class="selection-bar" data-selection-bar>
+    <span class="sel-count">
+      <span class="sel-badge">{{ selectedCount() }}</span>
+      {{ selectedCount() === 1 ? 'item' : 'items' }} selected
+    </span>
+    <div class="sel-actions">
       @if (hasAction('download')) {
-        <button type="button" class="bar-btn" (click)="downloadAll.emit()" title="Download">
-          <span class="material-symbols-rounded" aria-hidden="true">download</span>
-          <span class="bar-label">Download</span>
-        </button>
-      }
-      @if (hasAction('move')) {
-        <button type="button" class="bar-btn" (click)="moveAll.emit()" title="Move to…">
-          <span class="material-symbols-rounded" aria-hidden="true">drive_file_move</span>
-          <span class="bar-label">Move</span>
+        <button class="sel-btn" (click)="downloadAll.emit()" title="Download selected">
+          <span class="material-symbols-rounded">download</span>
+          {{ selectedCount() === 1 ? 'Download' : 'Download all' }}
         </button>
       }
       @if (hasAction('star')) {
-        <button type="button" class="bar-btn" (click)="starAll.emit()" title="Toggle star">
-          <span class="material-symbols-rounded" aria-hidden="true">star</span>
-          <span class="bar-label">Star</span>
+        <button class="sel-btn" (click)="starAll.emit()" title="Star all">
+          <span class="material-symbols-rounded">star</span>
+          {{ selectedCount() === 1 ? 'Star' : 'Star all' }}
         </button>
       }
+      @if (hasAction('move')) {
+        <button class="sel-btn" (click)="moveAll.emit()" title="Move to folder">
+          <span class="material-symbols-rounded">drive_file_move</span>
+          {{ selectedCount() === 1 ? 'Move' : 'Move all' }}
+        </button>
+      }
+      @if (hasAction('trash') || hasAction('restore') || hasAction('deleteForever')) {
+        <div class="sel-divider"></div>
+      }
       @if (hasAction('restore')) {
-        <button type="button" class="bar-btn" (click)="restoreAll.emit()" title="Restore">
-          <span class="material-symbols-rounded" aria-hidden="true">restore_from_trash</span>
-          <span class="bar-label">Restore</span>
+        <button class="sel-btn restore" (click)="restoreAll.emit()">
+          <span class="material-symbols-rounded">restore_from_trash</span>
+          {{ selectedCount() === 1 ? 'Restore' : 'Restore all' }}
         </button>
       }
       @if (hasAction('trash')) {
-        <button
-          type="button"
-          class="bar-btn is-danger"
-          (click)="trashAll.emit()"
-          title="Move to trash"
-        >
-          <span class="material-symbols-rounded" aria-hidden="true">delete</span>
-          <span class="bar-label">Trash</span>
+        <button class="sel-btn danger" (click)="trashAll.emit()">
+          <span class="material-symbols-rounded">delete</span>
+          Move to trash
         </button>
       }
       @if (hasAction('deleteForever')) {
-        <button
-          type="button"
-          class="bar-btn is-danger"
-          (click)="deleteForeverAll.emit()"
-          title="Delete forever"
-        >
-          <span class="material-symbols-rounded" aria-hidden="true">delete_forever</span>
-          <span class="bar-label">Delete forever</span>
+        <button class="sel-btn danger" (click)="deleteForeverAll.emit()">
+          <span class="material-symbols-rounded">delete_forever</span>
+          Delete forever
         </button>
       }
     </div>
+    <button class="sel-clear" (click)="clearSelection.emit()">
+      <span class="material-symbols-rounded">close</span>
+      Clear
+    </button>
   </div>
 }

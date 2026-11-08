@@ -9,18 +9,17 @@ import { SelectionBar } from '../../shared/selection-bar/selection-bar';
 import { LoadingDelayPipe } from '../../shared/pipes/loading-delay';
 import { FileActions } from '../../core/services/file-actions';
 import { errorMessage } from '../../core/http/http-error';
-import { ToastService } from '../../core/services/toast';
 
 @Component({
   selector: 'app-starred',
   imports: [FileTable, SelectionBar, LoadingDelayPipe],
   templateUrl: './starred.html',
+  styleUrl: './starred.css',
 })
 export class Starred {
   private fileService = inject(Files);
   private fileActions = inject(FileActions);
   private dashboardStore = inject(DashboardStore);
-  private toast = inject(ToastService);
   private searchService = inject(Search);
 
   fileTable = viewChild(FileTable);
@@ -28,6 +27,7 @@ export class Starred {
   files = signal<FileMetadata[]>([]);
   loading = signal(true);
   loadingMore = signal(false);
+  errorMessage = signal('');
   currentPage = signal(0);
   hasMore = signal(false);
 
@@ -55,7 +55,7 @@ export class Starred {
           this.files.set(response.content);
           this.hasMore.set(!response.last);
         },
-        error: (err) => this.toast.error(errorMessage(err, 'Search failed.')),
+        error: (err) => this.errorMessage.set(errorMessage(err, 'Search failed.')),
       });
   }
 
@@ -70,7 +70,7 @@ export class Starred {
           this.files.set(response.content);
           this.hasMore.set(!response.last);
         },
-        error: (err) => this.toast.error(errorMessage(err, 'Couldn’t load starred files.')),
+        error: (err) => this.errorMessage.set(errorMessage(err, 'Failed to load starred files.')),
       });
   }
 
@@ -88,7 +88,8 @@ export class Starred {
         this.currentPage.set(nextPage);
         this.hasMore.set(!response.last);
       },
-      error: (err) => this.toast.error(errorMessage(err, 'Couldn’t load more files.')),
+      error: (err) =>
+        this.errorMessage.set(errorMessage(err, 'Failed to load more starred files.')),
     });
   }
 
@@ -101,16 +102,8 @@ export class Starred {
       next: () => {
         this.files.update((files) => files.filter((f) => f.id !== file.id));
         this.dashboardStore.refresh();
-        this.toast.success(`Moved “${file.originalFileName}” to trash`, {
-          label: 'Undo',
-          run: () =>
-            this.fileService.restore(file.id).subscribe({
-              next: () => this.reloadCurrent(),
-              error: (err) => this.toast.error(errorMessage(err, 'Couldn’t undo.')),
-            }),
-        });
       },
-      error: (err) => this.toast.error(errorMessage(err, 'Couldn’t move the file to trash.')),
+      error: (err) => this.errorMessage.set(errorMessage(err, 'Failed to move file to trash.')),
     });
   }
 
@@ -124,24 +117,16 @@ export class Starred {
             : files.filter((f) => f.id !== updated.id),
         );
         this.dashboardStore.silentRefresh();
-        if (!updated.starred) {
-          this.toast.success(`Removed star from “${updated.originalFileName}”`, {
-            label: 'Undo',
-            run: () =>
-              this.fileService.toggleStar(updated.id).subscribe(() => this.reloadCurrent()),
-          });
-        }
       },
-      error: (err) => this.toast.error(errorMessage(err, 'Couldn’t update the star.')),
+      error: (err) => this.errorMessage.set(errorMessage(err, 'Failed to update star.')),
     });
   }
 
   openFile(file: FileMetadata): void {
     if (!this.fileActions.open(file)) {
-      this.toast.info(`“${file.originalFileName}” can’t be previewed. Download it instead.`, {
-        label: 'Download',
-        run: () => this.fileActions.download(file),
-      });
+      this.errorMessage.set(
+        `Preview isn't available for "${file.originalFileName}". Download it instead.`,
+      );
       this.fileTable()?.flashRowError(file.id);
     }
   }
@@ -161,7 +146,7 @@ export class Starred {
       .subscribe({
         next: (trashed) => this.files.update((files) => files.filter((f) => f.id !== trashed.id)),
         error: (err) =>
-          this.toast.error(errorMessage(err, 'Some files couldn’t be moved to trash.')),
+          this.errorMessage.set(errorMessage(err, 'Some files could not be moved to trash.')),
       });
   }
 
@@ -185,16 +170,5 @@ export class Starred {
   private getSelectedFiles(): FileMetadata[] {
     const ids = this.fileTable()?.selectedIds() ?? new Set();
     return this.files().filter((f) => ids.has(f.id));
-  }
-
-  selectedCount(): number {
-    return this.fileTable()?.selectedIds().size ?? 0;
-  }
-
-  private reloadCurrent(): void {
-    const query = this.searchService.query().trim();
-    if (query) this.runSearch(query);
-    else this.loadStarredFiles();
-    this.dashboardStore.silentRefresh();
   }
 }

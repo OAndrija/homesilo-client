@@ -1,64 +1,57 @@
-<div class="page">
-  <header class="page-header">
+<div class="files-page">
+  <div class="page-header">
     <div>
-      <h1 class="page-title">Starred</h1>
-      <p class="page-subtitle">
-        @if (isSearching()) {
-          Starred files matching your search
-        } @else {
-          Files you’ve starred for quick access
-        }
-      </p>
+      <h2>Starred</h2>
+      <p class="subtitle">{{ files().length }} starred file{{ files().length !== 1 ? 's' : '' }}</p>
     </div>
-  </header>
-
+    <app-selection-bar
+      [selectedCount]="fileTable()?.selectedIds()?.size ?? 0"
+      [actions]="['download', 'trash', 'star']"
+      (downloadAll)="onDownloadAll()"
+      (trashAll)="onTrashAll()"
+      (starAll)="onStarAll()"
+      (clearSelection)="fileTable()?.clearSelection()"
+    >
+    </app-selection-bar>
+  </div>
+  @if (errorMessage()) {
+    <div class="server-error" role="alert">{{ errorMessage() }}</div>
+  }
   @if (loading() | loadingDelay) {
-    <div class="state" aria-busy="true"><span class="spinner"></span></div>
+    <div class="empty-state">Loading files...</div>
   } @else if (!loading() && files().length === 0) {
-    <div class="state">
+    <div class="empty-state">
       @if (isSearching()) {
-        <span class="material-symbols-rounded" aria-hidden="true">search_off</span>
-        <h3>No matches</h3>
-        <p>None of your starred files match that search.</p>
+        <span class="material-symbols-rounded empty-icon">search_off</span>
+        <h3>No results found</h3>
+        <p>Try a different search term.</p>
       } @else {
-        <span class="material-symbols-rounded" aria-hidden="true">star</span>
+        <span class="material-symbols-rounded empty-icon">star</span>
         <h3>No starred files yet</h3>
-        <p>Star a file from its ⋯ menu and it will show up here.</p>
+        <p>Files you star will appear here.</p>
       }
     </div>
   } @else if (!loading()) {
     <app-file-table
+      #fileTableRef
       [files]="files()"
-      [actions]="['download', 'star', 'trash']"
+      [actions]="['download', 'trash', 'star']"
       dateColumnLabel="Modified"
-      (openFile)="openFile($event)"
       (download)="downloadFile($event)"
-      (star)="toggleStar($event)"
       (trash)="trashFile($event)"
+      (star)="toggleStar($event)"
+      (openFile)="openFile($event)"
     />
     @if (hasMore()) {
-      <div class="show-more">
-        <button
-          type="button"
-          class="btn btn-secondary"
-          (click)="loadMore()"
-          [disabled]="loadingMore()"
-        >
+      <div class="show-more-wrap">
+        <button class="show-more-btn" (click)="loadMore()" [disabled]="loadingMore()">
           @if (loadingMore()) {
-            <span class="spinner" aria-hidden="true"></span>
+            <span class="spinner"></span> Loading...
+          } @else {
+            Show more
           }
-          Show more
         </button>
       </div>
     }
   }
-
-  <app-selection-bar
-    [selectedCount]="selectedCount()"
-    [actions]="['download', 'star', 'trash']"
-    (downloadAll)="onDownloadAll()"
-    (starAll)="onStarAll()"
-    (trashAll)="onTrashAll()"
-    (clearSelection)="fileTable()?.clearSelection()"
-  />
 </div>

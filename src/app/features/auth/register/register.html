@@ -1,129 +1,111 @@
-<div class="auth">
-  <aside class="brand-side">
-    <div class="brand">
-      <img src="homesilo-logo.png" alt="" width="40" height="40" />
-      <span class="wordmark">HomeSilo</span>
+<div class="auth-page">
+  <div class="brand-panel">
+    <div class="brand-content">
+      <div class="logo">
+        <div class="logo-mark">🗄️</div>
+        <span class="logo-text">HomeSilo</span>
+      </div>
+      <h1>Your home.<br />Your files.<br />Your rules.</h1>
+      <p>A private server that lives under your roof, not someone else's cloud.</p>
+      <ul class="feature-list">
+        <li>Store and back up any file</li>
+        <li>Access from anywhere</li>
+        <li>Completely private &amp; local</li>
+      </ul>
     </div>
-    <div class="pitch">
-      <h1>A private cloud<br />under your roof.</h1>
-      <p>Create an account on this HomeSilo server. Your files never leave it.</p>
+    <div class="vault-rings" aria-hidden="true">
+      <div class="ring ring-1"></div>
+      <div class="ring ring-2"></div>
+      <div class="ring ring-3"></div>
     </div>
-    <p class="footnote">
-      <span class="material-symbols-rounded" aria-hidden="true">lock</span>
-      Self-hosted. Nothing is sent to anyone else’s cloud.
-    </p>
-    <svg class="silo-art" viewBox="0 0 200 300" aria-hidden="true">
-      <defs>
-        <clipPath id="silo-body">
-          <path d="M40 90 H160 V270 H40 Z" />
-        </clipPath>
-      </defs>
-      <g clip-path="url(#silo-body)">
-        <rect class="grain" x="40" y="218" width="120" height="52" />
-        <rect class="grain g2" x="40" y="184" width="120" height="34" />
-        <rect class="grain g3" x="40" y="160" width="120" height="24" />
-      </g>
-      <g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round">
-        <path d="M40 90 C40 40 160 40 160 90" />
-        <path d="M40 90 V270 M160 90 V270" />
-        <path d="M30 270 H170" />
-        <path d="M40 90 H160 M40 130 H160 M40 175 H160 M40 220 H160" stroke-opacity="0.5" />
-        <rect x="92" y="34" width="16" height="12" rx="2" />
-      </g>
-    </svg>
-  </aside>
+  </div>
 
-  <main class="form-side">
-    <div class="form-card">
-      <h2>Create your account</h2>
-      <p class="form-lead">The first account on a new server becomes its administrator.</p>
+  <div class="form-panel">
+    <div class="form-container">
+      <div class="form-header">
+        <h2>Create your account</h2>
+        <p>Join HomeSilo and take control of your files.</p>
+      </div>
 
       @if (!registrationOpen()) {
-        <div class="form-alert is-error" role="status">
-          Sign-ups are closed on this server. Ask its administrator to create an account for you.
+        <div class="server-error" role="status">
+          Registration is closed on this server. Ask the administrator for an account.
         </div>
       }
-      @if (errorMessage()) {
-        <div class="form-alert is-error" role="alert">{{ errorMessage() }}</div>
-      }
 
-      <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
-        <label class="field">
-          <span class="field-label">Username</span>
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <div class="field">
+          <label for="username">Username</label>
           <input
             id="username"
-            class="input"
             type="text"
             formControlName="username"
             autocomplete="username"
             autocapitalize="none"
             spellcheck="false"
-            [class.is-invalid]="submitted && username.errors"
+            placeholder="Choose a username"
+            [class.input-error]="submitted && username.errors"
           />
           @if (submitted && username.errors?.['required']) {
-            <span class="field-error">Choose a username</span>
+            <span class="error">Username is required</span>
           } @else if (
             submitted && (username.errors?.['minlength'] || username.errors?.['maxlength'])
           ) {
-            <span class="field-error">Use 3 to 64 characters</span>
+            <span class="error">Username must be 3–64 characters</span>
           } @else if (submitted && username.errors?.['pattern']) {
-            <span class="field-error">Use only letters, numbers, dots, dashes and underscores</span>
-          } @else {
-            <span class="field-hint">Letters, numbers, dots, dashes and underscores</span>
+            <span class="error">Use only letters, numbers, dots, dashes and underscores</span>
           }
-        </label>
+        </div>
 
-        <label class="field">
-          <span class="field-label">Email</span>
+        <div class="field">
+          <label for="email">Email</label>
           <input
             id="email"
-            class="input"
             type="email"
             formControlName="email"
             autocomplete="email"
-            [class.is-invalid]="submitted && email.errors"
+            placeholder="your@email.com"
+            [class.input-error]="submitted && email.errors"
           />
           @if (submitted && email.errors?.['required']) {
-            <span class="field-error">Enter your email</span>
-          } @else if (submitted && email.errors?.['email']) {
-            <span class="field-error">Enter a valid email address</span>
+            <span class="error">Email is required</span>
           }
-        </label>
+          @if (submitted && email.errors?.['email']) {
+            <span class="error">Please enter a valid email</span>
+          }
+        </div>
 
-        <label class="field">
-          <span class="field-label">Password</span>
+        <div class="field">
+          <label for="password">Password</label>
           <input
             id="password"
-            class="input"
             type="password"
             formControlName="password"
             autocomplete="new-password"
-            [class.is-invalid]="submitted && password.errors"
+            placeholder="At least 8 characters"
+            [class.input-error]="submitted && password.errors"
           />
           @if (submitted && password.errors?.['required']) {
-            <span class="field-error">Choose a password</span>
-          } @else if (submitted && password.errors?.['minlength']) {
-            <span class="field-error">Use at least 8 characters</span>
-          } @else {
-            <span class="field-hint">At least 8 characters</span>
+            <span class="error">Password is required</span>
           }
-        </label>
+          @if (submitted && password.errors?.['minlength']) {
+            <span class="error">Password must be at least 8 characters</span>
+          }
+        </div>
 
-        <button
-          type="submit"
-          class="btn btn-primary btn-block"
-          [disabled]="loading() || !registrationOpen()"
-        >
+        @if (errorMessage()) {
+          <div class="server-error" role="alert">{{ errorMessage() }}</div>
+        }
+
+        <button type="submit" class="submit-btn" [disabled]="loading() || !registrationOpen()">
           @if (loading()) {
-            <span class="spinner" aria-hidden="true"></span>
-            Creating account…
-          } @else {
-            Create account
+            <span class="spinner"></span>
           }
+          {{ loading() ? 'Creating account...' : 'Create account' }}
         </button>
       </form>
 
-      <p class="switch">Already have an account? <a routerLink="/login">Sign in</a></p>
+      <p class="switch-auth">Already have an account? <a routerLink="/login">Sign in</a></p>
     </div>
-  </main>
+  </div>
 </div>
