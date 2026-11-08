@@ -2,99 +2,248 @@
   <header class="page-header">
     <div>
       <h2>Settings</h2>
-      <p class="subtitle">Your account on this HomeSilo server.</p>
+      <p class="subtitle">Manage your account, appearance and security.</p>
     </div>
   </header>
 
-  @if (user(); as user) {
-    <section class="card" aria-labelledby="account-heading">
-      <h3 id="account-heading">Account</h3>
-      <dl class="details">
-        <div>
-          <dt>Username</dt>
-          <dd>{{ user.username }}</dd>
-        </div>
-        <div>
-          <dt>Email</dt>
-          <dd>{{ user.email }}</dd>
-        </div>
-        <div>
-          <dt>Role</dt>
-          <dd>
-            <span class="role-pill" [class.admin]="user.role === 'ADMIN'">
-              {{ user.role === 'ADMIN' ? 'Administrator' : 'User' }}
-            </span>
-          </dd>
-        </div>
-        <div>
-          <dt>Storage quota</dt>
-          <dd>{{ quota() }}</dd>
-        </div>
-        <div>
-          <dt>Member since</dt>
-          <dd>{{ user.createdAt | date: 'longDate' }}</dd>
-        </div>
-      </dl>
-    </section>
-  }
-
-  <section class="card" aria-labelledby="password-heading">
-    <h3 id="password-heading">Change password</h3>
-    <p class="hint">Changing your password signs you out everywhere else.</p>
-
-    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
-      <div class="field">
-        <label for="currentPassword">Current password</label>
-        <input
-          id="currentPassword"
-          type="password"
-          formControlName="currentPassword"
-          autocomplete="current-password"
-          [class.input-error]="submitted() && form.controls.currentPassword.invalid"
-        />
-      </div>
-
-      <div class="field">
-        <label for="newPassword">New password</label>
-        <input
-          id="newPassword"
-          type="password"
-          formControlName="newPassword"
-          autocomplete="new-password"
-          placeholder="At least 8 characters"
-          [class.input-error]="submitted() && form.controls.newPassword.invalid"
-        />
-        @if (submitted() && form.controls.newPassword.errors?.['minlength']) {
-          <span class="error">Password must be at least 8 characters</span>
-        }
-      </div>
-
-      <div class="field">
-        <label for="confirmPassword">Confirm new password</label>
-        <input
-          id="confirmPassword"
-          type="password"
-          formControlName="confirmPassword"
-          autocomplete="new-password"
-          [class.input-error]="
-            submitted() && (form.controls.confirmPassword.invalid || form.errors?.['mismatch'])
-          "
-        />
-        @if (submitted() && form.errors?.['mismatch']) {
-          <span class="error">Passwords don't match</span>
-        }
-      </div>
-
-      @if (errorMessage()) {
-        <div class="message error-message" role="alert">{{ errorMessage() }}</div>
+  <div class="settings-layout">
+    <nav class="settings-nav" aria-label="Settings sections">
+      @for (section of sections; track section.id) {
+        <button
+          type="button"
+          class="nav-item"
+          [class.active]="activeSection() === section.id"
+          [attr.aria-current]="activeSection() === section.id ? 'true' : null"
+          (click)="goTo(section.id)"
+        >
+          <span class="material-symbols-rounded">{{ section.icon }}</span>
+          {{ section.label }}
+        </button>
       }
-      @if (success()) {
-        <div class="message success-message" role="status">Password changed.</div>
+    </nav>
+
+    <div class="settings-sections">
+      <!-- ── Account ─────────────────────────────────────────── -->
+      @if (user(); as user) {
+        <section id="account" class="panel" aria-labelledby="account-heading">
+          <div class="panel-head">
+            <h3 id="account-heading">Account</h3>
+            <p>Your sign-in details on this HomeSilo server.</p>
+          </div>
+
+          <div class="panel-body">
+            <div class="profile">
+              <span class="avatar" aria-hidden="true">{{ initial() }}</span>
+              <div class="profile-text">
+                <div class="profile-name">{{ user.username }}</div>
+                <div class="profile-email">{{ user.email }}</div>
+              </div>
+            </div>
+
+            <dl class="details">
+              <div class="detail-row">
+                <dt>Username</dt>
+                <dd>{{ user.username }}</dd>
+              </div>
+              <div class="detail-row">
+                <dt>Email</dt>
+                <dd>{{ user.email }}</dd>
+              </div>
+              <div class="detail-row">
+                <dt>Role</dt>
+                <dd>
+                  <span class="role-pill" [class.admin]="user.role === 'ADMIN'">{{
+                    user.role === 'ADMIN' ? 'Administrator' : 'User'
+                  }}</span>
+                </dd>
+              </div>
+              <div class="detail-row">
+                <dt>Member since</dt>
+                <dd>{{ user.createdAt | date: 'longDate' }}</dd>
+              </div>
+            </dl>
+          </div>
+
+          <div class="panel-foot">
+            <span>Username and email are managed by the server admin.</span>
+          </div>
+        </section>
       }
 
-      <button type="submit" class="submit-btn" [disabled]="saving()">
-        {{ saving() ? 'Saving…' : 'Change password' }}
-      </button>
-    </form>
-  </section>
+      <!-- ── Appearance ──────────────────────────────────────── -->
+      <section id="appearance" class="panel" aria-labelledby="appearance-heading">
+        <div class="panel-head">
+          <h3 id="appearance-heading">Appearance</h3>
+          <p>Choose how HomeSilo looks on this device.</p>
+        </div>
+
+        <div class="panel-body">
+          <div class="theme-options" role="radiogroup" aria-labelledby="appearance-heading">
+            @for (option of themeOptions; track option.value) {
+              <button
+                type="button"
+                role="radio"
+                class="theme-option"
+                [class.selected]="themeService.preference() === option.value"
+                [attr.aria-checked]="themeService.preference() === option.value"
+                (click)="setTheme(option.value)"
+              >
+                <span class="preview" [attr.data-preview]="option.value" aria-hidden="true">
+                  <span class="pv-side"></span>
+                  <span class="pv-main">
+                    <span class="pv-line short"></span>
+                    <span class="pv-line"></span>
+                    <span class="pv-line"></span>
+                    <span class="pv-chip"></span>
+                  </span>
+                </span>
+                <span class="option-text">
+                  <span class="option-label">
+                    <span class="radio-dot" aria-hidden="true"></span>
+                    {{ option.label }}
+                  </span>
+                  <span class="option-hint">{{ option.hint }}</span>
+                </span>
+              </button>
+            }
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Security ────────────────────────────────────────── -->
+      <section id="security" class="panel" aria-labelledby="security-heading">
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+          <div class="panel-head">
+            <h3 id="security-heading">Password</h3>
+            <p>
+              Use at least 8 characters. A long passphrase is easier to remember and harder to
+              guess.
+            </p>
+          </div>
+
+          <div class="panel-body fields">
+            <div class="field">
+              <label for="currentPassword">Current password</label>
+              <input
+                id="currentPassword"
+                [type]="showPasswords() ? 'text' : 'password'"
+                formControlName="currentPassword"
+                autocomplete="current-password"
+                [class.input-error]="submitted() && form.controls.currentPassword.invalid"
+              />
+            </div>
+
+            <div class="field">
+              <label for="newPassword">New password</label>
+              <input
+                id="newPassword"
+                [type]="showPasswords() ? 'text' : 'password'"
+                formControlName="newPassword"
+                autocomplete="new-password"
+                placeholder="At least 8 characters"
+                [class.input-error]="submitted() && form.controls.newPassword.invalid"
+              />
+              @if (submitted() && form.controls.newPassword.errors?.['minlength']) {
+                <span class="error">Password must be at least 8 characters</span>
+              }
+            </div>
+
+            <div class="field">
+              <label for="confirmPassword">Confirm new password</label>
+              <input
+                id="confirmPassword"
+                [type]="showPasswords() ? 'text' : 'password'"
+                formControlName="confirmPassword"
+                autocomplete="new-password"
+                [class.input-error]="
+                  submitted() &&
+                  (form.controls.confirmPassword.invalid || form.errors?.['mismatch'])
+                "
+              />
+              @if (submitted() && form.errors?.['mismatch']) {
+                <span class="error">Passwords don't match</span>
+              }
+            </div>
+
+            <label class="show-toggle">
+              <input
+                type="checkbox"
+                [checked]="showPasswords()"
+                (change)="showPasswords.set(!showPasswords())"
+              />
+              Show passwords
+            </label>
+
+            @if (errorMessage()) {
+              <div class="message error-message" role="alert">
+                <span class="material-symbols-rounded">error</span>
+                {{ errorMessage() }}
+              </div>
+            }
+            @if (success()) {
+              <div class="message success-message" role="status">
+                <span class="material-symbols-rounded">check_circle</span>
+                Password changed.
+              </div>
+            }
+          </div>
+
+          <div class="panel-foot">
+            <span>Changing your password signs you out on your other devices.</span>
+            <button type="submit" class="header-btn compact" [disabled]="saving()">
+              {{ saving() ? 'Saving…' : 'Change password' }}
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- ── Storage ─────────────────────────────────────────── -->
+      <section id="storage" class="panel" aria-labelledby="storage-heading">
+        <div class="panel-head">
+          <h3 id="storage-heading">Storage</h3>
+          <p>How much of your space is in use.</p>
+        </div>
+
+        <div class="panel-body">
+          <div class="usage-line">
+            <span
+              ><strong>{{ formatBytes(usedBytes()) }}</strong> of
+              {{ formatBytes(quotaBytes()) }} used</span
+            >
+            <span class="usage-pct">{{ usedPercent() | number: '1.0-0' }}%</span>
+          </div>
+          <div
+            class="usage-bar"
+            role="progressbar"
+            aria-label="Storage used"
+            [attr.aria-valuenow]="usedPercent() | number: '1.0-0'"
+            aria-valuemin="0"
+            aria-valuemax="100"
+          >
+            <span [style.width.%]="usedPercent()"></span>
+          </div>
+
+          <div class="storage-row">
+            <span class="material-symbols-rounded">delete</span>
+            <div>
+              <div class="storage-row-title">{{ formatBytes(trashedBytes()) }} in trash</div>
+              <div class="storage-row-hint">
+                @if (retentionDays() > 0) {
+                  Items in trash still count toward your quota and are deleted for good after
+                  {{ retentionDays() }} days.
+                } @else {
+                  Items in trash still count toward your quota until you empty it.
+                }
+              </div>
+            </div>
+            <a class="header-btn secondary compact" routerLink="/trash">Open trash</a>
+          </div>
+        </div>
+
+        <div class="panel-foot">
+          <span>Your quota is set by the server admin.</span>
+        </div>
+      </section>
+    </div>
+  </div>
 </div>

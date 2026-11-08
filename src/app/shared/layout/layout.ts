@@ -29,7 +29,9 @@ export class Layout implements OnInit {
       .subscribe((event) => {
         this.searchInputValue.set('');
         this.searchService.clear();
-        this.isHome.set(event.urlAfterRedirects.startsWith('/home'));
+        // File search has nothing to search on the dashboard or in settings.
+        const url = event.urlAfterRedirects;
+        this.isHome.set(url.startsWith('/home') || url.startsWith('/settings'));
       });
   }
 
