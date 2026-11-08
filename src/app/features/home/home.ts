@@ -78,18 +78,29 @@ export class Home {
   });
 
   // ── Silo geometry (must match the SVG in home.html) ──
-  readonly siloX = 40;
-  readonly siloWidth = 100;
-  readonly siloTop = 103;
+  readonly siloX = 30;
+  readonly siloWidth = 120;
+  readonly siloTop = 112;
   readonly siloBottom = 284;
   readonly siloHeight = this.siloBottom - this.siloTop;
+  readonly siloColumnWidth = this.siloWidth / 4;
   /** Four panel columns, shaded dark to light like the logo. */
   readonly siloColumns = [0, 1, 2, 3].map((i) => ({
-    x: this.siloX + i * 25,
+    x: this.siloX + i * this.siloColumnWidth,
     tone: `col-${i + 1}`,
   }));
   /** Horizontal panel seams. */
   readonly siloRows = [1, 2, 3].map((i) => this.siloTop + (this.siloHeight * i) / 4);
+  /** Roof facets: a short truncated cone from the eaves (y 106) up to the cupola (y 80). */
+  readonly siloRoofFacets = (() => {
+    const eaves = [18, 47, 76, 104, 133, 162];
+    const top = [78, 83, 88, 92, 97, 102];
+    const tones = ['roof-1', 'roof-2', 'roof-3', 'roof-4', 'roof-3'];
+    return tones.map((tone, i) => ({
+      tone,
+      points: `${top[i]},80 ${top[i + 1]},80 ${eaves[i + 1]},106 ${eaves[i]},106`,
+    }));
+  })();
 
   breakdownWithPercent = computed(() => {
     const used = this.storageUsedBytes();

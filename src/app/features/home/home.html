@@ -19,7 +19,7 @@
           <!-- The HomeSilo silo from the logo; its body fills with green as storage is used. -->
           <svg
             class="silo"
-            viewBox="-10 0 200 300"
+            viewBox="0 50 180 240"
             role="img"
             [attr.aria-label]="
               storageUsedGB() +
@@ -49,17 +49,16 @@
               </clipPath>
             </defs>
 
-            <!-- cupola -->
-            <path class="roof-3" d="M78 32 L90 22 L102 32 Z" />
-            <rect class="roof-2" x="82" y="32" width="16" height="14" />
+            <!-- cupola, seated on the flat top of the roof -->
+            <path class="roof-3" d="M79 68 L90 60 L101 68 Z" />
+            <rect class="roof-2" x="83" y="68" width="14" height="12" />
 
-            <!-- faceted cone roof -->
-            <path class="roof-1" d="M90 44 L26 98 L52 98 Z" />
-            <path class="roof-2" d="M90 44 L52 98 L78 98 Z" />
-            <path class="roof-3" d="M90 44 L78 98 L104 98 Z" />
-            <path class="roof-4" d="M90 44 L104 98 L130 98 Z" />
-            <path class="roof-3" d="M90 44 L130 98 L154 98 Z" />
-            <rect class="roof-lip" x="26" y="98" width="128" height="5" />
+            <!-- short faceted roof (a truncated cone) -->
+            @for (facet of siloRoofFacets; track facet.points) {
+              <polygon [attr.class]="facet.tone" [attr.points]="facet.points" />
+            }
+            <rect class="roof-lip" x="76" y="78" width="28" height="3" rx="1" />
+            <rect class="roof-lip" x="18" y="106" width="144" height="6" rx="1" />
 
             <!-- body: an empty silhouette, then the used part in full colour -->
             <g clip-path="url(#silo-body)">
@@ -69,7 +68,7 @@
                     [attr.class]="col.tone"
                     [attr.x]="col.x"
                     [attr.y]="siloTop"
-                    width="25"
+                    [attr.width]="siloColumnWidth"
                     [attr.height]="siloHeight"
                   />
                 }
@@ -80,7 +79,7 @@
                     [attr.class]="col.tone"
                     [attr.x]="col.x"
                     [attr.y]="siloTop"
-                    width="25"
+                    [attr.width]="siloColumnWidth"
                     [attr.height]="siloHeight"
                   />
                 }
@@ -118,85 +117,93 @@
             <!-- ground and grass -->
             <line
               class="silo-ground"
-              x1="12"
-              x2="188"
+              x1="6"
+              x2="174"
               [attr.y1]="siloBottom"
               [attr.y2]="siloBottom"
             />
             <path
               class="silo-grass"
-              d="M30 284 Q28 272 22 266 Q32 270 35 280 Q37 270 44 264 Q40 274 40 284 Z"
+              d="M16 284 Q14 271 7 264 Q19 269 23 279 Q25 267 33 260 Q29 272 30 284 Z"
             />
             <path
               class="silo-grass"
-              d="M136 284 Q136 274 132 268 Q141 273 142 281 Q145 272 152 269 Q147 276 147 284 Z"
+              d="M150 284 Q150 273 144 266 Q155 271 157 280 Q160 269 169 263 Q163 274 163 284 Z"
             />
           </svg>
         </div>
 
         <div class="hero-body">
-          <div class="hero-head">
-            <h3>Storage</h3>
-            <span class="level-pill">
-              @switch (storageLevel()) {
-                @case ('critical') {
-                  Almost full
-                }
-                @case ('warn') {
-                  Filling up
-                }
-                @default {
-                  Plenty of room
-                }
-              }
-            </span>
-          </div>
+          <div class="hero-cols">
+            <div class="hero-summary">
+              <div class="hero-head">
+                <h3>Storage</h3>
+                <span class="level-pill">
+                  @switch (storageLevel()) {
+                    @case ('critical') {
+                      Almost full
+                    }
+                    @case ('warn') {
+                      Filling up
+                    }
+                    @default {
+                      Plenty of room
+                    }
+                  }
+                </span>
+              </div>
 
-          <div class="free">
-            <span class="free-num">{{ storageFree().value }}</span>
-            <span class="free-unit">{{ storageFree().unit }}</span>
-            <span class="free-word">free</span>
-          </div>
-          <p class="hero-sub">
-            You've used {{ storageUsedGB() }} GB of {{ storageLimitGB() }} GB ({{
-              storagePercent()
-            }}%).
-          </p>
+              <div class="free">
+                <span class="free-num">{{ storageFree().value }}</span>
+                <span class="free-unit">{{ storageFree().unit }}</span>
+                <span class="free-word">free</span>
+              </div>
+              <p class="hero-sub">
+                You've used {{ storageUsedGB() }} GB of {{ storageLimitGB() }} GB ({{
+                  storagePercent()
+                }}%).
+              </p>
 
-          @if (breakdownWithPercent().length === 0) {
-            <p class="hero-empty">Nothing stored yet. Upload files and watch the silo fill up.</p>
-          } @else {
-            <div
-              class="meter"
-              role="img"
-              [attr.aria-label]="storagePercent() + '% of storage used'"
-            >
-              @for (type of breakdownWithPercent(); track type.label) {
-                <span
-                  class="meter-seg"
-                  [style.width.%]="type.capacityPct"
-                  [style.background]="type.color"
-                ></span>
+              @if (breakdownWithPercent().length === 0) {
+                <p class="hero-empty">
+                  Nothing stored yet. Upload files and watch the silo fill up.
+                </p>
+              } @else {
+                <div
+                  class="meter"
+                  role="img"
+                  [attr.aria-label]="storagePercent() + '% of storage used'"
+                >
+                  @for (type of breakdownWithPercent(); track type.label) {
+                    <span
+                      class="meter-seg"
+                      [style.width.%]="type.capacityPct"
+                      [style.background]="type.color"
+                    ></span>
+                  }
+                </div>
               }
             </div>
 
-            <ul class="breakdown">
-              @for (type of breakdownWithPercent(); track type.label) {
-                <li>
-                  <span class="dot" [style.background]="type.color"></span>
-                  <span class="bd-name">{{ type.label }}</span>
-                  <span class="bd-size">{{ type.sizeLabel }}</span>
-                  <span class="bd-pct">{{ type.capacityLabel }}</span>
+            @if (breakdownWithPercent().length > 0) {
+              <ul class="breakdown">
+                @for (type of breakdownWithPercent(); track type.label) {
+                  <li>
+                    <span class="dot" [style.background]="type.color"></span>
+                    <span class="bd-name">{{ type.label }}</span>
+                    <span class="bd-size">{{ type.sizeLabel }}</span>
+                    <span class="bd-pct">{{ type.capacityLabel }}</span>
+                  </li>
+                }
+                <li class="bd-free">
+                  <span class="dot dot-free"></span>
+                  <span class="bd-name">Free</span>
+                  <span class="bd-size">{{ storageFreeLabel() }}</span>
+                  <span class="bd-pct">{{ storageFreePercent() }}%</span>
                 </li>
-              }
-              <li class="bd-free">
-                <span class="dot dot-free"></span>
-                <span class="bd-name">Free</span>
-                <span class="bd-size">{{ storageFreeLabel() }}</span>
-                <span class="bd-pct">{{ storageFreePercent() }}%</span>
-              </li>
-            </ul>
-          }
+              </ul>
+            }
+          </div>
         </div>
       </section>
 

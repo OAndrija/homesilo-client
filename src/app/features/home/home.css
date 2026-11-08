@@ -34,7 +34,7 @@
   isolation: isolate;
   overflow: hidden;
   display: grid;
-  grid-template-columns: 200px minmax(0, 1fr);
+  grid-template-columns: clamp(180px, 24%, 240px) minmax(0, 1fr);
   align-items: center;
   gap: 28px;
   padding: 28px;
@@ -65,19 +65,12 @@
   opacity: 0.7;
 }
 
-.hero[data-level='warn'] {
+/* The silo stays green whatever the level; only the status tag warns. */
+.hero[data-level='warn'] .level-pill {
   --hue: var(--color-warning);
-  --fill-1: #b06d0e;
-  --fill-2: #cf8a1c;
-  --fill-3: #e6a73c;
-  --fill-4: #f3c470;
 }
-.hero[data-level='critical'] {
+.hero[data-level='critical'] .level-pill {
   --hue: var(--color-danger);
-  --fill-1: #9c2a2a;
-  --fill-2: #bb3a3a;
-  --fill-3: #d65555;
-  --fill-4: #ea8080;
 }
 
 .hero-visual {
@@ -85,9 +78,31 @@
   justify-content: center;
 }
 
+.hero-body {
+  container: hero-body / inline-size;
+  min-width: 0;
+}
+
+/* On wide screens the breakdown list moves beside the headline instead of under it. */
+@container hero-body (min-width: 640px) {
+  .hero-cols {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    align-items: center;
+    column-gap: 48px;
+  }
+  .hero-cols .meter {
+    max-width: none;
+  }
+  .hero-cols .breakdown {
+    margin-top: 0;
+    max-width: none;
+  }
+}
+
 .silo {
   width: 100%;
-  max-width: 200px;
+  max-width: 240px;
   height: auto;
   overflow: visible;
   filter: drop-shadow(0 14px 20px rgba(0, 0, 0, 0.28));
@@ -157,6 +172,10 @@
   stroke: #123826;
   stroke-opacity: 0.45;
   stroke-width: 1.5;
+}
+
+:host-context([data-theme='light']) .silo-seam {
+  stroke-opacity: 0.22;
 }
 
 .silo-ground {
@@ -513,7 +532,7 @@
 .see-all-btn {
   background: none;
   border: none;
-  color: var(--color-accent);
+  color: var(--color-accent-text);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
