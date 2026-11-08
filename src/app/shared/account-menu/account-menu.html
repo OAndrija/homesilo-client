@@ -48,26 +48,18 @@
       <div class="menu-section">
         <div class="menu-label" id="theme-label">Appearance</div>
         <div class="theme-switch" role="group" aria-labelledby="theme-label">
-          <button
-            type="button"
-            role="menuitemradio"
-            [attr.aria-checked]="themeService.theme() === 'light'"
-            [class.active]="themeService.theme() === 'light'"
-            (click)="setTheme('light')"
-          >
-            <span class="material-symbols-rounded">light_mode</span>
-            Light
-          </button>
-          <button
-            type="button"
-            role="menuitemradio"
-            [attr.aria-checked]="themeService.theme() === 'dark'"
-            [class.active]="themeService.theme() === 'dark'"
-            (click)="setTheme('dark')"
-          >
-            <span class="material-symbols-rounded">dark_mode</span>
-            Dark
-          </button>
+          @for (option of themeOptions; track option.value) {
+            <button
+              type="button"
+              role="menuitemradio"
+              [attr.aria-checked]="themeService.preference() === option.value"
+              [class.active]="themeService.preference() === option.value"
+              (click)="setTheme(option.value)"
+            >
+              <span class="material-symbols-rounded">{{ option.icon }}</span>
+              {{ option.label }}
+            </button>
+          }
         </div>
       </div>
 

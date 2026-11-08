@@ -209,7 +209,7 @@
 /* Light / Dark segmented switch */
 .theme-switch {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 4px;
   margin: 0 4px 4px;
   padding: 4px;
@@ -221,14 +221,14 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 5px;
   height: 34px;
   border: none;
   border-radius: var(--radius-md);
   background: transparent;
   color: var(--color-text-muted);
   font-family: var(--font-body);
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 500;
   cursor: pointer;
   transition:
@@ -237,7 +237,7 @@
 }
 
 .theme-switch button .material-symbols-rounded {
-  font-size: 18px;
+  font-size: 17px;
 }
 
 .theme-switch button:hover {

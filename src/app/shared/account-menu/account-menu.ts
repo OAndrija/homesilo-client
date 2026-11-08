@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Auth } from '../../core/services/auth';
-import { Theme, ThemeService } from '../../core/services/theme';
+import { ThemePreference, ThemeService } from '../../core/services/theme';
 
 /** Avatar button in the top bar that opens the account menu (settings, theme, sign out). */
 @Component({
@@ -45,8 +45,14 @@ export class AccountMenu {
     if (returnFocus) this.trigger()?.nativeElement.focus();
   }
 
-  setTheme(theme: Theme): void {
-    this.themeService.theme.set(theme);
+  readonly themeOptions: { value: ThemePreference; label: string; icon: string }[] = [
+    { value: 'system', label: 'System', icon: 'computer' },
+    { value: 'light', label: 'Light', icon: 'light_mode' },
+    { value: 'dark', label: 'Dark', icon: 'dark_mode' },
+  ];
+
+  setTheme(preference: ThemePreference): void {
+    this.themeService.setPreference(preference);
   }
 
   signOut(): void {
