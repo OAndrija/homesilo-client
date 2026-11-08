@@ -1,5 +1,6 @@
 import {
   Component,
+  computed,
   ElementRef,
   HostListener,
   inject,
@@ -8,11 +9,11 @@ import {
   signal,
   effect,
 } from '@angular/core';
-import { DatePipe } from '@angular/common';
 import { FileMetadata } from '../../core/models/file-metadata';
 import { getFileIcon } from '../../core/utils/file-icon.util';
 import { Folder } from '../../core/models/folder';
 import { formatBytes } from '../../core/utils/format';
+import { ExactDatePipe, FriendlyDatePipe } from '../pipes/friendly-date';
 
 export type FileAction = 'download' | 'rename' | 'trash' | 'restore' | 'deleteForever' | 'star';
 
@@ -24,7 +25,7 @@ export interface MovePayload {
 
 @Component({
   selector: 'app-file-table',
-  imports: [DatePipe],
+  imports: [FriendlyDatePipe, ExactDatePipe],
   templateUrl: './file-table.html',
   styleUrl: './file-table.css',
 })
@@ -34,6 +35,8 @@ export class FileTable {
   files = input.required<FileMetadata[]>();
   actions = input<FileAction[]>(['download', 'trash', 'star']);
   dateColumnLabel = input('Uploaded');
+  /** Show a checkbox column for picking several items. */
+  selectable = input(true);
   download = output<FileMetadata>();
   rename = output<FileMetadata>();
   trash = output<FileMetadata>();
@@ -58,6 +61,10 @@ export class FileTable {
   selectedFolderIds = signal<Set<string>>(new Set());
   private lastClickedIndex: number | null = null;
   private lastClickedFolderIndex: number | null = null;
+
+  totalCount = computed(() => this.files().length + this.folders().length);
+  selectedCount = computed(() => this.selectedIds().size + this.selectedFolderIds().size);
+  allSelected = computed(() => this.totalCount() > 0 && this.selectedCount() === this.totalCount());
 
   // ── Drag state ────────────────────────────────────────────────
   dragOverFolderId = signal<string | null>(null);
@@ -101,6 +108,28 @@ export class FileTable {
 
   isFolderSelected(folderId: string): boolean {
     return this.selectedFolderIds().has(folderId);
+  }
+
+  // ── Checkboxes ────────────────────────────────────────────────
+  // Checkboxes add to or remove from the selection, like Ctrl/Cmd-click.
+
+  toggleFile(file: FileMetadata, index: number): void {
+    this.selectedIds.update((s) => toggled(s, file.id));
+    this.lastClickedIndex = index;
+  }
+
+  toggleFolder(folder: Folder, index: number): void {
+    this.selectedFolderIds.update((s) => toggled(s, folder.id));
+    this.lastClickedFolderIndex = index;
+  }
+
+  toggleAll(): void {
+    if (this.allSelected()) {
+      this.clearSelection();
+      return;
+    }
+    this.selectedIds.set(new Set(this.files().map((f) => f.id)));
+    this.selectedFolderIds.set(new Set(this.folders().map((f) => f.id)));
   }
 
   // ── Drag handlers ─────────────────────────────────────────────
@@ -261,4 +290,11 @@ export class FileTable {
       this.clearSelection();
     }
   }
+}
+
+function toggled(selected: Set<string>, id: string): Set<string> {
+  const next = new Set(selected);
+  if (next.has(id)) next.delete(id);
+  else next.add(id);
+  return next;
 }

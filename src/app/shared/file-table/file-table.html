@@ -1,7 +1,19 @@
 <div class="files-card">
-  <table class="files-table">
+  <table class="files-table" [class.has-selection]="selectedCount() > 0">
     <thead>
       <tr>
+        @if (selectable()) {
+          <th class="col-check">
+            <input
+              type="checkbox"
+              class="row-check"
+              [checked]="allSelected()"
+              [indeterminate]="selectedCount() > 0 && !allSelected()"
+              (change)="toggleAll()"
+              aria-label="Select all"
+            />
+          </th>
+        }
         <th>Name</th>
         <th>Size</th>
         <th>{{ dateColumnLabel() }}</th>
@@ -23,12 +35,29 @@
           (click)="onFolderClick(folder, i, $event)"
           (dblclick)="folderOpen.emit(folder); $event.stopPropagation()"
         >
+          @if (selectable()) {
+            <td
+              class="col-check"
+              (click)="$event.stopPropagation()"
+              (dblclick)="$event.stopPropagation()"
+            >
+              <input
+                type="checkbox"
+                class="row-check"
+                [checked]="isFolderSelected(folder.id)"
+                (change)="toggleFolder(folder, i)"
+                [attr.aria-label]="'Select ' + folder.name"
+              />
+            </td>
+          }
           <td class="file-name" [title]="folder.name">
             <span class="material-symbols-rounded file-icon folder-icon">folder</span>
-            {{ folder.name }}
+            <span class="name-text">{{ folder.name }}</span>
           </td>
           <td class="cell-muted">—</td>
-          <td>{{ folder.lastModified | date: 'medium' }}</td>
+          <td class="cell-date" [title]="folder.trashedAt ?? folder.lastModified | exactDate">
+            {{ folder.trashedAt ?? folder.lastModified | friendlyDate }}
+          </td>
           <td class="actions">
             @if (hasAction('download')) {
               <button
@@ -93,6 +122,21 @@
           (click)="onRowClick(file, i, $event)"
           (dblclick)="openFile.emit(file)"
         >
+          @if (selectable()) {
+            <td
+              class="col-check"
+              (click)="$event.stopPropagation()"
+              (dblclick)="$event.stopPropagation()"
+            >
+              <input
+                type="checkbox"
+                class="row-check"
+                [checked]="isSelected(file.id)"
+                (change)="toggleFile(file, i)"
+                [attr.aria-label]="'Select ' + file.originalFileName"
+              />
+            </td>
+          }
           <td class="file-name" [title]="file.originalFileName">
             <span
               class="material-symbols-rounded file-icon"
@@ -100,10 +144,12 @@
             >
               {{ getFileIcon(file.originalFileName).icon }}
             </span>
-            {{ file.originalFileName }}
+            <span class="name-text">{{ file.originalFileName }}</span>
           </td>
-          <td>{{ formatSize(file.size) }}</td>
-          <td>{{ file.trashedAt ?? file.lastModified | date: 'medium' }}</td>
+          <td class="cell-size">{{ formatSize(file.size) }}</td>
+          <td class="cell-date" [title]="file.trashedAt ?? file.lastModified | exactDate">
+            {{ file.trashedAt ?? file.lastModified | friendlyDate }}
+          </td>
           <td class="actions">
             @if (hasAction('download')) {
               <button

@@ -2,36 +2,34 @@
   <!-- Keeps the last rows scrollable out from under the floating bar. -->
   <div class="sel-spacer" aria-hidden="true"></div>
   <div class="selection-bar" data-selection-bar role="toolbar" aria-label="Selected items">
-    <span class="sel-count">
+    <span class="sel-count" aria-live="polite">
       <span class="sel-badge">{{ selectedCount() }}</span>
-      {{ selectedCount() === 1 ? 'item' : 'items' }} selected
+      <span class="sel-label">selected</span>
     </span>
+
     <div class="sel-actions">
       @if (hasAction('download')) {
         <button class="sel-btn" (click)="downloadAll.emit()" title="Download selected">
           <span class="material-symbols-rounded">download</span>
-          <span class="sel-label">{{ selectedCount() === 1 ? 'Download' : 'Download all' }}</span>
+          <span class="sel-label">Download</span>
         </button>
       }
       @if (hasAction('star')) {
-        <button class="sel-btn" (click)="starAll.emit()" title="Star all">
+        <button class="sel-btn" (click)="starAll.emit()" title="Star selected">
           <span class="material-symbols-rounded">star</span>
-          <span class="sel-label">{{ selectedCount() === 1 ? 'Star' : 'Star all' }}</span>
+          <span class="sel-label">Star</span>
         </button>
       }
       @if (hasAction('move')) {
         <button class="sel-btn" (click)="moveAll.emit()" title="Move to folder">
           <span class="material-symbols-rounded">drive_file_move</span>
-          <span class="sel-label">{{ selectedCount() === 1 ? 'Move' : 'Move all' }}</span>
+          <span class="sel-label">Move</span>
         </button>
-      }
-      @if (hasAction('trash') || hasAction('restore') || hasAction('deleteForever')) {
-        <div class="sel-divider"></div>
       }
       @if (hasAction('restore')) {
         <button class="sel-btn restore" (click)="restoreAll.emit()" title="Restore selected">
           <span class="material-symbols-rounded">restore_from_trash</span>
-          <span class="sel-label">{{ selectedCount() === 1 ? 'Restore' : 'Restore all' }}</span>
+          <span class="sel-label">Restore</span>
         </button>
       }
       @if (hasAction('trash')) {
@@ -47,9 +45,14 @@
         </button>
       }
     </div>
-    <button class="sel-clear" (click)="clearSelection.emit()" aria-label="Clear selection">
+
+    <button
+      class="sel-clear"
+      (click)="clearSelection.emit()"
+      title="Clear selection (Esc)"
+      aria-label="Clear selection"
+    >
       <span class="material-symbols-rounded">close</span>
-      <span class="sel-label">Clear</span>
     </button>
   </div>
 }
