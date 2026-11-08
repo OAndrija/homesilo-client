@@ -1,23 +1,20 @@
 import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet, NavigationEnd } from '@angular/router';
-import { Auth } from '../../core/services/auth';
 import { StorageIndicator } from '../storage-indicator/storage-indicator';
 import { Search } from '../../core/services/search';
 import { filter } from 'rxjs';
-import { ThemeService } from '../../core/services/theme';
+import { AccountMenu } from '../account-menu/account-menu';
 
 @Component({
   selector: 'app-layout',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, StorageIndicator],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, StorageIndicator, AccountMenu],
   templateUrl: './layout.html',
   styleUrl: './layout.css',
 })
 export class Layout implements OnInit {
-  protected auth = inject(Auth);
   private router = inject(Router);
   private searchService = inject(Search);
-  themeService = inject(ThemeService);
 
   sidebarOpen = signal(true);
   searchInputValue = signal('');
@@ -61,9 +58,5 @@ export class Layout implements OnInit {
     if (window.innerWidth < 768) {
       this.sidebarOpen.set(false);
     }
-  }
-
-  onLogout(): void {
-    this.auth.logout();
   }
 }

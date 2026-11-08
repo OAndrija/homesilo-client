@@ -49,16 +49,6 @@
         <span class="material-symbols-rounded">delete</span>
         <span class="nav-label">Trash</span>
       </a>
-      <a
-        routerLink="/settings"
-        routerLinkActive="active"
-        class="nav-link"
-        title="Settings"
-        (click)="closeOnMobile()"
-      >
-        <span class="material-symbols-rounded">settings</span>
-        <span class="nav-label">Settings</span>
-      </a>
     </nav>
 
     <app-storage-indicator [sidebarOpen]="sidebarOpen()" />
@@ -97,22 +87,7 @@
         </div>
       }
       <div class="topbar-user">
-        <button
-          class="theme-toggle-btn"
-          (click)="themeService.toggle()"
-          [attr.aria-label]="
-            themeService.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'
-          "
-          type="button"
-        >
-          <span class="material-symbols-rounded">
-            {{ themeService.theme() === 'dark' ? 'light_mode' : 'dark_mode' }}
-          </span>
-        </button>
-        @if (auth.user(); as user) {
-          <span class="topbar-username" [title]="user.email">{{ user.username }}</span>
-        }
-        <button class="logout-btn" (click)="onLogout()">Sign out</button>
+        <app-account-menu />
       </div>
     </header>
     <main class="page-content">
