@@ -5,58 +5,6 @@
   position: relative;
 }
 
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 28px;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  background: var(--color-bg);
-  padding: var(--space-page-x) 0 20px;
-}
-
-.page-header h2 {
-  margin: 0;
-  color: var(--color-text-heading);
-  font-size: 30px;
-  font-weight: 700;
-  font-family: var(--font-heading);
-}
-
-.subtitle {
-  margin-top: 6px;
-  color: var(--color-text-subtitle);
-  font-size: 14px;
-}
-
-.upload-btn {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 0 20px;
-  height: 48px;
-  border: none;
-  border-radius: var(--radius-xl);
-  background: var(--color-accent);
-  color: var(--color-text-on-accent);
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: var(--transition-slow);
-}
-
-.upload-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 30px var(--color-accent-bg-deepest);
-}
-
-.upload-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
 .spinner {
   width: 16px;
   height: 16px;
@@ -164,17 +112,4 @@
 .show-more-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-}
-
-.page-header::after {
-  content: '';
-  flex: 1;
-}
-
-.page-header > div:first-child {
-  flex: 1;
-}
-
-app-selection-bar {
-  flex-shrink: 0;
 }

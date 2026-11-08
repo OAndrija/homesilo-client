@@ -4,7 +4,7 @@
       <h2>Dashboard</h2>
       <p class="subtitle">Welcome back, {{ username() }}</p>
     </div>
-    <button class="upload-btn" routerLink="/my-files">
+    <button class="header-btn" routerLink="/my-files">
       <span class="material-symbols-rounded">folder_open</span>
       Open my files
     </button>
@@ -256,6 +256,7 @@
     </div>
     <app-file-table
       [files]="recentFiles()"
+      [selectable]="false"
       [actions]="['download']"
       dateColumnLabel="Uploaded"
       (download)="downloadFile($event)"

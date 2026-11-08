@@ -21,20 +21,20 @@
 
     <div class="header-actions">
       <button
-        class="new-folder-btn"
+        class="header-btn icon-only"
         (click)="showNewFolderDialog.set(true)"
         title="New folder"
         aria-label="New folder"
       >
         <span class="material-symbols-rounded">create_new_folder</span>
       </button>
-      <button class="upload-btn" (click)="triggerFilePicker()" [disabled]="uploading()">
+      <button class="header-btn" (click)="triggerFilePicker()" [disabled]="uploading()">
         @if (uploading()) {
           <span class="spinner"></span>
           Uploading {{ uploadCompleted() }} of {{ uploadTotal() }}...
         } @else {
           <span class="material-symbols-rounded">upload</span>
-          Upload Files
+          Upload files
         }
       </button>
     </div>

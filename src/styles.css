@@ -33,6 +33,10 @@
 
   /* ── Accent (amber/brand) ── */
   --color-accent: #f8b84e;
+  /* Floating UI (selection bar): lifted clear of the table it hovers over. */
+  --color-floating-bg: rgba(40, 45, 68, 0.86);
+  --color-floating-border: rgba(248, 184, 78, 0.28);
+  --shadow-floating: 0 18px 48px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.35);
   --color-accent-hover: #f5a623;
   --color-accent-bg-faint: rgba(248, 184, 78, 0.06);
   --color-accent-bg-subtle: rgba(248, 184, 78, 0.08);
@@ -133,6 +137,9 @@
   --color-text-white: #ffffff;
   /* ── Accent — unchanged, works on both modes ── */
   --color-accent: #d4900a;
+  --color-floating-bg: rgba(255, 255, 255, 0.9);
+  --color-floating-border: rgba(212, 144, 10, 0.35);
+  --shadow-floating: 0 18px 44px rgba(24, 30, 60, 0.18), 0 2px 8px rgba(24, 30, 60, 0.08);
   --color-accent-hover: #b87a06;
   --color-accent-bg-faint: rgba(180, 110, 0, 0.07);
   --color-accent-bg-subtle: rgba(180, 110, 0, 0.11);
@@ -204,4 +211,117 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-border-stronger);
+}
+
+/* ── Page header ──────────────────────────────────────────────────────────
+   Shared by every page so titles and header buttons line up exactly. */
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--color-bg);
+  padding: var(--space-page-x) 0 20px;
+}
+
+.page-header h2 {
+  margin: 0;
+  color: var(--color-text-heading);
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-family: var(--font-heading);
+}
+
+.page-header .subtitle {
+  margin-top: 6px;
+  color: var(--color-text-subtitle);
+  font-size: 14px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Main call to action in a page header (Upload files, Open my files). */
+.header-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 20px;
+  height: 48px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-xl);
+  background: var(--color-accent);
+  color: var(--color-text-on-accent);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font-body);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: var(--transition-slow);
+}
+
+.header-btn .material-symbols-rounded {
+  font-size: 20px;
+}
+
+.header-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px var(--color-accent-bg-deepest);
+}
+
+.header-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Square companion button (New folder). */
+.header-btn.icon-only {
+  width: 48px;
+  padding: 0;
+  justify-content: center;
+  border-color: var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+}
+
+.header-btn.icon-only .material-symbols-rounded {
+  font-size: 22px;
+}
+
+.header-btn.icon-only:hover:not(:disabled) {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  background: var(--color-accent-bg);
+  box-shadow: none;
+}
+
+/* Destructive header action (Empty trash). */
+.header-btn.danger {
+  border-color: var(--color-danger-bg-deep);
+  background: transparent;
+  color: var(--color-danger-text);
+}
+
+.header-btn.danger:hover:not(:disabled) {
+  background: var(--color-danger-bg-subtle);
+  box-shadow: 0 8px 24px var(--color-danger-bg-deep);
+}
+
+.header-btn.danger:disabled {
+  opacity: 0.35;
+}
+
+@media (max-width: 600px) {
+  .page-header h2 {
+    font-size: 24px;
+  }
 }

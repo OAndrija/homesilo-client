@@ -5,59 +5,6 @@
   box-sizing: border-box;
 }
 
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  background: var(--color-bg);
-  padding: var(--space-page-x) 0 18px;
-}
-
-.page-header h2 {
-  margin: 0;
-  color: var(--color-text-heading);
-  font-size: 28px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  font-family: var(--font-heading);
-}
-
-.subtitle {
-  margin-top: 4px;
-  color: var(--color-text-subtitle);
-  font-size: 14px;
-}
-
-.upload-btn {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 0 18px;
-  height: 42px;
-  border: none;
-  border-radius: var(--radius-lg);
-  background: var(--color-accent);
-  color: var(--color-text-on-accent);
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition:
-    background var(--transition-base),
-    transform var(--transition-base);
-}
-
-.upload-btn .material-symbols-rounded {
-  font-size: 20px;
-}
-.upload-btn:hover {
-  background: var(--color-accent-hover);
-  transform: translateY(-1px);
-}
-
 /* ── Top row: silo (left) + four cards (right) ───────────── */
 /* The wrapper is the size container, so the layout follows the space the page
    really has (sidebar open or collapsed), not just the viewport width. */
