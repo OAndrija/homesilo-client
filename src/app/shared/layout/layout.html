@@ -16,7 +16,7 @@
         title="Home"
         (click)="closeOnMobile()"
       >
-        <span class="material-symbols-rounded">home</span>
+        <span class="material-symbols-rounded" aria-hidden="true">home</span>
         <span class="nav-label">Home</span>
       </a>
       <a
@@ -26,7 +26,7 @@
         title="My Files"
         (click)="closeOnMobile()"
       >
-        <span class="material-symbols-rounded">folder</span>
+        <span class="material-symbols-rounded" aria-hidden="true">folder</span>
         <span class="nav-label">My Files</span>
       </a>
       <a
@@ -36,7 +36,7 @@
         title="Starred"
         (click)="closeOnMobile()"
       >
-        <span class="material-symbols-rounded">star</span>
+        <span class="material-symbols-rounded" aria-hidden="true">star</span>
         <span class="nav-label">Starred</span>
       </a>
       <a
@@ -46,7 +46,7 @@
         title="Trash"
         (click)="closeOnMobile()"
       >
-        <span class="material-symbols-rounded">delete</span>
+        <span class="material-symbols-rounded" aria-hidden="true">delete</span>
         <span class="nav-label">Trash</span>
       </a>
     </nav>
@@ -57,14 +57,14 @@
   <div class="main-area">
     <header class="topbar">
       <button class="menu-btn" (click)="toggleSidebar()" aria-label="Toggle sidebar">
-        <span class="material-symbols-rounded">
+        <span class="material-symbols-rounded" aria-hidden="true">
           {{ sidebarOpen() ? 'chevron_left' : 'chevron_right' }}
         </span>
       </button>
 
       @if (!isHome()) {
         <div class="search-bar">
-          <span class="material-symbols-rounded">search</span>
+          <span class="material-symbols-rounded" aria-hidden="true">search</span>
           <input
             type="text"
             class="search-input"
@@ -81,7 +81,7 @@
               aria-label="Clear search"
               type="button"
             >
-              <span class="material-symbols-rounded">close</span>
+              <span class="material-symbols-rounded" aria-hidden="true">close</span>
             </button>
           }
         </div>
@@ -90,9 +90,16 @@
         <app-account-menu />
       </div>
     </header>
-    <main class="page-content">
+    <main
+      class="page-content"
+      [class.upload-panel-open]="uploads.items().length > 0 && !uploads.collapsed()"
+      [class.upload-panel-collapsed]="uploads.items().length > 0 && uploads.collapsed()"
+    >
       <router-outlet></router-outlet>
     </main>
+
+    <app-toast-host />
+    <app-upload-panel />
   </div>
 </div>
 

@@ -14,9 +14,57 @@
             />
           </th>
         }
-        <th>Name</th>
-        <th class="col-size">Size</th>
-        <th class="col-date">{{ dateColumnLabel() }}</th>
+        <th [attr.aria-sort]="ariaSort('name')">
+          @if (sort()) {
+            <button
+              type="button"
+              class="sort-btn"
+              [class.active]="sort()?.key === 'name'"
+              (click)="onSort('name')"
+            >
+              {{ 'Name' }}
+              <span class="material-symbols-rounded sort-arrow" aria-hidden="true">{{
+                sortArrow('name')
+              }}</span>
+            </button>
+          } @else {
+            {{ 'Name' }}
+          }
+        </th>
+        <th class="col-size" [attr.aria-sort]="ariaSort('size')">
+          @if (sort()) {
+            <button
+              type="button"
+              class="sort-btn"
+              [class.active]="sort()?.key === 'size'"
+              (click)="onSort('size')"
+            >
+              {{ 'Size' }}
+              <span class="material-symbols-rounded sort-arrow" aria-hidden="true">{{
+                sortArrow('size')
+              }}</span>
+            </button>
+          } @else {
+            {{ 'Size' }}
+          }
+        </th>
+        <th class="col-date" [attr.aria-sort]="ariaSort('date')">
+          @if (sort()) {
+            <button
+              type="button"
+              class="sort-btn"
+              [class.active]="sort()?.key === 'date'"
+              (click)="onSort('date')"
+            >
+              {{ dateColumnLabel() }}
+              <span class="material-symbols-rounded sort-arrow" aria-hidden="true">{{
+                sortArrow('date')
+              }}</span>
+            </button>
+          } @else {
+            {{ dateColumnLabel() }}
+          }
+        </th>
         <th></th>
       </tr>
     </thead>
@@ -68,7 +116,7 @@
               [attr.aria-expanded]="openActionsId() === folder.id"
               [attr.aria-label]="'Actions for ' + folder.name"
             >
-              <span class="material-symbols-rounded">more_horiz</span>
+              <span class="material-symbols-rounded" aria-hidden="true">more_horiz</span>
             </button>
             <div class="actions-wrap" (pointerup)="closeActionsSoon()">
               @if (hasAction('download')) {
@@ -78,7 +126,7 @@
                   title="Download as zip"
                   aria-label="Download folder as zip"
                 >
-                  <span class="material-symbols-rounded">download</span>
+                  <span class="material-symbols-rounded" aria-hidden="true">download</span>
                 </button>
               }
               @if (hasAction('rename')) {
@@ -88,7 +136,7 @@
                   title="Rename"
                   aria-label="Rename folder"
                 >
-                  <span class="material-symbols-rounded">edit</span>
+                  <span class="material-symbols-rounded" aria-hidden="true">edit</span>
                 </button>
               }
               @if (hasAction('trash')) {
@@ -98,7 +146,7 @@
                   title="Move to trash"
                   aria-label="Move to trash"
                 >
-                  <span class="material-symbols-rounded">delete</span>
+                  <span class="material-symbols-rounded" aria-hidden="true">delete</span>
                 </button>
               }
               @if (hasAction('restore')) {
@@ -108,7 +156,9 @@
                   title="Restore"
                   aria-label="Restore"
                 >
-                  <span class="material-symbols-rounded">restore_from_trash</span>
+                  <span class="material-symbols-rounded" aria-hidden="true"
+                    >restore_from_trash</span
+                  >
                 </button>
               }
               @if (hasAction('deleteForever')) {
@@ -118,7 +168,7 @@
                   title="Delete forever"
                   aria-label="Delete forever"
                 >
-                  <span class="material-symbols-rounded">delete_forever</span>
+                  <span class="material-symbols-rounded" aria-hidden="true">delete_forever</span>
                 </button>
               }
             </div>
@@ -176,7 +226,7 @@
               [attr.aria-expanded]="openActionsId() === file.id"
               [attr.aria-label]="'Actions for ' + file.originalFileName"
             >
-              <span class="material-symbols-rounded">more_horiz</span>
+              <span class="material-symbols-rounded" aria-hidden="true">more_horiz</span>
             </button>
             <div class="actions-wrap" (pointerup)="closeActionsSoon()">
               @if (hasAction('download')) {
@@ -186,7 +236,7 @@
                   title="Download"
                   aria-label="Download"
                 >
-                  <span class="material-symbols-rounded">download</span>
+                  <span class="material-symbols-rounded" aria-hidden="true">download</span>
                 </button>
               }
               @if (hasAction('rename')) {
@@ -196,7 +246,7 @@
                   title="Rename"
                   aria-label="Rename file"
                 >
-                  <span class="material-symbols-rounded">edit</span>
+                  <span class="material-symbols-rounded" aria-hidden="true">edit</span>
                 </button>
               }
               @if (hasAction('trash')) {
@@ -206,7 +256,7 @@
                   title="Move to trash"
                   aria-label="Move to trash"
                 >
-                  <span class="material-symbols-rounded">delete</span>
+                  <span class="material-symbols-rounded" aria-hidden="true">delete</span>
                 </button>
               }
               @if (hasAction('star')) {
@@ -226,7 +276,9 @@
                   title="Restore"
                   aria-label="Restore"
                 >
-                  <span class="material-symbols-rounded">restore_from_trash</span>
+                  <span class="material-symbols-rounded" aria-hidden="true"
+                    >restore_from_trash</span
+                  >
                 </button>
               }
               @if (hasAction('deleteForever')) {
@@ -236,7 +288,7 @@
                   title="Delete forever"
                   aria-label="Delete forever"
                 >
-                  <span class="material-symbols-rounded">delete_forever</span>
+                  <span class="material-symbols-rounded" aria-hidden="true">delete_forever</span>
                 </button>
               }
             </div>

@@ -8,29 +8,41 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, concatMap, finalize, forkJoin, from, Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { errorMessage } from '../../core/http/http-error';
 import { FileMetadata } from '../../core/models/file-metadata';
 import { Folder } from '../../core/models/folder';
+import { fileSortParam, loadSort, saveSort, SortState, sortFolders } from '../../core/models/sort';
 import { DashboardStore } from '../../core/services/dashboard-store';
 import { FileActions } from '../../core/services/file-actions';
 import { Files } from '../../core/services/files';
 import { Folders } from '../../core/services/folders';
 import { Search } from '../../core/services/search';
+import { ToastService } from '../../core/services/toast';
+import { UploadService } from '../../core/services/uploads';
 import { FileTable, MovePayload } from '../../shared/file-table/file-table';
 import { FolderNameDialog } from '../../shared/folder-name-dialog/folder-name-dialog';
 import { FolderPickerDialog } from '../../shared/folder-picker-dialog/folder-picker-dialog';
 import { LoadingDelayPipe } from '../../shared/pipes/loading-delay';
 import { SelectionBar } from '../../shared/selection-bar/selection-bar';
+import { TableSkeleton } from '../../shared/table-skeleton/table-skeleton';
 
 type RenameTarget = { kind: 'file'; item: FileMetadata } | { kind: 'folder'; item: Folder };
 
 @Component({
   selector: 'app-my-files',
-  imports: [FileTable, SelectionBar, LoadingDelayPipe, FolderPickerDialog, FolderNameDialog],
+  imports: [
+    FileTable,
+    SelectionBar,
+    LoadingDelayPipe,
+    FolderPickerDialog,
+    FolderNameDialog,
+    TableSkeleton,
+  ],
   templateUrl: './my-files.html',
   styleUrl: './my-files.css',
 })
@@ -42,6 +54,9 @@ export class MyFiles {
   private dashboardStore = inject(DashboardStore);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private toast = inject(ToastService);
+  private uploads = inject(UploadService);
+  private title = inject(Title);
 
   fileTable = viewChild(FileTable);
   fileInput = viewChild<ElementRef<HTMLInputElement>>('fileInput');
@@ -51,6 +66,7 @@ export class MyFiles {
     initialValue: null,
   });
   breadcrumb = signal<Folder[]>([]);
+  currentFolder = signal<Folder | null>(null);
 
   // ── Content ──────────────────────────────────────────────────
   folders = signal<Folder[]>([]);
@@ -61,10 +77,11 @@ export class MyFiles {
   currentPage = signal(0);
   hasMore = signal(false);
 
-  // ── Upload ───────────────────────────────────────────────────
-  uploading = signal(false);
-  uploadTotal = signal(0);
-  uploadCompleted = signal(0);
+  // ── Sorting: files are sorted by the server (they're paged), folders here ──
+  sort = signal<SortState>(loadSort('my-files'));
+  sortedFolders = computed(() => sortFolders(this.folders(), this.sort()));
+
+  // ── Drag-and-drop upload ─────────────────────────────────────
   dragging = signal(false);
   private dragCounter = 0;
 
@@ -72,6 +89,9 @@ export class MyFiles {
   showMoveDialog = signal(false);
   showNewFolderDialog = signal(false);
   renameTarget = signal<RenameTarget | null>(null);
+  /** The name dialog stays open while saving, and shows the server's answer if it fails. */
+  nameDialogBusy = signal(false);
+  nameDialogError = signal('');
 
   isSearching = computed(() => this.searchService.query().trim().length > 0);
   searchText = computed(() => this.searchService.query().trim());
@@ -87,6 +107,9 @@ export class MyFiles {
   );
 
   contentSummary = computed(() => {
+    if (this.loading() && this.files().length === 0 && this.folders().length === 0) {
+      return 'Loading…';
+    }
     const folderCount = this.folders().length;
     const fileCount = this.files().length;
     const parts: string[] = [];
@@ -100,6 +123,7 @@ export class MyFiles {
     effect(() => {
       const query = this.searchService.query().trim();
       const folderId = this.currentFolderId(); // re-run on navigation
+      this.sort(); // and when the sort changes
       this.currentPage.set(0);
       if (query === '') {
         this.loadContents(folderId, 0);
@@ -107,6 +131,30 @@ export class MyFiles {
         this.runSearch(query);
       }
     });
+
+    // Browser tab: the folder being viewed.
+    effect(() => {
+      const name = this.isSearching()
+        ? `Search: ${this.searchText()}`
+        : (this.currentFolder()?.name ?? 'My Files');
+      this.title.setTitle(`${name} · HomeSilo`);
+    });
+
+    // Files finished by the upload panel appear here if they landed in this folder.
+    this.uploads.uploaded.pipe(takeUntilDestroyed()).subscribe(({ file, folderId }) => {
+      if (this.isSearching() || folderId !== this.currentFolderId()) return;
+      // The upload is idempotent, so a re-upload may return an entry we already show.
+      this.files.update((files) => [file, ...files.filter((f) => f.id !== file.id)]);
+    });
+  }
+
+  onSortChange(sort: SortState): void {
+    this.sort.set(sort);
+    saveSort('my-files', sort);
+  }
+
+  private get sortParam(): string {
+    return fileSortParam(this.sort());
   }
 
   // ── Loading ──────────────────────────────────────────────────
@@ -115,12 +163,13 @@ export class MyFiles {
     this.loading.set(true);
     const request$ =
       folderId === null
-        ? this.folderService.getRootContents(page)
-        : this.folderService.getFolderContents(folderId, page);
+        ? this.folderService.getRootContents(page, 50, this.sortParam)
+        : this.folderService.getFolderContents(folderId, page, 50, this.sortParam);
 
     request$.pipe(finalize(() => this.loading.set(false))).subscribe({
       next: (response) => {
         this.folders.set(response.subfolders);
+        this.currentFolder.set(response.folder);
         this.files.update((current) =>
           page === 0 ? response.files.content : [...current, ...response.files.content],
         );
@@ -143,7 +192,7 @@ export class MyFiles {
   private runSearch(query: string): void {
     this.loading.set(true);
     forkJoin({
-      files: this.fileService.searchActive(query, 0),
+      files: this.fileService.searchActive(query, 0, 50, this.sortParam),
       folders: this.folderService.search(query).pipe(catchError(() => of([] as Folder[]))),
     })
       .pipe(finalize(() => this.loading.set(false)))
@@ -165,10 +214,14 @@ export class MyFiles {
 
     const request$ =
       query !== ''
-        ? this.fileService.searchActive(query, nextPage)
+        ? this.fileService.searchActive(query, nextPage, 50, this.sortParam)
         : folderId === null
-          ? this.folderService.getRootContents(nextPage).pipe(map((r) => r.files))
-          : this.folderService.getFolderContents(folderId, nextPage).pipe(map((r) => r.files));
+          ? this.folderService
+              .getRootContents(nextPage, 50, this.sortParam)
+              .pipe(map((r) => r.files))
+          : this.folderService
+              .getFolderContents(folderId, nextPage, 50, this.sortParam)
+              .pipe(map((r) => r.files));
 
     request$.pipe(finalize(() => this.loadingMore.set(false))).subscribe({
       next: (response) => {
@@ -199,13 +252,32 @@ export class MyFiles {
 
   // ── Folders ──────────────────────────────────────────────────
 
-  onNewFolderConfirm(name: string): void {
+  openNewFolderDialog(): void {
+    this.nameDialogError.set('');
+    this.showNewFolderDialog.set(true);
+  }
+
+  closeNameDialogs(): void {
     this.showNewFolderDialog.set(false);
-    this.folderService.createFolder(name, this.currentFolderId()).subscribe({
-      next: (folder) =>
-        this.folders.update((f) => [...f, folder].sort((a, b) => a.name.localeCompare(b.name))),
-      error: (err) => this.errorMessage.set(errorMessage(err, 'Failed to create folder.')),
-    });
+    this.renameTarget.set(null);
+    this.nameDialogBusy.set(false);
+    this.nameDialogError.set('');
+  }
+
+  onNewFolderConfirm(name: string): void {
+    this.nameDialogBusy.set(true);
+    this.nameDialogError.set('');
+    this.folderService
+      .createFolder(name, this.currentFolderId())
+      .pipe(finalize(() => this.nameDialogBusy.set(false)))
+      .subscribe({
+        next: (folder) => {
+          this.closeNameDialogs();
+          this.folders.update((f) => [...f, folder]);
+          this.toast.success(`Created folder “${folder.name}”`);
+        },
+        error: (err) => this.nameDialogError.set(errorMessage(err, 'Couldn’t create the folder.')),
+      });
   }
 
   trashFolder(folder: Folder): void {
@@ -213,6 +285,10 @@ export class MyFiles {
       next: () => {
         this.folders.update((f) => f.filter((fo) => fo.id !== folder.id));
         this.dashboardStore.refresh();
+        this.toast.success(`Moved “${folder.name}” to trash`, {
+          label: 'Undo',
+          run: () => this.undoTrash([], [folder.id]),
+        });
       },
       error: (err) => this.errorMessage.set(errorMessage(err, 'Failed to move folder to trash.')),
     });
@@ -225,10 +301,12 @@ export class MyFiles {
   // ── Rename ───────────────────────────────────────────────────
 
   renameFile(file: FileMetadata): void {
+    this.nameDialogError.set('');
     this.renameTarget.set({ kind: 'file', item: file });
   }
 
   renameFolder(folder: Folder): void {
+    this.nameDialogError.set('');
     this.renameTarget.set({ kind: 'folder', item: folder });
   }
 
@@ -238,21 +316,33 @@ export class MyFiles {
 
   onRenameConfirm(name: string): void {
     const target = this.renameTarget();
-    this.renameTarget.set(null);
     if (!target) return;
+    this.nameDialogBusy.set(true);
+    this.nameDialogError.set('');
 
     if (target.kind === 'file') {
-      this.fileService.rename(target.item.id, name).subscribe({
-        next: (updated) =>
-          this.files.update((f) => f.map((x) => (x.id === updated.id ? updated : x))),
-        error: (err) => this.errorMessage.set(errorMessage(err, 'Failed to rename file.')),
-      });
+      this.fileService
+        .rename(target.item.id, name)
+        .pipe(finalize(() => this.nameDialogBusy.set(false)))
+        .subscribe({
+          next: (updated) => {
+            this.closeNameDialogs();
+            this.files.update((f) => f.map((x) => (x.id === updated.id ? updated : x)));
+          },
+          error: (err) => this.nameDialogError.set(errorMessage(err, 'Couldn’t rename the file.')),
+        });
     } else {
-      this.folderService.renameFolder(target.item.id, name).subscribe({
-        next: (updated) =>
-          this.folders.update((f) => f.map((x) => (x.id === updated.id ? updated : x))),
-        error: (err) => this.errorMessage.set(errorMessage(err, 'Failed to rename folder.')),
-      });
+      this.folderService
+        .renameFolder(target.item.id, name)
+        .pipe(finalize(() => this.nameDialogBusy.set(false)))
+        .subscribe({
+          next: (updated) => {
+            this.closeNameDialogs();
+            this.folders.update((f) => f.map((x) => (x.id === updated.id ? updated : x)));
+          },
+          error: (err) =>
+            this.nameDialogError.set(errorMessage(err, 'Couldn’t rename the folder.')),
+        });
     }
   }
 
@@ -271,41 +361,7 @@ export class MyFiles {
   }
 
   private uploadFiles(filesToUpload: File[]): void {
-    const targetFolderId = this.currentFolderId();
-    const failures: string[] = [];
-    this.uploading.set(true);
-    this.uploadTotal.set(filesToUpload.length);
-    this.uploadCompleted.set(0);
-
-    from(filesToUpload)
-      .pipe(
-        concatMap((file) =>
-          this.fileService.upload(file, targetFolderId).pipe(
-            catchError((err) => {
-              failures.push(errorMessage(err, `"${file.name}" failed to upload.`));
-              return of(null);
-            }),
-          ),
-        ),
-        finalize(() => {
-          this.uploading.set(false);
-          this.dashboardStore.refresh();
-          if (failures.length === 1) {
-            this.errorMessage.set(failures[0]);
-          } else if (failures.length > 1) {
-            this.errorMessage.set(
-              `${failures.length} of ${filesToUpload.length} files failed to upload. ${failures[0]}`,
-            );
-          }
-        }),
-      )
-      .subscribe((uploaded) => {
-        this.uploadCompleted.update((n) => n + 1);
-        // The upload is idempotent, so a re-upload may return an entry we already show.
-        if (uploaded && !this.isSearching() && this.currentFolderId() === targetFolderId) {
-          this.files.update((files) => [uploaded, ...files.filter((f) => f.id !== uploaded.id)]);
-        }
-      });
+    this.uploads.enqueue(filesToUpload, this.currentFolderId());
   }
 
   downloadFile(file: FileMetadata): void {
@@ -321,6 +377,10 @@ export class MyFiles {
       next: () => {
         this.files.update((files) => files.filter((f) => f.id !== file.id));
         this.dashboardStore.refresh();
+        this.toast.success(`Moved “${file.originalFileName}” to trash`, {
+          label: 'Undo',
+          run: () => this.undoTrash([file.id], []),
+        });
       },
       error: (err) => this.errorMessage.set(errorMessage(err, 'Failed to move file to trash.')),
     });
@@ -357,6 +417,28 @@ export class MyFiles {
         this.files.update((list) => list.filter((f) => !fileIds.has(f.id)));
         this.folders.update((list) => list.filter((f) => !folderIds.has(f.id)));
         this.dashboardStore.refresh();
+        const count = files.length + folders.length;
+        this.toast.success(`Moved ${count} item${count === 1 ? '' : 's'} to trash`, {
+          label: 'Undo',
+          run: () => this.undoTrash([...fileIds], [...folderIds]),
+        });
+      },
+    );
+  }
+
+  /** Puts trashed items back where they were. */
+  private undoTrash(fileIds: string[], folderIds: string[]): void {
+    this.runSequentially(
+      [
+        ...fileIds.map((id) => this.fileService.restore(id)),
+        ...folderIds.map((id) => this.folderService.restoreFolder(id)),
+      ],
+      'Some items couldn’t be restored.',
+      () => {
+        this.reload();
+        this.dashboardStore.refresh();
+        const count = fileIds.length + folderIds.length;
+        this.toast.info(`Restored ${count === 1 ? 'the item' : `${count} items`}`);
       },
     );
   }
@@ -403,7 +485,11 @@ export class MyFiles {
         ...folderIds.map((id) => this.folderService.moveFolder(id, targetFolderId)),
       ],
       'Some items could not be moved.',
-      () => this.reload(),
+      () => {
+        this.reload();
+        const count = fileIds.length + folderIds.length;
+        this.toast.success(`Moved ${count} item${count === 1 ? '' : 's'}`);
+      },
     );
   }
 

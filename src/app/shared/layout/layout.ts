@@ -6,16 +6,29 @@ import { Search } from '../../core/services/search';
 import { filter } from 'rxjs';
 import { AccountMenu } from '../account-menu/account-menu';
 import { FilePreview } from '../file-preview/file-preview';
+import { ToastHost } from '../toast-host/toast-host';
+import { UploadPanel } from '../upload-panel/upload-panel';
+import { UploadService } from '../../core/services/uploads';
 
 @Component({
   selector: 'app-layout',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, StorageIndicator, AccountMenu, FilePreview],
+  imports: [
+    RouterOutlet,
+    RouterLink,
+    RouterLinkActive,
+    StorageIndicator,
+    AccountMenu,
+    FilePreview,
+    ToastHost,
+    UploadPanel,
+  ],
   templateUrl: './layout.html',
   styleUrl: './layout.css',
 })
 export class Layout implements OnInit {
   private router = inject(Router);
   private searchService = inject(Search);
+  protected uploads = inject(UploadService);
 
   sidebarOpen = signal(true);
   searchInputValue = computed(() => this.searchService.text());

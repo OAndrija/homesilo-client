@@ -654,72 +654,6 @@
   flex-shrink: 0;
 }
 
-/* ── Upload feedback ─────────────────────────────────────── */
-.banner {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 20px;
-  padding: 12px 14px;
-  border-radius: var(--radius-lg);
-  font-size: 14px;
-}
-
-.banner > span:nth-child(2) {
-  flex: 1;
-}
-
-.banner .material-symbols-rounded {
-  font-size: 20px;
-}
-
-.banner a {
-  color: inherit;
-  font-weight: 600;
-}
-
-.banner button {
-  display: inline-flex;
-  padding: 2px;
-  border: none;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
-  opacity: 0.75;
-}
-
-.banner button:hover {
-  opacity: 1;
-}
-
-.banner-error {
-  color: var(--color-danger-text);
-  background: var(--color-danger-bg);
-  border: 1px solid var(--color-danger-bg-deep);
-}
-
-.banner-success {
-  color: var(--color-success);
-  background: var(--color-success-bg);
-  border: 1px solid var(--color-success-bg-stronger);
-}
-
-.spinner {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  border: 2px solid rgba(0, 0, 0, 0.25);
-  border-top-color: var(--color-text-on-accent);
-  animation: spin 0.7s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 /* Covers the content area while files are dragged over the page. */
 .drop-overlay {
   position: fixed;
@@ -848,9 +782,6 @@
   .stat-go,
   .tile {
     transition: none;
-  }
-  .spinner {
-    animation-duration: 2s;
   }
   .stat-card.is-link:hover {
     transform: none;

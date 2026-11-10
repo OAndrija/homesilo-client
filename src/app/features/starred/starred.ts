@@ -10,10 +10,13 @@ import { SelectionBar } from '../../shared/selection-bar/selection-bar';
 import { LoadingDelayPipe } from '../../shared/pipes/loading-delay';
 import { FileActions } from '../../core/services/file-actions';
 import { errorMessage } from '../../core/http/http-error';
+import { fileSortParam, loadSort, saveSort, SortState } from '../../core/models/sort';
+import { ToastService } from '../../core/services/toast';
+import { TableSkeleton } from '../../shared/table-skeleton/table-skeleton';
 
 @Component({
   selector: 'app-starred',
-  imports: [FileTable, SelectionBar, LoadingDelayPipe, RouterLink],
+  imports: [FileTable, SelectionBar, LoadingDelayPipe, RouterLink, TableSkeleton],
   templateUrl: './starred.html',
   styleUrl: './starred.css',
 })
@@ -22,6 +25,7 @@ export class Starred {
   private fileActions = inject(FileActions);
   private dashboardStore = inject(DashboardStore);
   private searchService = inject(Search);
+  private toast = inject(ToastService);
 
   fileTable = viewChild(FileTable);
 
@@ -31,6 +35,7 @@ export class Starred {
   errorMessage = signal('');
   currentPage = signal(0);
   hasMore = signal(false);
+  sort = signal<SortState>(loadSort('starred'));
 
   isSearching = computed(() => this.searchService.query().trim().length > 0);
   searchText = computed(() => this.searchService.query().trim());
@@ -42,6 +47,7 @@ export class Starred {
   constructor() {
     effect(() => {
       const query = this.searchService.query().trim();
+      this.sort(); // reload when the sort changes
       this.currentPage.set(0);
       if (query === '') {
         this.loadStarredFiles();
@@ -51,10 +57,19 @@ export class Starred {
     });
   }
 
+  onSortChange(sort: SortState): void {
+    this.sort.set(sort);
+    saveSort('starred', sort);
+  }
+
+  private get sortParam(): string {
+    return fileSortParam(this.sort());
+  }
+
   runSearch(query: string): void {
     this.loading.set(true);
     this.fileService
-      .searchStarred(query, 0)
+      .searchStarred(query, 0, 50, this.sortParam)
       .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
         next: (response) => {
@@ -69,7 +84,7 @@ export class Starred {
     this.loading.set(true);
     this.currentPage.set(0);
     this.fileService
-      .listStarred(0)
+      .listStarred(0, 50, this.sortParam)
       .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
         next: (response) => {
@@ -86,8 +101,8 @@ export class Starred {
     this.loadingMore.set(true);
     const request$ =
       query === ''
-        ? this.fileService.listStarred(nextPage)
-        : this.fileService.searchStarred(query, nextPage);
+        ? this.fileService.listStarred(nextPage, 50, this.sortParam)
+        : this.fileService.searchStarred(query, nextPage, 50, this.sortParam);
     request$.pipe(finalize(() => this.loadingMore.set(false))).subscribe({
       next: (response) => {
         this.files.update((files) => [...files, ...response.content]);
@@ -108,6 +123,10 @@ export class Starred {
       next: () => {
         this.files.update((files) => files.filter((f) => f.id !== file.id));
         this.dashboardStore.refresh();
+        this.toast.success(`Moved “${file.originalFileName}” to trash`, {
+          label: 'Undo',
+          run: () => this.restore([file.id]),
+        });
       },
       error: (err) => this.errorMessage.set(errorMessage(err, 'Failed to move file to trash.')),
     });
@@ -123,6 +142,16 @@ export class Starred {
             : files.filter((f) => f.id !== updated.id),
         );
         this.dashboardStore.silentRefresh();
+        if (!updated.starred) {
+          this.toast.success(`Removed “${updated.originalFileName}” from Starred`, {
+            label: 'Undo',
+            run: () =>
+              this.fileService.toggleStar(updated.id).subscribe({
+                next: () => this.reloadCurrent(),
+                error: (err) => this.toast.error(errorMessage(err, 'Couldn’t restore the star.')),
+              }),
+          });
+        }
       },
       error: (err) => this.errorMessage.set(errorMessage(err, 'Failed to update star.')),
     });
@@ -148,6 +177,13 @@ export class Starred {
         next: (trashed) => this.files.update((files) => files.filter((f) => f.id !== trashed.id)),
         error: (err) =>
           this.errorMessage.set(errorMessage(err, 'Some files could not be moved to trash.')),
+        complete: () => {
+          const n = selected.length;
+          this.toast.success(`Moved ${n} file${n === 1 ? '' : 's'} to trash`, {
+            label: 'Undo',
+            run: () => this.restore(selected.map((f) => f.id)),
+          });
+        },
       });
   }
 
@@ -166,6 +202,27 @@ export class Starred {
             : files.filter((f) => f.id !== updated.id),
         );
       });
+  }
+
+  /** Undo for "move to trash": restores the files, then reloads the list. */
+  private restore(fileIds: string[]): void {
+    from(fileIds)
+      .pipe(
+        concatMap((id) => this.fileService.restore(id)),
+        finalize(() => {
+          this.reloadCurrent();
+          this.dashboardStore.refresh();
+        }),
+      )
+      .subscribe({
+        error: (err) => this.toast.error(errorMessage(err, 'Couldn’t restore everything.')),
+      });
+  }
+
+  private reloadCurrent(): void {
+    const query = this.searchService.query().trim();
+    if (query) this.runSearch(query);
+    else this.loadStarredFiles();
   }
 
   private getSelectedFiles(): FileMetadata[] {

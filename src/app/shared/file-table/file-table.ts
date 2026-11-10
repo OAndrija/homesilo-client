@@ -12,6 +12,7 @@ import {
 import { FileMetadata } from '../../core/models/file-metadata';
 import { getFileIcon } from '../../core/utils/file-icon.util';
 import { Folder } from '../../core/models/folder';
+import { nextSort, SortKey, SortState } from '../../core/models/sort';
 import { formatBytes } from '../../core/utils/format';
 import { ExactDatePipe, FriendlyDatePipe } from '../pipes/friendly-date';
 
@@ -37,6 +38,9 @@ export class FileTable {
   dateColumnLabel = input('Uploaded');
   /** Show a checkbox column for picking several items. */
   selectable = input(true);
+  /** When set, column headers become buttons that ask the page to re-sort. */
+  sort = input<SortState | null>(null);
+  sortChange = output<SortState>();
   download = output<FileMetadata>();
   rename = output<FileMetadata>();
   trash = output<FileMetadata>();
@@ -108,6 +112,26 @@ export class FileTable {
 
   isFolderSelected(folderId: string): boolean {
     return this.selectedFolderIds().has(folderId);
+  }
+
+  // ── Sorting ───────────────────────────────────────────────────
+
+  onSort(key: SortKey): void {
+    const current = this.sort();
+    if (current) this.sortChange.emit(nextSort(current, key));
+  }
+
+  ariaSort(key: SortKey): 'ascending' | 'descending' | null {
+    const current = this.sort();
+    if (!current || current.key !== key) return null;
+    return current.direction === 'asc' ? 'ascending' : 'descending';
+  }
+
+  /** The active column shows its direction; the others show a faint hint on hover. */
+  sortArrow(key: SortKey): string {
+    const current = this.sort();
+    if (current?.key === key && current.direction === 'asc') return 'arrow_upward';
+    return 'arrow_downward';
   }
 
   // ── Checkboxes ────────────────────────────────────────────────

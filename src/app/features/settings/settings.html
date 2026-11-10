@@ -16,7 +16,7 @@
           [attr.aria-current]="activeSection() === section.id ? 'true' : null"
           (click)="goTo(section.id)"
         >
-          <span class="material-symbols-rounded">{{ section.icon }}</span>
+          <span class="material-symbols-rounded" aria-hidden="true">{{ section.icon }}</span>
           {{ section.label }}
         </button>
       }
@@ -176,13 +176,13 @@
 
             @if (errorMessage()) {
               <div class="message error-message" role="alert">
-                <span class="material-symbols-rounded">error</span>
+                <span class="material-symbols-rounded" aria-hidden="true">error</span>
                 {{ errorMessage() }}
               </div>
             }
             @if (success()) {
               <div class="message success-message" role="status">
-                <span class="material-symbols-rounded">check_circle</span>
+                <span class="material-symbols-rounded" aria-hidden="true">check_circle</span>
                 Password changed.
               </div>
             }
@@ -224,7 +224,7 @@
           </div>
 
           <div class="storage-row">
-            <span class="material-symbols-rounded">delete</span>
+            <span class="material-symbols-rounded" aria-hidden="true">delete</span>
             <div>
               <div class="storage-row-title">{{ formatBytes(trashedBytes()) }} in trash</div>
               <div class="storage-row-hint">

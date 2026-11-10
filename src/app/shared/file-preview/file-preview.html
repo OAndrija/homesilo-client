@@ -14,11 +14,11 @@
         aria-label="Close preview"
         title="Close (Esc)"
       >
-        <span class="material-symbols-rounded">close</span>
+        <span class="material-symbols-rounded" aria-hidden="true">close</span>
       </button>
 
       <span class="file-icon" [style.--tint]="icon().color" aria-hidden="true">
-        <span class="material-symbols-rounded">{{ icon().icon }}</span>
+        <span class="material-symbols-rounded" aria-hidden="true">{{ icon().icon }}</span>
       </span>
       <div class="title">
         <div class="name" [title]="file.originalFileName">{{ file.originalFileName }}</div>
@@ -46,11 +46,11 @@
             aria-label="Open in a new tab"
             title="Open in a new tab"
           >
-            <span class="material-symbols-rounded">open_in_new</span>
+            <span class="material-symbols-rounded" aria-hidden="true">open_in_new</span>
           </a>
         }
         <button type="button" class="download-btn" (click)="download()">
-          <span class="material-symbols-rounded">download</span>
+          <span class="material-symbols-rounded" aria-hidden="true">download</span>
           <span class="download-label">Download</span>
         </button>
       </div>
@@ -65,7 +65,7 @@
           @if (mediaFailed()) {
             <div class="card">
               <span class="card-icon" aria-hidden="true">
-                <span class="material-symbols-rounded">broken_image</span>
+                <span class="material-symbols-rounded" aria-hidden="true">broken_image</span>
               </span>
               <div class="card-title">Couldn't show this image</div>
               <p class="card-text">The file may be damaged. Download it to try another app.</p>
@@ -89,7 +89,7 @@
         @case ('audio') {
           <div class="card audio-card">
             <span class="card-icon" aria-hidden="true">
-              <span class="material-symbols-rounded">music_note</span>
+              <span class="material-symbols-rounded" aria-hidden="true">music_note</span>
             </span>
             <div class="card-title">{{ file.originalFileName }}</div>
             <audio [src]="url()" controls preload="metadata"></audio>
@@ -102,19 +102,19 @@
           @if (textTooLarge()) {
             <div class="card">
               <span class="card-icon" aria-hidden="true">
-                <span class="material-symbols-rounded">description</span>
+                <span class="material-symbols-rounded" aria-hidden="true">description</span>
               </span>
               <div class="card-title">This file is too large to preview</div>
               <p class="card-text">Download it to open it with an app on your device.</p>
               <button type="button" class="download-btn" (click)="download()">
-                <span class="material-symbols-rounded">download</span>
+                <span class="material-symbols-rounded" aria-hidden="true">download</span>
                 Download
               </button>
             </div>
           } @else if (mediaFailed()) {
             <div class="card">
               <span class="card-icon" aria-hidden="true">
-                <span class="material-symbols-rounded">error</span>
+                <span class="material-symbols-rounded" aria-hidden="true">error</span>
               </span>
               <div class="card-title">Couldn't load this file</div>
               <p class="card-text">Try again, or download it instead.</p>
@@ -135,12 +135,12 @@
         @default {
           <div class="card">
             <span class="card-icon" [style.--tint]="icon().color" aria-hidden="true">
-              <span class="material-symbols-rounded">{{ icon().icon }}</span>
+              <span class="material-symbols-rounded" aria-hidden="true">{{ icon().icon }}</span>
             </span>
             <div class="card-title">No preview for this file type</div>
             <p class="card-text">Download it to open it with an app on your device.</p>
             <button type="button" class="download-btn" (click)="download()">
-              <span class="material-symbols-rounded">download</span>
+              <span class="material-symbols-rounded" aria-hidden="true">download</span>
               Download
             </button>
           </div>
@@ -155,7 +155,7 @@
           aria-label="Previous file"
           title="Previous (←)"
         >
-          <span class="material-symbols-rounded">chevron_left</span>
+          <span class="material-symbols-rounded" aria-hidden="true">chevron_left</span>
         </button>
       }
       @if (preview.hasNext()) {
@@ -166,7 +166,7 @@
           aria-label="Next file"
           title="Next (→)"
         >
-          <span class="material-symbols-rounded">chevron_right</span>
+          <span class="material-symbols-rounded" aria-hidden="true">chevron_right</span>
         </button>
       }
     </div>

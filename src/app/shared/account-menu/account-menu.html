@@ -40,7 +40,7 @@
 
       <div class="menu-section">
         <a class="menu-item" role="menuitem" routerLink="/settings" (click)="close()">
-          <span class="material-symbols-rounded">settings</span>
+          <span class="material-symbols-rounded" aria-hidden="true">settings</span>
           Settings
         </a>
       </div>
@@ -56,7 +56,7 @@
               [class.active]="themeService.preference() === option.value"
               (click)="setTheme(option.value)"
             >
-              <span class="material-symbols-rounded">{{ option.icon }}</span>
+              <span class="material-symbols-rounded" aria-hidden="true">{{ option.icon }}</span>
               {{ option.label }}
             </button>
           }
@@ -65,7 +65,7 @@
 
       <div class="menu-section">
         <button type="button" class="menu-item danger" role="menuitem" (click)="signOut()">
-          <span class="material-symbols-rounded">logout</span>
+          <span class="material-symbols-rounded" aria-hidden="true">logout</span>
           Sign out
         </button>
       </div>

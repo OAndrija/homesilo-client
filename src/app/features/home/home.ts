@@ -1,6 +1,7 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { catchError, concatMap, finalize, from, of } from 'rxjs';
+import { debounceTime, finalize } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Files } from '../../core/services/files';
 import { Folders } from '../../core/services/folders';
 import { DashboardStore } from '../../core/services/dashboard-store';
@@ -9,7 +10,7 @@ import { Folder } from '../../core/models/folder';
 import { FileTable } from '../../shared/file-table/file-table';
 import { Auth } from '../../core/services/auth';
 import { FileActions } from '../../core/services/file-actions';
-import { errorMessage } from '../../core/http/http-error';
+import { UploadService } from '../../core/services/uploads';
 import { formatBytes } from '../../core/utils/format';
 import { getFileIcon } from '../../core/utils/file-icon.util';
 import { FriendlyDatePipe } from '../../shared/pipes/friendly-date';
@@ -34,6 +35,7 @@ const CATEGORY_META: Record<string, { color: string; icon: string }> = {
 export class Home {
   private fileService = inject(Files);
   private folderService = inject(Folders);
+  private uploads = inject(UploadService);
   private store = inject(DashboardStore);
   private authService = inject(Auth);
   private fileActions = inject(FileActions);
@@ -46,12 +48,7 @@ export class Home {
   folders = signal<Folder[]>([]);
   loadingFolders = signal(true);
 
-  // Uploads (button or drag-and-drop) go to the root of My Files.
-  uploading = signal(false);
-  uploadTotal = signal(0);
-  uploadCompleted = signal(0);
-  errorMessage = signal('');
-  notice = signal('');
+  // Uploads (button or drag-and-drop) go to the root of My Files, via the upload panel.
   dragging = signal(false);
   private dragCounter = 0;
 
@@ -144,6 +141,11 @@ export class Home {
     this.loadRecentFiles();
     this.loadStarred();
     this.loadFolders();
+
+    // New uploads show up in "Recent uploads" (batched, so one reload per burst).
+    this.uploads.uploaded
+      .pipe(debounceTime(400), takeUntilDestroyed())
+      .subscribe(() => this.loadRecentFiles());
   }
 
   private loadRecentFiles(): void {
@@ -192,37 +194,7 @@ export class Home {
   }
 
   private upload(files: File[]): void {
-    const failures: string[] = [];
-    this.errorMessage.set('');
-    this.notice.set('');
-    this.uploading.set(true);
-    this.uploadTotal.set(files.length);
-    this.uploadCompleted.set(0);
-
-    from(files)
-      .pipe(
-        concatMap((file) =>
-          this.fileService.upload(file, null).pipe(
-            catchError((err) => {
-              failures.push(errorMessage(err, `"${file.name}" failed to upload.`));
-              return of(null);
-            }),
-          ),
-        ),
-        finalize(() => {
-          this.uploading.set(false);
-          this.store.refresh();
-          this.loadRecentFiles();
-          const done = files.length - failures.length;
-          if (failures.length === 1) this.errorMessage.set(failures[0]);
-          else if (failures.length > 1)
-            this.errorMessage.set(
-              `${failures.length} of ${files.length} files failed to upload. ${failures[0]}`,
-            );
-          else this.notice.set(`Uploaded ${done} file${done === 1 ? '' : 's'} to My Files.`);
-        }),
-      )
-      .subscribe(() => this.uploadCompleted.update((n) => n + 1));
+    this.uploads.enqueue(files, null);
   }
 
   // ── Drag and drop anywhere on the page ────────────────────────
@@ -252,7 +224,7 @@ export class Home {
     this.dragCounter = 0;
     this.dragging.set(false);
     const dropped = event.dataTransfer?.files;
-    if (dropped && dropped.length > 0 && !this.uploading()) this.upload(Array.from(dropped));
+    if (dropped && dropped.length > 0) this.upload(Array.from(dropped));
   }
 
   readonly getFileIcon = getFileIcon;

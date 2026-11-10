@@ -1,4 +1,12 @@
-import { Component, input, output, computed } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  computed,
+  ElementRef,
+  input,
+  output,
+  viewChild,
+} from '@angular/core';
 
 export interface DeleteTarget {
   type: 'file' | 'folder' | 'bulk' | 'emptyTrash';
@@ -9,22 +17,29 @@ export interface DeleteTarget {
 @Component({
   selector: 'app-confirm-delete-dialog',
   templateUrl: './confirm-delete-dialog.html',
-  styleUrl: './confirm-delete-dialog.css',
+  styleUrl: '../dialog/dialog.css',
 })
-export class ConfirmDeleteDialog {
+export class ConfirmDeleteDialog implements AfterViewInit {
   target = input.required<DeleteTarget>();
 
   confirm = output<void>();
   cancel = output<void>();
 
+  private cancelButton = viewChild<ElementRef<HTMLButtonElement>>('cancelButton');
+
+  /** Focus starts on Cancel, so an accidental Enter never deletes anything. */
+  ngAfterViewInit(): void {
+    this.cancelButton()?.nativeElement.focus();
+  }
+
   title = computed(() => {
     switch (this.target().type) {
       case 'emptyTrash':
-        return 'Empty trash';
+        return 'Empty trash?';
       case 'bulk':
-        return `Delete ${this.target().count} items`;
+        return `Delete ${this.target().count} items forever?`;
       default:
-        return 'Delete forever';
+        return 'Delete forever?';
     }
   });
 
@@ -32,13 +47,13 @@ export class ConfirmDeleteDialog {
     const t = this.target();
     switch (t.type) {
       case 'file':
-        return `"${t.name}" will be permanently deleted and cannot be recovered.`;
+        return `“${t.name}” will be deleted permanently.`;
       case 'folder':
-        return `"${t.name}" and all its contents will be permanently deleted and cannot be recovered.`;
+        return `“${t.name}” and everything in it will be deleted permanently.`;
       case 'bulk':
-        return `${t.count} item${t.count !== 1 ? 's' : ''} will be permanently deleted and cannot be recovered.`;
+        return `${t.count} item${t.count !== 1 ? 's' : ''} will be deleted permanently.`;
       case 'emptyTrash':
-        return `All ${t.count} item${t.count !== 1 ? 's' : ''} in trash will be permanently deleted and cannot be recovered.`;
+        return `All ${t.count} item${t.count !== 1 ? 's' : ''} in the trash will be deleted permanently.`;
     }
   });
 

@@ -16,7 +16,7 @@
         (click)="emptyTrash()"
         [disabled]="totalCount() === 0"
       >
-        <span class="material-symbols-rounded">delete_sweep</span>
+        <span class="material-symbols-rounded" aria-hidden="true">delete_sweep</span>
         Empty trash
       </button>
     </div>
@@ -27,14 +27,12 @@
   }
 
   @if (loading() | loadingDelay) {
-    <div class="loading-state" role="status">
-      <span class="spinner" aria-hidden="true"></span>Loading…
-    </div>
+    <app-table-skeleton />
   } @else if (!loading() && files().length === 0 && folders().length === 0) {
     <div class="empty-state">
       @if (isSearching()) {
         <span class="empty-icon" aria-hidden="true">
-          <span class="material-symbols-rounded">search_off</span>
+          <span class="material-symbols-rounded" aria-hidden="true">search_off</span>
         </span>
         <h3>No matches for “{{ searchText() }}”</h3>
         <p>Check the spelling, or try a shorter search.</p>
@@ -45,7 +43,7 @@
         </div>
       } @else {
         <span class="empty-icon" aria-hidden="true">
-          <span class="material-symbols-rounded">delete</span>
+          <span class="material-symbols-rounded" aria-hidden="true">delete</span>
         </span>
         <h3>Trash is empty</h3>
         <p>
@@ -61,9 +59,11 @@
   } @else if (!loading()) {
     <app-file-table
       [files]="files()"
-      [folders]="isSearching() ? [] : folders()"
+      [folders]="isSearching() ? [] : sortedFolders()"
       [actions]="['restore', 'deleteForever']"
       dateColumnLabel="Deleted"
+      [sort]="sort()"
+      (sortChange)="onSortChange($event)"
       (restore)="restoreFile($event)"
       (deleteForever)="deleteFile($event)"
       (folderRestore)="restoreFolder($event)"

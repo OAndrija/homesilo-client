@@ -8,7 +8,7 @@
   @if (dragging()) {
     <div class="drop-overlay" aria-hidden="true">
       <div class="drop-box">
-        <span class="material-symbols-rounded">cloud_upload</span>
+        <span class="material-symbols-rounded" aria-hidden="true">cloud_upload</span>
         <p>Drop to upload to My Files</p>
       </div>
     </div>
@@ -21,40 +21,16 @@
     </div>
     <div class="header-actions">
       <button class="header-btn secondary" routerLink="/my-files">
-        <span class="material-symbols-rounded">folder_open</span>
+        <span class="material-symbols-rounded" aria-hidden="true">folder_open</span>
         Open my files
       </button>
-      <button class="header-btn" (click)="fileInput.click()" [disabled]="uploading()">
-        @if (uploading()) {
-          <span class="spinner" aria-hidden="true"></span>
-          Uploading {{ uploadCompleted() }} of {{ uploadTotal() }}…
-        } @else {
-          <span class="material-symbols-rounded">upload</span>
-          Upload files
-        }
+      <button class="header-btn" (click)="fileInput.click()">
+        <span class="material-symbols-rounded" aria-hidden="true">upload</span>
+        Upload files
       </button>
       <input #fileInput hidden type="file" multiple (change)="onFileSelected($event)" />
     </div>
   </div>
-
-  @if (errorMessage()) {
-    <div class="banner banner-error" role="alert">
-      <span class="material-symbols-rounded">error</span>
-      <span>{{ errorMessage() }}</span>
-      <button type="button" (click)="errorMessage.set('')" aria-label="Dismiss">
-        <span class="material-symbols-rounded">close</span>
-      </button>
-    </div>
-  } @else if (notice()) {
-    <div class="banner banner-success" role="status">
-      <span class="material-symbols-rounded">check_circle</span>
-      <span>{{ notice() }}</span>
-      <a routerLink="/my-files">View in My Files</a>
-      <button type="button" (click)="notice.set('')" aria-label="Dismiss">
-        <span class="material-symbols-rounded">close</span>
-      </button>
-    </div>
-  }
 
   <!-- ── Top row: silo (left) + four cards (right) ──────────── -->
   <div class="top-wrap">
@@ -175,7 +151,9 @@
             >folder_copy</span
           >
           <div class="stat-top">
-            <span class="stat-icon"><span class="material-symbols-rounded">folder_copy</span></span>
+            <span class="stat-icon"
+              ><span class="material-symbols-rounded" aria-hidden="true">folder_copy</span></span
+            >
             <span class="stat-tag">All time</span>
           </div>
           <div class="stat-bottom">
@@ -189,7 +167,9 @@
             >trending_up</span
           >
           <div class="stat-top">
-            <span class="stat-icon"><span class="material-symbols-rounded">trending_up</span></span>
+            <span class="stat-icon"
+              ><span class="material-symbols-rounded" aria-hidden="true">trending_up</span></span
+            >
             <span class="stat-tag">7 days</span>
           </div>
           <div class="stat-bottom">
@@ -207,7 +187,7 @@
               ><span class="material-symbols-rounded is-filled">star</span></span
             >
             <span class="stat-go" aria-hidden="true"
-              ><span class="material-symbols-rounded">north_east</span></span
+              ><span class="material-symbols-rounded" aria-hidden="true">north_east</span></span
             >
           </div>
           <div class="stat-bottom">
@@ -223,7 +203,7 @@
           }}</span>
           <div class="stat-top">
             <span class="stat-icon"
-              ><span class="material-symbols-rounded">{{
+              ><span class="material-symbols-rounded" aria-hidden="true">{{
                 topCategory()?.icon ?? 'inventory_2'
               }}</span></span
             >
@@ -252,11 +232,11 @@
       </div>
       <div class="get-started-actions">
         <button class="header-btn" (click)="fileInput.click()">
-          <span class="material-symbols-rounded">upload</span>
+          <span class="material-symbols-rounded" aria-hidden="true">upload</span>
           Upload files
         </button>
         <a class="header-btn secondary" routerLink="/my-files">
-          <span class="material-symbols-rounded">create_new_folder</span>
+          <span class="material-symbols-rounded" aria-hidden="true">create_new_folder</span>
           Create a folder
         </a>
       </div>
@@ -279,7 +259,7 @@
             [title]="file.originalFileName"
           >
             <span class="tile-icon" [style.--tint]="getFileIcon(file.originalFileName).color">
-              <span class="material-symbols-rounded">{{
+              <span class="material-symbols-rounded" aria-hidden="true">{{
                 getFileIcon(file.originalFileName).icon
               }}</span>
             </span>
@@ -312,7 +292,7 @@
             [title]="folder.name"
           >
             <span class="tile-icon folder" aria-hidden="true">
-              <span class="material-symbols-rounded">folder</span>
+              <span class="material-symbols-rounded" aria-hidden="true">folder</span>
             </span>
             <span class="tile-text">
               <span class="tile-name">{{ folder.name }}</span>

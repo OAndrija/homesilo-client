@@ -51,6 +51,54 @@
   border-bottom: 1px solid var(--color-border-subtle);
 }
 
+/* ── Sortable headers ────────────────────────────────────────── */
+
+.sort-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: -4px -6px;
+  padding: 4px 6px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.sort-btn:hover {
+  color: var(--color-text-heading);
+  background: var(--color-surface-hover);
+}
+
+.sort-btn.active {
+  color: var(--color-text-heading);
+}
+
+.sort-btn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+.sort-arrow {
+  font-size: 15px;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.sort-btn:hover .sort-arrow {
+  opacity: 0.45;
+}
+
+.sort-btn.active .sort-arrow {
+  opacity: 1;
+  color: var(--color-accent-text);
+}
+
 /* ── Checkbox column ─────────────────────────────────────────── */
 
 .files-table .col-check {

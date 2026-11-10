@@ -304,3 +304,12 @@
     pointer-events: all;
   }
 }
+
+/* Room under the content so any row can be scrolled clear of the upload panel. */
+.page-content.upload-panel-open {
+  padding-bottom: 380px;
+}
+
+.page-content.upload-panel-collapsed {
+  padding-bottom: 90px;
+}

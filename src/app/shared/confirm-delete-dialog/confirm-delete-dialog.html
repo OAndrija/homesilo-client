@@ -4,24 +4,37 @@
   (keydown)="onKeydown($event)"
   data-dialog-backdrop
 >
-  <div class="dialog" role="alertdialog" [attr.aria-label]="title()">
-    <div class="dialog-header">
-      <div class="header-icon">
-        <span class="material-symbols-rounded">delete_forever</span>
+  <div
+    class="dialog"
+    role="alertdialog"
+    aria-modal="true"
+    aria-labelledby="delete-dialog-title"
+    aria-describedby="delete-dialog-message"
+  >
+    <header class="dialog-head">
+      <span class="dialog-icon danger" aria-hidden="true">
+        <span class="material-symbols-rounded" aria-hidden="true">delete_forever</span>
+      </span>
+      <div class="dialog-titles">
+        <h3 id="delete-dialog-title">{{ title() }}</h3>
+        <p class="dialog-sub">This can’t be undone.</p>
       </div>
-      <button class="dialog-close" type="button" (click)="cancel.emit()">
-        <span class="material-symbols-rounded">close</span>
+      <button class="dialog-close" type="button" (click)="cancel.emit()" aria-label="Close">
+        <span class="material-symbols-rounded" aria-hidden="true">close</span>
       </button>
-    </div>
+    </header>
 
     <div class="dialog-body">
-      <h3 class="dialog-title">{{ title() }}</h3>
-      <p class="dialog-message">{{ message() }}</p>
+      <p class="dialog-message" id="delete-dialog-message">{{ message() }}</p>
     </div>
 
-    <div class="dialog-footer">
-      <button class="btn-cancel" type="button" (click)="cancel.emit()">Cancel</button>
-      <button class="btn-danger" type="button" (click)="confirm.emit()">Delete forever</button>
-    </div>
+    <footer class="dialog-foot">
+      <button #cancelButton class="dlg-btn secondary" type="button" (click)="cancel.emit()">
+        Cancel
+      </button>
+      <button class="dlg-btn danger btn-danger" type="button" (click)="confirm.emit()">
+        Delete forever
+      </button>
+    </footer>
   </div>
 </div>

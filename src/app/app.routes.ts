@@ -23,7 +23,7 @@ export const routes: Routes = [
       { path: '', pathMatch: 'full', redirectTo: 'home' },
       {
         path: 'home',
-        title: 'Home · HomeSilo',
+        title: 'Dashboard · HomeSilo',
         loadComponent: () => import('./features/home/home').then((m) => m.Home),
       },
       {
