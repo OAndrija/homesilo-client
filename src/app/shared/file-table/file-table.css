@@ -237,7 +237,9 @@
   gap: 10px;
 }
 
-.more-btn {
+/* Phones only (see the media query below). Doubled class so the later .icon-btn
+   rule, which sets display:flex, can't switch it back on. */
+.icon-btn.more-btn {
   display: none;
 }
 
@@ -411,7 +413,7 @@ tr:has(.starred):not(:hover) .icon-btn:not(.star) {
     opacity: 1;
   }
 
-  .more-btn {
+  .icon-btn.more-btn {
     display: flex;
   }
 
