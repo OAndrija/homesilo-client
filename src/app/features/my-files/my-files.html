@@ -21,17 +21,17 @@
 
     <div class="header-actions">
       <button
-        class="header-btn icon-only"
+        class="header-btn secondary"
         (click)="showNewFolderDialog.set(true)"
-        title="New folder"
         aria-label="New folder"
       >
         <span class="material-symbols-rounded">create_new_folder</span>
+        New folder
       </button>
       <button class="header-btn" (click)="triggerFilePicker()" [disabled]="uploading()">
         @if (uploading()) {
           <span class="spinner"></span>
-          Uploading {{ uploadCompleted() }} of {{ uploadTotal() }}...
+          Uploading {{ uploadCompleted() }} of {{ uploadTotal() }}…
         } @else {
           <span class="material-symbols-rounded">upload</span>
           Upload files
@@ -73,23 +73,50 @@
   }
 
   @if (loading() | loadingDelay) {
-    <div class="empty-state">Loading files...</div>
+    <div class="loading-state" role="status">
+      <span class="spinner" aria-hidden="true"></span>Loading…
+    </div>
   } @else if (!loading() && folders().length === 0 && files().length === 0) {
     <div class="empty-state">
       @if (isSearching()) {
-        <span class="material-symbols-rounded empty-icon">search_off</span>
-        <h3>No results found</h3>
-        <p>Try a different search term.</p>
+        <span class="empty-icon" aria-hidden="true">
+          <span class="material-symbols-rounded">search_off</span>
+        </span>
+        <h3>No matches for “{{ searchText() }}”</h3>
+        <p>Check the spelling, or try a shorter search.</p>
+        <div class="empty-actions">
+          <button type="button" class="header-btn secondary" (click)="clearSearch()">
+            Clear search
+          </button>
+        </div>
       } @else {
-        <span class="material-symbols-rounded empty-icon">cloud_upload</span>
-        <h3>{{ isAtRoot() ? 'No files yet' : 'This folder is empty' }}</h3>
+        <span class="empty-icon" aria-hidden="true">
+          <span class="material-symbols-rounded">{{
+            isAtRoot() ? 'cloud_upload' : 'folder_open'
+          }}</span>
+        </span>
+        <h3>{{ isAtRoot() ? 'Your silo is empty' : 'This folder is empty' }}</h3>
         <p>
           {{
             isAtRoot()
-              ? 'Upload your first backup to homesilo.'
-              : 'Upload files or create a folder to get started.'
+              ? 'Upload files or drag them here, then organise them into folders.'
+              : 'Drop files here, upload them, or add a folder inside this one.'
           }}
         </p>
+        <div class="empty-actions">
+          <button
+            type="button"
+            class="header-btn secondary"
+            (click)="showNewFolderDialog.set(true)"
+          >
+            <span class="material-symbols-rounded">create_new_folder</span>
+            New folder
+          </button>
+          <button type="button" class="header-btn" (click)="triggerFilePicker()">
+            <span class="material-symbols-rounded">upload</span>
+            Upload files
+          </button>
+        </div>
       }
     </div>
   } @else if (!loading()) {

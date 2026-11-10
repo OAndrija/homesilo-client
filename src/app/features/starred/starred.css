@@ -20,32 +20,6 @@
   }
 }
 
-.empty-state {
-  height: 350px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  color: var(--color-text-empty);
-}
-
-.empty-icon {
-  font-size: 72px;
-  color: var(--color-highlight);
-  margin-bottom: 18px;
-}
-
-.empty-state h3 {
-  margin: 0;
-  color: var(--color-text-white);
-  font-size: 24px;
-}
-
-.empty-state p {
-  margin-top: 10px;
-}
-
 .server-error {
   margin-bottom: 20px;
   padding: 16px;

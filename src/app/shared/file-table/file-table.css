@@ -183,12 +183,15 @@
 /* ── File name cell ──────────────────────────────────────────── */
 
 .file-name {
+  font-weight: 600;
+  max-width: 560px;
+}
+
+.name-wrap {
   display: flex;
   align-items: center;
   gap: 30px;
-  font-weight: 600;
   min-width: 0;
-  max-width: 560px;
 }
 
 /* Long names end in an ellipsis instead of pushing the other columns. */
@@ -222,11 +225,30 @@
 /* ── Actions ─────────────────────────────────────────────────── */
 
 .actions {
+  width: 1%; /* shrink to its buttons */
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity var(--transition-base);
+}
+
+.actions-wrap {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  opacity: 0;
-  transition: opacity var(--transition-base);
+}
+
+.more-btn {
+  display: none;
+}
+
+/* Starred marker beside the name, for phones where the star button is tucked away. */
+.star-mark {
+  display: none;
+  flex-shrink: 0;
+  margin-left: -6px;
+  font-size: 16px;
+  color: var(--color-star);
+  font-variation-settings: 'FILL' 1;
 }
 
 tr:hover .actions {
@@ -335,4 +357,102 @@ tr:has(.starred):not(:hover) .icon-btn:not(.star) {
 
 .files-table tbody tr[draggable='true']:active {
   cursor: grabbing;
+}
+
+/* Touch screens have no hover, so row actions stay visible there. */
+@media (hover: none) {
+  .actions,
+  tr:has(.starred) .actions {
+    opacity: 1;
+  }
+
+  tr:has(.starred):not(:hover) .icon-btn:not(.star) {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .icon-btn:hover {
+    transform: none;
+  }
+}
+
+/* Phones: name and actions only; size and date would push the actions off-screen. */
+@media (max-width: 700px) {
+  .col-size,
+  .col-date,
+  .cell-size,
+  .cell-date {
+    display: none;
+  }
+
+  .files-table th,
+  .files-table td {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .files-table .col-check {
+    width: 40px;
+    padding-left: 14px;
+  }
+
+  .name-wrap {
+    gap: 12px;
+  }
+
+  .file-name {
+    max-width: 0; /* let the name column take what's left and ellipsise */
+    width: 100%;
+  }
+
+  /* One ⋯ button per row; its actions float in a pill beside it when opened. */
+  .actions {
+    position: relative;
+    opacity: 1;
+  }
+
+  .more-btn {
+    display: flex;
+  }
+
+  .star-mark {
+    display: inline;
+  }
+
+  .actions-wrap {
+    display: none;
+  }
+
+  .actions.open .actions-wrap {
+    position: absolute;
+    top: 50%;
+    right: 52px;
+    z-index: 5;
+    display: flex;
+    gap: 2px;
+    padding: 4px;
+    transform: translateY(-50%);
+    border: 1px solid var(--color-floating-border);
+    border-radius: var(--radius-pill);
+    background: var(--color-floating-bg);
+    box-shadow: var(--shadow-floating);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .actions.open .more-btn {
+    background: var(--color-surface-hover);
+    color: var(--color-text-heading);
+  }
+
+  /* Inside the pill every action is shown, starred or not. */
+  .actions.open .icon-btn {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .icon-btn {
+    width: 36px;
+    height: 36px;
+  }
 }

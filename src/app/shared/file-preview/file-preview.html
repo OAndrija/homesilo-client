@@ -1,0 +1,174 @@
+@if (file(); as file) {
+  <div
+    class="viewer"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="'Preview of ' + file.originalFileName"
+  >
+    <header class="bar">
+      <button
+        #closeButton
+        type="button"
+        class="bar-btn"
+        (click)="close()"
+        aria-label="Close preview"
+        title="Close (Esc)"
+      >
+        <span class="material-symbols-rounded">close</span>
+      </button>
+
+      <span class="file-icon" [style.--tint]="icon().color" aria-hidden="true">
+        <span class="material-symbols-rounded">{{ icon().icon }}</span>
+      </span>
+      <div class="title">
+        <div class="name" [title]="file.originalFileName">{{ file.originalFileName }}</div>
+        <div class="meta">
+          {{ formatBytes(file.size) }} · {{ file.lastModified | friendlyDate }}
+          @if (file.folderName) {
+            · in {{ file.folderName }}
+          }
+        </div>
+      </div>
+
+      @if (preview.count() > 1) {
+        <span class="counter" aria-live="polite"
+          >{{ preview.index() + 1 }} of {{ preview.count() }}</span
+        >
+      }
+
+      <div class="bar-actions">
+        @if (kind() !== 'none') {
+          <a
+            class="bar-btn"
+            [href]="url()"
+            target="_blank"
+            rel="noopener"
+            aria-label="Open in a new tab"
+            title="Open in a new tab"
+          >
+            <span class="material-symbols-rounded">open_in_new</span>
+          </a>
+        }
+        <button type="button" class="download-btn" (click)="download()">
+          <span class="material-symbols-rounded">download</span>
+          <span class="download-label">Download</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="stage" (click)="onStageClick($event)">
+      @switch (kind()) {
+        @case ('image') {
+          @if (mediaLoading() && !mediaFailed()) {
+            <span class="spinner" aria-hidden="true"></span>
+          }
+          @if (mediaFailed()) {
+            <div class="card">
+              <span class="card-icon" aria-hidden="true">
+                <span class="material-symbols-rounded">broken_image</span>
+              </span>
+              <div class="card-title">Couldn't show this image</div>
+              <p class="card-text">The file may be damaged. Download it to try another app.</p>
+            </div>
+          } @else {
+            <img
+              class="media image"
+              [class.hidden]="mediaLoading()"
+              [src]="url()"
+              [alt]="file.originalFileName"
+              (load)="mediaLoading.set(false)"
+              (error)="mediaFailed.set(true)"
+            />
+          }
+        }
+        @case ('video') {
+          <video class="media video" [src]="url()" controls playsinline preload="metadata">
+            Your browser can't play this video.
+          </video>
+        }
+        @case ('audio') {
+          <div class="card audio-card">
+            <span class="card-icon" aria-hidden="true">
+              <span class="material-symbols-rounded">music_note</span>
+            </span>
+            <div class="card-title">{{ file.originalFileName }}</div>
+            <audio [src]="url()" controls preload="metadata"></audio>
+          </div>
+        }
+        @case ('pdf') {
+          <iframe class="media pdf" [src]="frameUrl()" [title]="file.originalFileName"></iframe>
+        }
+        @case ('text') {
+          @if (textTooLarge()) {
+            <div class="card">
+              <span class="card-icon" aria-hidden="true">
+                <span class="material-symbols-rounded">description</span>
+              </span>
+              <div class="card-title">This file is too large to preview</div>
+              <p class="card-text">Download it to open it with an app on your device.</p>
+              <button type="button" class="download-btn" (click)="download()">
+                <span class="material-symbols-rounded">download</span>
+                Download
+              </button>
+            </div>
+          } @else if (mediaFailed()) {
+            <div class="card">
+              <span class="card-icon" aria-hidden="true">
+                <span class="material-symbols-rounded">error</span>
+              </span>
+              <div class="card-title">Couldn't load this file</div>
+              <p class="card-text">Try again, or download it instead.</p>
+            </div>
+          } @else if (text() === null) {
+            <span class="spinner" aria-hidden="true"></span>
+          } @else {
+            <div class="text-sheet">
+              <pre>{{ text() }}</pre>
+              @if (textTruncated()) {
+                <p class="truncated">
+                  Showing the beginning of the file. Download it to see the rest.
+                </p>
+              }
+            </div>
+          }
+        }
+        @default {
+          <div class="card">
+            <span class="card-icon" [style.--tint]="icon().color" aria-hidden="true">
+              <span class="material-symbols-rounded">{{ icon().icon }}</span>
+            </span>
+            <div class="card-title">No preview for this file type</div>
+            <p class="card-text">Download it to open it with an app on your device.</p>
+            <button type="button" class="download-btn" (click)="download()">
+              <span class="material-symbols-rounded">download</span>
+              Download
+            </button>
+          </div>
+        }
+      }
+
+      @if (preview.hasPrevious()) {
+        <button
+          type="button"
+          class="nav-btn prev"
+          (click)="preview.previous()"
+          aria-label="Previous file"
+          title="Previous (←)"
+        >
+          <span class="material-symbols-rounded">chevron_left</span>
+        </button>
+      }
+      @if (preview.hasNext()) {
+        <button
+          type="button"
+          class="nav-btn next"
+          (click)="preview.next()"
+          aria-label="Next file"
+          title="Next (→)"
+        >
+          <span class="material-symbols-rounded">chevron_right</span>
+        </button>
+      }
+    </div>
+  </div>
+}

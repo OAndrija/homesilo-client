@@ -174,9 +174,13 @@ export class Home {
     this.fileActions.download(file);
   }
 
-  /** Previews what the browser can show; anything else is downloaded. */
-  openOrDownload(file: FileMetadata): void {
-    if (!this.fileActions.open(file)) this.fileActions.download(file);
+  /** Opens the viewer, stepping through the section the file was clicked in. */
+  openStarred(file: FileMetadata): void {
+    this.fileActions.open(file, this.starredFiles());
+  }
+
+  openRecent(file: FileMetadata): void {
+    this.fileActions.open(file, this.recentFiles());
   }
 
   // ── Upload ────────────────────────────────────────────────────

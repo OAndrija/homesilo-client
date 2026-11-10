@@ -2,7 +2,7 @@ import { DOCUMENT } from '@angular/common';
 import { inject, Injectable } from '@angular/core';
 import { FileMetadata } from '../models/file-metadata';
 import { Folder } from '../models/folder';
-import { isPreviewable } from '../utils/file-preview.utils';
+import { FilePreviewService } from './file-preview';
 import { Files } from './files';
 
 /**
@@ -14,6 +14,7 @@ import { Files } from './files';
 export class FileActions {
   private files = inject(Files);
   private document = inject(DOCUMENT);
+  private preview = inject(FilePreviewService);
 
   download(file: FileMetadata): void {
     this.navigate(this.files.downloadUrl(file.id));
@@ -34,11 +35,12 @@ export class FileActions {
     );
   }
 
-  /** Opens a preview in a new tab. Returns false if the type can't be previewed. */
-  open(file: FileMetadata): boolean {
-    if (!isPreviewable(file.contentType)) return false;
-    this.document.defaultView?.open(this.files.previewUrl(file.id), '_blank', 'noopener');
-    return true;
+  /**
+   * Opens the in-app viewer on this file. `list` is the list it was opened from,
+   * so the viewer's previous/next arrows step through it.
+   */
+  open(file: FileMetadata, list?: FileMetadata[]): void {
+    this.preview.show(file, list);
   }
 
   private navigate(url: string): void {

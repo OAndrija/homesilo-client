@@ -1,14 +1,15 @@
-import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet, NavigationEnd } from '@angular/router';
 import { StorageIndicator } from '../storage-indicator/storage-indicator';
 import { Search } from '../../core/services/search';
 import { filter } from 'rxjs';
 import { AccountMenu } from '../account-menu/account-menu';
+import { FilePreview } from '../file-preview/file-preview';
 
 @Component({
   selector: 'app-layout',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, StorageIndicator, AccountMenu],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, StorageIndicator, AccountMenu, FilePreview],
   templateUrl: './layout.html',
   styleUrl: './layout.css',
 })
@@ -17,7 +18,7 @@ export class Layout implements OnInit {
   private searchService = inject(Search);
 
   sidebarOpen = signal(true);
-  searchInputValue = signal('');
+  searchInputValue = computed(() => this.searchService.text());
   isHome = signal(false);
 
   constructor() {
@@ -27,7 +28,6 @@ export class Layout implements OnInit {
         takeUntilDestroyed(inject(DestroyRef)),
       )
       .subscribe((event) => {
-        this.searchInputValue.set('');
         this.searchService.clear();
         // File search has nothing to search on the dashboard or in settings.
         const url = event.urlAfterRedirects;
@@ -42,13 +42,10 @@ export class Layout implements OnInit {
   }
 
   onSearchInput(event: Event): void {
-    const value = (event.target as HTMLInputElement).value;
-    this.searchInputValue.set(value);
-    this.searchService.setQuery(value);
+    this.searchService.setQuery((event.target as HTMLInputElement).value);
   }
 
   onClearSearch(): void {
-    this.searchInputValue.set('');
     this.searchService.clear();
   }
 

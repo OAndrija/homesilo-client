@@ -74,6 +74,11 @@ export class MyFiles {
   renameTarget = signal<RenameTarget | null>(null);
 
   isSearching = computed(() => this.searchService.query().trim().length > 0);
+  searchText = computed(() => this.searchService.query().trim());
+
+  clearSearch(): void {
+    this.searchService.clear();
+  }
   isAtRoot = computed(() => this.currentFolderId() === null);
   selectedCount = computed(
     () =>
@@ -308,12 +313,7 @@ export class MyFiles {
   }
 
   openFile(file: FileMetadata): void {
-    if (!this.fileActions.open(file)) {
-      this.errorMessage.set(
-        `Preview isn't available for "${file.originalFileName}". Download it instead.`,
-      );
-      this.fileTable()?.flashRowError(file.id);
-    }
+    this.fileActions.open(file, this.files());
   }
 
   trashFile(file: FileMetadata): void {

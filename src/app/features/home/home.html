@@ -275,7 +275,7 @@
           <button
             type="button"
             class="tile"
-            (click)="openOrDownload(file)"
+            (click)="openStarred(file)"
             [title]="file.originalFileName"
           >
             <span class="tile-icon" [style.--tint]="getFileIcon(file.originalFileName).color">
@@ -337,7 +337,7 @@
         [actions]="['download']"
         dateColumnLabel="Uploaded"
         (download)="downloadFile($event)"
-        (openFile)="openOrDownload($event)"
+        (openFile)="openRecent($event)"
       />
     </section>
   }

@@ -278,9 +278,29 @@ export class FileTable {
     this.lastClickedFolderIndex = null;
   }
 
+  // ── Phones: row actions open from a ⋯ button ─────────────────
+
+  openActionsId = signal<string | null>(null);
+
+  toggleActions(id: string, event: MouseEvent): void {
+    event.stopPropagation();
+    this.openActionsId.update((open) => (open === id ? null : id));
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscapeActions(): void {
+    this.openActionsId.set(null);
+  }
+
+  /** Called on pointerup inside the actions; waits so the button's click still lands. */
+  closeActionsSoon(): void {
+    setTimeout(() => this.openActionsId.set(null));
+  }
+
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     const target = event.target as Node;
+    if (!(target as Element).closest?.('.actions')) this.openActionsId.set(null);
     const clickedInsideTable = this.elementRef.nativeElement.contains(target);
     const clickedInsideBar = !!(target as Element).closest?.('[data-selection-bar]');
     const clickedInsideFolderPickerDialog = !!(target as Element).closest?.(

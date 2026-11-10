@@ -267,6 +267,7 @@
   font-weight: 600;
   color: var(--color-text-heading-alt);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .bd-pct {
@@ -782,13 +783,18 @@
 
 /* Narrow: silo above its text, cards 2 x 2 */
 @container dash (max-width: 760px) {
+  /* Narrow: a small silo beside the headline instead of a full-height one above it. */
   .hero {
-    grid-template-columns: 1fr;
-    padding: 24px;
-    gap: 20px;
+    grid-template-columns: 88px minmax(0, 1fr);
+    align-items: start;
+    padding: 20px;
+    gap: 18px;
+  }
+  .hero-visual {
+    padding-top: 6px;
   }
   .silo {
-    max-width: 150px;
+    max-width: 88px;
   }
   .free-num {
     font-size: 52px;
@@ -799,6 +805,16 @@
 }
 
 @container dash (max-width: 420px) {
+  .hero {
+    grid-template-columns: 64px minmax(0, 1fr);
+    gap: 14px;
+  }
+  .silo {
+    max-width: 64px;
+  }
+  .free-num {
+    font-size: 40px;
+  }
   .stat-card {
     min-height: 132px;
     padding: 16px;

@@ -1,3 +1,4 @@
+import { RouterLink } from '@angular/router';
 import { Component, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { Files } from '../../core/services/files';
 import { DashboardStore } from '../../core/services/dashboard-store';
@@ -12,7 +13,7 @@ import { errorMessage } from '../../core/http/http-error';
 
 @Component({
   selector: 'app-starred',
-  imports: [FileTable, SelectionBar, LoadingDelayPipe],
+  imports: [FileTable, SelectionBar, LoadingDelayPipe, RouterLink],
   templateUrl: './starred.html',
   styleUrl: './starred.css',
 })
@@ -32,6 +33,11 @@ export class Starred {
   hasMore = signal(false);
 
   isSearching = computed(() => this.searchService.query().trim().length > 0);
+  searchText = computed(() => this.searchService.query().trim());
+
+  clearSearch(): void {
+    this.searchService.clear();
+  }
 
   constructor() {
     effect(() => {
@@ -123,12 +129,7 @@ export class Starred {
   }
 
   openFile(file: FileMetadata): void {
-    if (!this.fileActions.open(file)) {
-      this.errorMessage.set(
-        `Preview isn't available for "${file.originalFileName}". Download it instead.`,
-      );
-      this.fileTable()?.flashRowError(file.id);
-    }
+    this.fileActions.open(file, this.files());
   }
 
   onDownloadAll(): void {

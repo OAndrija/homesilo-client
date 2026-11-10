@@ -17,7 +17,7 @@
         [disabled]="totalCount() === 0"
       >
         <span class="material-symbols-rounded">delete_sweep</span>
-        Empty Trash
+        Empty trash
       </button>
     </div>
   </div>
@@ -27,17 +27,35 @@
   }
 
   @if (loading() | loadingDelay) {
-    <div class="empty-state">Loading...</div>
+    <div class="loading-state" role="status">
+      <span class="spinner" aria-hidden="true"></span>Loading…
+    </div>
   } @else if (!loading() && files().length === 0 && folders().length === 0) {
     <div class="empty-state">
       @if (isSearching()) {
-        <span class="material-symbols-rounded empty-icon">search_off</span>
-        <h3>No results found</h3>
-        <p>Try a different search term.</p>
+        <span class="empty-icon" aria-hidden="true">
+          <span class="material-symbols-rounded">search_off</span>
+        </span>
+        <h3>No matches for “{{ searchText() }}”</h3>
+        <p>Check the spelling, or try a shorter search.</p>
+        <div class="empty-actions">
+          <button type="button" class="header-btn secondary" (click)="clearSearch()">
+            Clear search
+          </button>
+        </div>
       } @else {
-        <span class="material-symbols-rounded empty-icon">delete</span>
+        <span class="empty-icon" aria-hidden="true">
+          <span class="material-symbols-rounded">delete</span>
+        </span>
         <h3>Trash is empty</h3>
-        <p>Files and folders you move to trash will appear here.</p>
+        <p>
+          Files and folders you delete land here first
+          @if (retentionDays() > 0) {
+            and are removed for good after {{ retentionDays() }} days.
+          } @else {
+            until you empty the trash.
+          }
+        </p>
       }
     </div>
   } @else if (!loading()) {

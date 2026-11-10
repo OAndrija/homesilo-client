@@ -1,9 +1,9 @@
-import { DOCUMENT } from '@angular/common';
 import { provideHttpClient } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { FileMetadata } from '../models/file-metadata';
 import { Folder } from '../models/folder';
 import { FileActions } from './file-actions';
+import { FilePreviewService } from './file-preview';
 
 function file(id: string, contentType = 'text/plain'): FileMetadata {
   return {
@@ -49,12 +49,11 @@ describe('FileActions', () => {
     expect(clicked[0]).toBe('/api/v1/files/download-zip?fileIds=a&fileIds=b&folderIds=f1');
   });
 
-  it('refuses to preview unsupported types', () => {
-    const open = vi.spyOn(TestBed.inject(DOCUMENT).defaultView!, 'open').mockReturnValue(null);
-    expect(actions.open(file('z', 'application/zip'))).toBe(false);
-    expect(open).not.toHaveBeenCalled();
-
-    expect(actions.open(file('p', 'application/pdf'))).toBe(true);
-    expect(open).toHaveBeenCalledWith('/api/v1/files/p/preview', '_blank', 'noopener');
+  it('opens the in-app viewer on the file, within the list it came from', () => {
+    const preview = TestBed.inject(FilePreviewService);
+    const list = [file('a', 'image/png'), file('z', 'application/zip')];
+    actions.open(list[1], list);
+    expect(preview.current()?.id).toBe('z');
+    expect(preview.count()).toBe(2);
   });
 });

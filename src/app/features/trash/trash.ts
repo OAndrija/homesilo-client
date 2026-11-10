@@ -40,6 +40,11 @@ export class Trash {
   hasMore = signal(false);
 
   isSearching = computed(() => this.searchService.query().trim().length > 0);
+  searchText = computed(() => this.searchService.query().trim());
+
+  clearSearch(): void {
+    this.searchService.clear();
+  }
 
   totalCount = computed(() => this.files().length + this.folders().length);
   retentionDays = computed(() => this.dashboardStore.stats()?.trashRetentionDays ?? 0);

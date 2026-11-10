@@ -15,8 +15,8 @@
           </th>
         }
         <th>Name</th>
-        <th>Size</th>
-        <th>{{ dateColumnLabel() }}</th>
+        <th class="col-size">Size</th>
+        <th class="col-date">{{ dateColumnLabel() }}</th>
         <th></th>
       </tr>
     </thead>
@@ -51,64 +51,77 @@
             </td>
           }
           <td class="file-name" [title]="folder.name">
-            <span class="material-symbols-rounded file-icon folder-icon">folder</span>
-            <span class="name-text">{{ folder.name }}</span>
+            <div class="name-wrap">
+              <span class="material-symbols-rounded file-icon folder-icon">folder</span>
+              <span class="name-text">{{ folder.name }}</span>
+            </div>
           </td>
-          <td class="cell-muted">—</td>
+          <td class="cell-muted cell-size">—</td>
           <td class="cell-date" [title]="folder.trashedAt ?? folder.lastModified | exactDate">
             {{ folder.trashedAt ?? folder.lastModified | friendlyDate }}
           </td>
-          <td class="actions">
-            @if (hasAction('download')) {
-              <button
-                class="icon-btn download"
-                (click)="folderDownload.emit(folder); $event.stopPropagation()"
-                title="Download as zip"
-                aria-label="Download folder as zip"
-              >
-                <span class="material-symbols-rounded">download</span>
-              </button>
-            }
-            @if (hasAction('rename')) {
-              <button
-                class="icon-btn"
-                (click)="folderRename.emit(folder); $event.stopPropagation()"
-                title="Rename"
-                aria-label="Rename folder"
-              >
-                <span class="material-symbols-rounded">edit</span>
-              </button>
-            }
-            @if (hasAction('trash')) {
-              <button
-                class="icon-btn danger"
-                (click)="folderTrash.emit(folder); $event.stopPropagation()"
-                title="Move to trash"
-                aria-label="Move to trash"
-              >
-                <span class="material-symbols-rounded">delete</span>
-              </button>
-            }
-            @if (hasAction('restore')) {
-              <button
-                class="icon-btn restore"
-                (click)="folderRestore.emit(folder); $event.stopPropagation()"
-                title="Restore"
-                aria-label="Restore"
-              >
-                <span class="material-symbols-rounded">restore_from_trash</span>
-              </button>
-            }
-            @if (hasAction('deleteForever')) {
-              <button
-                class="icon-btn danger"
-                (click)="folderDeleteForever.emit(folder); $event.stopPropagation()"
-                title="Delete forever"
-                aria-label="Delete forever"
-              >
-                <span class="material-symbols-rounded">delete_forever</span>
-              </button>
-            }
+          <td class="actions" [class.open]="openActionsId() === folder.id">
+            <button
+              type="button"
+              class="icon-btn more-btn"
+              (click)="toggleActions(folder.id, $event)"
+              [attr.aria-expanded]="openActionsId() === folder.id"
+              [attr.aria-label]="'Actions for ' + folder.name"
+            >
+              <span class="material-symbols-rounded">more_horiz</span>
+            </button>
+            <div class="actions-wrap" (pointerup)="closeActionsSoon()">
+              @if (hasAction('download')) {
+                <button
+                  class="icon-btn download"
+                  (click)="folderDownload.emit(folder); $event.stopPropagation()"
+                  title="Download as zip"
+                  aria-label="Download folder as zip"
+                >
+                  <span class="material-symbols-rounded">download</span>
+                </button>
+              }
+              @if (hasAction('rename')) {
+                <button
+                  class="icon-btn"
+                  (click)="folderRename.emit(folder); $event.stopPropagation()"
+                  title="Rename"
+                  aria-label="Rename folder"
+                >
+                  <span class="material-symbols-rounded">edit</span>
+                </button>
+              }
+              @if (hasAction('trash')) {
+                <button
+                  class="icon-btn danger"
+                  (click)="folderTrash.emit(folder); $event.stopPropagation()"
+                  title="Move to trash"
+                  aria-label="Move to trash"
+                >
+                  <span class="material-symbols-rounded">delete</span>
+                </button>
+              }
+              @if (hasAction('restore')) {
+                <button
+                  class="icon-btn restore"
+                  (click)="folderRestore.emit(folder); $event.stopPropagation()"
+                  title="Restore"
+                  aria-label="Restore"
+                >
+                  <span class="material-symbols-rounded">restore_from_trash</span>
+                </button>
+              }
+              @if (hasAction('deleteForever')) {
+                <button
+                  class="icon-btn danger"
+                  (click)="folderDeleteForever.emit(folder); $event.stopPropagation()"
+                  title="Delete forever"
+                  aria-label="Delete forever"
+                >
+                  <span class="material-symbols-rounded">delete_forever</span>
+                </button>
+              }
+            </div>
           </td>
         </tr>
       }
@@ -138,79 +151,95 @@
             </td>
           }
           <td class="file-name" [title]="file.originalFileName">
-            <span
-              class="material-symbols-rounded file-icon"
-              [style.color]="getFileIcon(file.originalFileName).color"
-            >
-              {{ getFileIcon(file.originalFileName).icon }}
-            </span>
-            <span class="name-text">{{ file.originalFileName }}</span>
+            <div class="name-wrap">
+              <span
+                class="material-symbols-rounded file-icon"
+                [style.color]="getFileIcon(file.originalFileName).color"
+              >
+                {{ getFileIcon(file.originalFileName).icon }}
+              </span>
+              <span class="name-text">{{ file.originalFileName }}</span>
+              @if (file.starred) {
+                <span class="material-symbols-rounded star-mark" aria-label="Starred">star</span>
+              }
+            </div>
           </td>
           <td class="cell-size">{{ formatSize(file.size) }}</td>
           <td class="cell-date" [title]="file.trashedAt ?? file.lastModified | exactDate">
             {{ file.trashedAt ?? file.lastModified | friendlyDate }}
           </td>
-          <td class="actions">
-            @if (hasAction('download')) {
-              <button
-                class="icon-btn download"
-                (click)="download.emit(file); $event.stopPropagation()"
-                title="Download"
-                aria-label="Download"
-              >
-                <span class="material-symbols-rounded">download</span>
-              </button>
-            }
-            @if (hasAction('rename')) {
-              <button
-                class="icon-btn"
-                (click)="rename.emit(file); $event.stopPropagation()"
-                title="Rename"
-                aria-label="Rename file"
-              >
-                <span class="material-symbols-rounded">edit</span>
-              </button>
-            }
-            @if (hasAction('trash')) {
-              <button
-                class="icon-btn danger"
-                (click)="trash.emit(file); $event.stopPropagation()"
-                title="Move to trash"
-                aria-label="Move to trash"
-              >
-                <span class="material-symbols-rounded">delete</span>
-              </button>
-            }
-            @if (hasAction('star')) {
-              <button
-                class="icon-btn star"
-                [class.starred]="file.starred"
-                (click)="star.emit(file); $event.stopPropagation()"
-                [title]="file.starred ? 'Unstar' : 'Star'"
-              >
-                <span class="material-symbols-rounded star-icon-glyph">star</span>
-              </button>
-            }
-            @if (hasAction('restore')) {
-              <button
-                class="icon-btn restore"
-                (click)="restore.emit(file); $event.stopPropagation()"
-                title="Restore"
-                aria-label="Restore"
-              >
-                <span class="material-symbols-rounded">restore_from_trash</span>
-              </button>
-            }
-            @if (hasAction('deleteForever')) {
-              <button
-                class="icon-btn danger"
-                (click)="deleteForever.emit(file); $event.stopPropagation()"
-                title="Delete forever"
-                aria-label="Delete forever"
-              >
-                <span class="material-symbols-rounded">delete_forever</span>
-              </button>
-            }
+          <td class="actions" [class.open]="openActionsId() === file.id">
+            <button
+              type="button"
+              class="icon-btn more-btn"
+              (click)="toggleActions(file.id, $event)"
+              [attr.aria-expanded]="openActionsId() === file.id"
+              [attr.aria-label]="'Actions for ' + file.originalFileName"
+            >
+              <span class="material-symbols-rounded">more_horiz</span>
+            </button>
+            <div class="actions-wrap" (pointerup)="closeActionsSoon()">
+              @if (hasAction('download')) {
+                <button
+                  class="icon-btn download"
+                  (click)="download.emit(file); $event.stopPropagation()"
+                  title="Download"
+                  aria-label="Download"
+                >
+                  <span class="material-symbols-rounded">download</span>
+                </button>
+              }
+              @if (hasAction('rename')) {
+                <button
+                  class="icon-btn"
+                  (click)="rename.emit(file); $event.stopPropagation()"
+                  title="Rename"
+                  aria-label="Rename file"
+                >
+                  <span class="material-symbols-rounded">edit</span>
+                </button>
+              }
+              @if (hasAction('trash')) {
+                <button
+                  class="icon-btn danger"
+                  (click)="trash.emit(file); $event.stopPropagation()"
+                  title="Move to trash"
+                  aria-label="Move to trash"
+                >
+                  <span class="material-symbols-rounded">delete</span>
+                </button>
+              }
+              @if (hasAction('star')) {
+                <button
+                  class="icon-btn star"
+                  [class.starred]="file.starred"
+                  (click)="star.emit(file); $event.stopPropagation()"
+                  [title]="file.starred ? 'Unstar' : 'Star'"
+                >
+                  <span class="material-symbols-rounded star-icon-glyph">star</span>
+                </button>
+              }
+              @if (hasAction('restore')) {
+                <button
+                  class="icon-btn restore"
+                  (click)="restore.emit(file); $event.stopPropagation()"
+                  title="Restore"
+                  aria-label="Restore"
+                >
+                  <span class="material-symbols-rounded">restore_from_trash</span>
+                </button>
+              }
+              @if (hasAction('deleteForever')) {
+                <button
+                  class="icon-btn danger"
+                  (click)="deleteForever.emit(file); $event.stopPropagation()"
+                  title="Delete forever"
+                  aria-label="Delete forever"
+                >
+                  <span class="material-symbols-rounded">delete_forever</span>
+                </button>
+              }
+            </div>
           </td>
         </tr>
       }

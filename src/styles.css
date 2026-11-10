@@ -354,7 +354,122 @@ body {
 }
 
 @media (max-width: 600px) {
+  /* Phones: the title on its own line, the actions below it at full width. */
+  .page-header {
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+
   .page-header h2 {
     font-size: 24px;
+  }
+
+  .header-actions {
+    width: 100%;
+  }
+
+  .header-actions .header-btn:not(.icon-only) {
+    flex: 1;
+    justify-content: center;
+    height: 44px;
+    padding: 0 14px;
+  }
+
+  .header-btn.icon-only {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+/* ── Empty and loading states (My Files, Starred, Trash) ──────────────── */
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 360px;
+  padding: 48px 24px;
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-2xl);
+  text-align: center;
+}
+
+.empty-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 18px;
+  border-radius: var(--radius-xl);
+  color: var(--color-accent-text);
+  background: var(--color-accent-bg);
+}
+
+.empty-icon .material-symbols-rounded {
+  font-size: 32px;
+}
+
+.empty-state h3 {
+  margin: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  color: var(--color-text-heading);
+  font-family: var(--font-heading);
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.empty-state p {
+  max-width: 46ch;
+  margin: 8px 0 0;
+  color: var(--color-text-subtitle);
+  font-size: 14.5px;
+  line-height: 1.55;
+}
+
+.empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.empty-actions .header-btn {
+  height: 42px;
+  padding: 0 16px;
+  font-size: 14px;
+}
+
+.loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 240px;
+  color: var(--color-text-subtitle);
+  font-size: 14px;
+}
+
+.loading-state .spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--color-border-strong);
+  border-top-color: var(--color-accent);
+  border-radius: 50%;
+  animation: hs-spin 0.7s linear infinite;
+}
+
+@keyframes hs-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-state .spinner {
+    animation-duration: 2s;
   }
 }

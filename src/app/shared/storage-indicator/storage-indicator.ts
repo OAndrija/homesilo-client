@@ -26,7 +26,8 @@ export class StorageIndicator {
     this.store.ensureLoaded();
   }
 
+  /** One decimal, without a trailing ".0" (1.5, 100), matching the dashboard. */
   formatGB(bytes: number): string {
-    return (bytes / (1024 * 1024 * 1024)).toFixed(1);
+    return String(Number((bytes / (1024 * 1024 * 1024)).toFixed(1)));
   }
 }

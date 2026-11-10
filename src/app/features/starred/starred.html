@@ -9,17 +9,34 @@
     <div class="server-error" role="alert">{{ errorMessage() }}</div>
   }
   @if (loading() | loadingDelay) {
-    <div class="empty-state">Loading files...</div>
+    <div class="loading-state" role="status">
+      <span class="spinner" aria-hidden="true"></span>Loading…
+    </div>
   } @else if (!loading() && files().length === 0) {
     <div class="empty-state">
       @if (isSearching()) {
-        <span class="material-symbols-rounded empty-icon">search_off</span>
-        <h3>No results found</h3>
-        <p>Try a different search term.</p>
+        <span class="empty-icon" aria-hidden="true">
+          <span class="material-symbols-rounded">search_off</span>
+        </span>
+        <h3>No matches for “{{ searchText() }}”</h3>
+        <p>Check the spelling, or try a shorter search.</p>
+        <div class="empty-actions">
+          <button type="button" class="header-btn secondary" (click)="clearSearch()">
+            Clear search
+          </button>
+        </div>
       } @else {
-        <span class="material-symbols-rounded empty-icon">star</span>
-        <h3>No starred files yet</h3>
-        <p>Files you star will appear here.</p>
+        <span class="empty-icon" aria-hidden="true">
+          <span class="material-symbols-rounded">star</span>
+        </span>
+        <h3>Nothing starred yet</h3>
+        <p>Star the files you use most and they'll wait for you here.</p>
+        <div class="empty-actions">
+          <a class="header-btn secondary" routerLink="/my-files">
+            <span class="material-symbols-rounded">folder_open</span>
+            Go to My Files
+          </a>
+        </div>
       }
     </div>
   } @else if (!loading()) {
