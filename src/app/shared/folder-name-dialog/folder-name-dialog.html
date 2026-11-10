@@ -39,18 +39,26 @@
           (input)="value.set($any($event.target).value)"
           [class.invalid]="!!problem() || !!error()"
           [attr.aria-invalid]="!!problem() || !!error()"
-          aria-describedby="name-dialog-error"
+          aria-describedby="name-dialog-hint name-dialog-error"
+          [style.padding-right.px]="extension() ? suffixSpace() : null"
           [disabled]="busy()"
-          maxlength="255"
+          [attr.maxlength]="maxBaseLength()"
           autocomplete="off"
           spellcheck="false"
         />
+        @if (extension()) {
+          <span #extensionTag class="dlg-suffix" aria-hidden="true">.{{ extension() }}</span>
+        }
       </div>
       @if (problem() || error(); as message) {
         <div class="dlg-error" id="name-dialog-error" role="alert">
           <span class="material-symbols-rounded" aria-hidden="true">error</span>
           <span>{{ message }}</span>
         </div>
+      } @else if (extension()) {
+        <p class="dlg-hint" id="name-dialog-hint">
+          The .{{ extension() }} extension stays, so the file still opens the same way.
+        </p>
       }
     </div>
 

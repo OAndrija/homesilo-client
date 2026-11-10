@@ -288,6 +288,32 @@
   opacity: 0.7;
 }
 
+/* A fixed part of the value, e.g. a file's extension while renaming it. */
+.dlg-suffix {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  max-width: 40%;
+  padding: 4px 9px;
+  overflow: hidden;
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-surface-hover);
+  color: var(--color-text-muted);
+  font-size: 13.5px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.dlg-hint {
+  margin: 10px 0 0;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
 .dlg-error {
   display: flex;
   align-items: flex-start;

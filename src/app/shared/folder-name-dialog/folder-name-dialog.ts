@@ -19,6 +19,26 @@ export function nameProblem(name: string): string | null {
   return null;
 }
 
+/**
+ * A file's extension as the server sees it: the text after the last dot, or "" when
+ * there is none (dot-files like ".env" count as having no extension).
+ */
+export function fileExtension(name: string): string {
+  const dot = name.lastIndexOf('.');
+  return dot > 0 && dot < name.length - 1 ? name.slice(dot + 1) : '';
+}
+
+/**
+ * The full file name for an edited base name. Typing the extension out of habit
+ * ("summary.pdf" in a box that already ends in .pdf) doesn't double it.
+ */
+export function withExtension(base: string, extension: string): string {
+  const trimmed = base.trim();
+  if (!extension) return trimmed;
+  const suffix = `.${extension}`;
+  return trimmed.toLowerCase().endsWith(suffix.toLowerCase()) ? trimmed : trimmed + suffix;
+}
+
 @Component({
   selector: 'app-folder-name-dialog',
   templateUrl: './folder-name-dialog.html',
@@ -38,10 +58,25 @@ export class FolderNameDialog implements OnInit, AfterViewInit {
   cancel = output<void>();
 
   nameInput = viewChild<ElementRef<HTMLInputElement>>('nameInput');
+  extensionTag = viewChild<ElementRef<HTMLElement>>('extensionTag');
+  /** What's in the text box: the whole name, or for a file rename just the part before the extension. */
   value = signal('');
+  /** Room kept free on the right of the input for the extension tag. */
+  suffixSpace = signal(0);
 
-  problem = computed(() => nameProblem(this.value()));
-  unchanged = computed(() => this.value().trim() === this.initialName());
+  /**
+   * Renaming a file keeps its extension: the type was detected at upload, so
+   * "report.pdf" → "report.i" would preview as a PDF but download as ".i". The server
+   * refuses that too; here the extension is a fixed tag next to the name.
+   */
+  extension = computed(() =>
+    this.mode() === 'rename' && this.itemType() === 'file' ? fileExtension(this.initialName()) : '',
+  );
+  fullName = computed(() => withExtension(this.value(), this.extension()));
+  maxBaseLength = computed(() => 255 - (this.extension() ? this.extension().length + 1 : 0));
+
+  problem = computed(() => nameProblem(this.fullName()));
+  unchanged = computed(() => this.fullName() === this.initialName());
   canSave = computed(
     () => !!this.value().trim() && !this.problem() && !this.unchanged() && !this.busy(),
   );
@@ -55,7 +90,9 @@ export class FolderNameDialog implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     // Seed before the first render so the selection below isn't reset by the value binding.
-    this.value.set(this.initialName());
+    const extension = this.extension();
+    const name = this.initialName();
+    this.value.set(extension ? name.slice(0, -(extension.length + 1)) : name);
   }
 
   ngAfterViewInit(): void {
@@ -63,15 +100,14 @@ export class FolderNameDialog implements OnInit, AfterViewInit {
     if (el) {
       el.value = this.value();
       el.focus();
-      // For files, pre-select only the base name so the extension survives typing.
-      const dot = this.itemType() === 'file' ? this.initialName().lastIndexOf('.') : -1;
-      if (dot > 0) el.setSelectionRange(0, dot);
-      else el.select();
+      el.select();
     }
+    const tag = this.extensionTag()?.nativeElement;
+    if (tag) this.suffixSpace.set(tag.offsetWidth + 20);
   }
 
   onConfirm(): void {
-    if (this.canSave()) this.confirm.emit(this.value().trim());
+    if (this.canSave()) this.confirm.emit(this.fullName());
   }
 
   onBackdropClick(event: MouseEvent): void {
