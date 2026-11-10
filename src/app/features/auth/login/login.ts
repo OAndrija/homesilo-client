@@ -4,12 +4,13 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { errorMessage } from '../../../core/http/http-error';
 import { Auth } from '../../../core/services/auth';
+import { AuthShell } from '../auth-shell/auth-shell';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, AuthShell],
   templateUrl: './login.html',
-  styleUrl: './login.css',
+  styleUrl: '../auth-form.css',
 })
 export class Login {
   private auth = inject(Auth);
@@ -22,6 +23,7 @@ export class Login {
   });
 
   submitted = false;
+  showPassword = signal(false);
 
   errorMessage = signal('');
   loading = signal(false);
