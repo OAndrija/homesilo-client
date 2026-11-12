@@ -5,22 +5,6 @@
   box-sizing: border-box;
 }
 
-/* ── Top row: silo (left) + four cards (right) ───────────── */
-/* The wrapper is the size container, so the layout follows the space the page
-   really has (sidebar open or collapsed), not just the viewport width. */
-.top-wrap {
-  container-name: dash;
-  container-type: inline-size;
-  margin-bottom: 32px;
-}
-
-.dash-top {
-  display: grid;
-  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
-  align-items: stretch;
-  gap: 16px;
-}
-
 /* ── Hero: the storage silo ─────────────────────────────── */
 /* Built like the stat cards beside it (one --hue drives border, glow and top line),
    in the green of the HomeSilo logo. */
@@ -276,14 +260,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* ── Four cards: one hue each, a pop of colour ───────────── */
-.stat-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-auto-rows: minmax(0, 1fr);
-  gap: 16px;
-}
-
+/* ── Stat cards: one hue each, a pop of colour ───────────── */
 /* Each card is driven by a single --hue; tint, glow, chip and tag all derive from it. */
 .stat-card {
   --hue: var(--color-accent);
@@ -327,6 +304,9 @@
 }
 .tone-star {
   --hue: var(--color-star);
+}
+.tone-trash {
+  --hue: var(--cat-trash);
 }
 
 /* thin light line along the top edge */
@@ -509,11 +489,6 @@
   font-size: 14px;
 }
 
-/* ── Sections below the overview ────────────────────────── */
-.home-section {
-  margin-top: 36px;
-}
-
 /* Starred files and folders share one tile style. */
 .tile-grid {
   display: grid;
@@ -622,7 +597,7 @@
   display: flex;
   align-items: center;
   gap: 20px;
-  margin-top: 36px;
+  margin-bottom: 24px;
   padding: 24px 28px;
   border: 1px dashed var(--color-border-strong);
   border-radius: var(--radius-2xl);
@@ -701,78 +676,6 @@
   text-decoration: underline;
 }
 
-/* ── Responsive + motion ─────────────────────────────────── */
-/* Stacked: silo on top, four cards in a row underneath */
-@container dash (max-width: 1000px) {
-  .dash-top {
-    grid-template-columns: 1fr;
-  }
-  .hero {
-    grid-template-columns: 260px minmax(0, 1fr);
-    gap: 40px;
-    padding: 28px 40px 28px 32px;
-  }
-  .silo {
-    max-width: 180px;
-  }
-  .free-num {
-    font-size: 64px;
-  }
-  .stat-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-}
-
-/* Narrow: silo above its text, cards 2 x 2 */
-@container dash (max-width: 760px) {
-  /* Narrow: a small silo beside the headline instead of a full-height one above it. */
-  .hero {
-    grid-template-columns: 88px minmax(0, 1fr);
-    align-items: start;
-    padding: 20px;
-    gap: 18px;
-  }
-  .hero-visual {
-    padding-top: 6px;
-  }
-  .silo {
-    max-width: 88px;
-  }
-  .free-num {
-    font-size: 52px;
-  }
-  .stat-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@container dash (max-width: 420px) {
-  .hero {
-    grid-template-columns: 64px minmax(0, 1fr);
-    gap: 14px;
-  }
-  .silo {
-    max-width: 64px;
-  }
-  .free-num {
-    font-size: 40px;
-  }
-  .stat-card {
-    min-height: 132px;
-    padding: 16px;
-  }
-  .stat-icon {
-    width: 40px;
-    height: 40px;
-  }
-  .stat-value {
-    font-size: 36px;
-  }
-  .stat-value-text {
-    font-size: 24px;
-  }
-}
-
 @media (max-width: 760px) {
   .get-started {
     flex-direction: column;
@@ -788,8 +691,14 @@
   .stat-card,
   .stat-watermark,
   .stat-go,
-  .tile {
+  .tile,
+  .quick-btn,
+  .add-card,
+  .photo img {
     transition: none;
+  }
+  .tile-ghost {
+    transform: none;
   }
   .stat-card.is-link:hover {
     transform: none;
