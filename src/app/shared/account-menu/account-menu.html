@@ -67,6 +67,17 @@
             </button>
           }
         </div>
+        <a
+          class="menu-item"
+          role="menuitem"
+          routerLink="/settings"
+          fragment="appearance"
+          (click)="close()"
+        >
+          <span class="material-symbols-rounded" aria-hidden="true">palette</span>
+          <span class="item-text">Themes</span>
+          <span class="item-meta">{{ themeService.active().label }}</span>
+        </a>
       </div>
 
       <div class="menu-section">

@@ -1,4 +1,4 @@
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { DatePipe, DecimalPipe, NgTemplateOutlet } from '@angular/common';
 import {
   afterNextRender,
   Component,
@@ -16,12 +16,13 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize } from 'rxjs';
 import { errorMessage } from '../../core/http/http-error';
 import { Auth } from '../../core/services/auth';
 import { DashboardStore } from '../../core/services/dashboard-store';
-import { ThemePreference, ThemeService } from '../../core/services/theme';
+import { Theme, ThemeDefinition, ThemePreference, ThemeService } from '../../core/services/theme';
 import { formatBytes } from '../../core/utils/format';
 import { ActivityEntry } from '../../core/models/activity';
 import { ActivityApi } from '../../core/services/activity';
@@ -37,7 +38,7 @@ type SectionId = 'account' | 'appearance' | 'security' | 'activity' | 'storage';
 
 @Component({
   selector: 'app-settings',
-  imports: [ReactiveFormsModule, DatePipe, DecimalPipe, RouterLink, ActivityItem],
+  imports: [ReactiveFormsModule, DatePipe, DecimalPipe, NgTemplateOutlet, RouterLink, ActivityItem],
   templateUrl: './settings.html',
   styleUrl: './settings.css',
 })
@@ -47,6 +48,7 @@ export class Settings {
   protected themeService = inject(ThemeService);
   private host = inject(ElementRef<HTMLElement>);
   private activityApi = inject(ActivityApi);
+  private route = inject(ActivatedRoute);
 
   user = this.auth.user;
   initial = computed(() => (this.user()?.username ?? '?').charAt(0).toUpperCase());
@@ -64,9 +66,29 @@ export class Settings {
 
   readonly themeOptions: { value: ThemePreference; label: string; hint: string }[] = [
     { value: 'system', label: 'System', hint: 'Match your device' },
-    { value: 'light', label: 'Light', hint: 'Bright and clean' },
-    { value: 'dark', label: 'Dark', hint: 'Easy on the eyes' },
+    { value: 'light', label: 'Light', hint: 'Always light' },
+    { value: 'dark', label: 'Dark', hint: 'Always dark' },
   ];
+  readonly themeGroups: {
+    mode: Theme;
+    title: string;
+    hint: string;
+    themes: readonly ThemeDefinition[];
+  }[] = [
+    {
+      mode: 'light',
+      title: 'Light theme',
+      hint: 'Used in light mode.',
+      themes: this.themeService.lightThemes,
+    },
+    {
+      mode: 'dark',
+      title: 'Dark theme',
+      hint: 'Used in dark mode.',
+      themes: this.themeService.darkThemes,
+    },
+  ];
+  chosen = this.themeService.chosen;
 
   // ── Storage ──
   stats = this.store.stats;
@@ -124,6 +146,12 @@ export class Settings {
     this.store.ensureLoaded();
     this.loadActivity(0);
 
+    // Links such as /settings#appearance open at that section, also from Settings itself.
+    this.route.fragment.pipe(takeUntilDestroyed()).subscribe((fragment) => {
+      const linked = this.sections.find((s) => s.id === fragment);
+      if (linked) setTimeout(() => this.goTo(linked.id));
+    });
+
     // Highlight the section being read in the side navigation.
     const destroyRef = inject(DestroyRef);
     afterNextRender(() => {
@@ -171,7 +199,7 @@ export class Settings {
       ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  setTheme(preference: ThemePreference): void {
+  setMode(preference: ThemePreference): void {
     this.themeService.setPreference(preference);
   }
 

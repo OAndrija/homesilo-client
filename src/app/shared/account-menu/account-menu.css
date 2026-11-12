@@ -268,3 +268,13 @@
     padding: 0 4px;
   }
 }
+
+.menu-item .item-text {
+  flex: 1;
+}
+
+.menu-item .item-meta {
+  color: var(--color-text-faint);
+  font-size: 12.5px;
+  font-weight: 500;
+}
