@@ -6,10 +6,12 @@
  * theme with its real colours.
  *
  * Tints of the accent (selection, badges, the floating bar's border) are mixed from
- * each theme's accent, so a theme only names its accent once.
+ * each theme's accent, so a theme only names its accent once. An accent picked in
+ * Settings (data-accent, with --color-accent set on <html>) gets its tints the same way.
  */
 
-[data-palette]:not([data-palette^='homesilo']) {
+[data-palette]:not([data-palette^='homesilo']),
+[data-accent] {
   --color-accent-bg-faint: color-mix(in srgb, var(--color-accent) 6%, transparent);
   --color-accent-bg-subtle: color-mix(in srgb, var(--color-accent) 8%, transparent);
   --color-accent-bg: color-mix(in srgb, var(--color-accent) 11%, transparent);
@@ -20,7 +22,8 @@
   --color-accent-bg-deepest: color-mix(in srgb, var(--color-accent) 38%, transparent);
 }
 
-[data-theme='dark'][data-palette]:not([data-palette^='homesilo']) {
+[data-theme='dark'][data-palette]:not([data-palette^='homesilo']),
+[data-theme='dark'][data-accent] {
   --color-floating-bg: color-mix(in srgb, var(--color-surface-hover) 88%, transparent);
   --color-floating-border: color-mix(in srgb, var(--color-accent) 26%, transparent);
 }
@@ -795,4 +798,567 @@
   --color-info: #7fbbb3;
   --color-highlight: #d699b6;
   --silo-green: #a7c080;
+}
+
+/* ── Gruvbox Material, hard: the darkest of its three backgrounds */
+
+[data-palette='gruvbox-material-dark-hard'] {
+  --color-bg: #1d2021;
+  --color-bg-elevated: #141617;
+  --color-surface: #282828;
+  --color-surface-alt: #2c2a29;
+  --color-surface-input: #32302f;
+  --color-surface-hover: #3c3836;
+  --color-surface-header: #2c2a29;
+  --color-border-faint: #232526;
+  --color-border-subtle: #2c2a29;
+  --color-border: #3c3836;
+  --color-border-alt: #423e3b;
+  --color-border-strong: #504945;
+  --color-border-stronger: #7c6f64;
+  --color-text-primary: #ddc7a1;
+  --color-text-heading: #ddc7a1;
+  --color-text-heading-alt: #d4be98;
+  --color-text-body: #d4be98;
+  --color-text-muted: #a89984;
+  --color-text-subtitle: #a89984;
+  --color-text-icon-muted: #a89984;
+  --color-text-empty: #928374;
+  --color-text-faint: #928374;
+  --color-text-dim: #7c6f64;
+  --color-text-placeholder: #5a524c;
+  --color-accent: #a9b665;
+  --color-accent-text: #a9b665;
+  --color-accent-hover: #b8c477;
+  --color-text-on-accent: #1d2021;
+  --color-danger: #ea6962;
+  --color-danger-text: #ea6962;
+  --color-success: #a9b665;
+  --color-star: #d8a657;
+  --color-warning: #e78a4e;
+  --color-info: #7daea3;
+  --color-highlight: #d3869b;
+  --silo-green: #a9b665;
+}
+
+/* ── Gruvbox Material, medium: softer contrast than Gruvbox, warm and muted */
+
+[data-palette='gruvbox-material-dark'] {
+  --color-bg: #282828;
+  --color-bg-elevated: #1b1b1b;
+  --color-surface: #32302f;
+  --color-surface-alt: #363432;
+  --color-surface-input: #3c3836;
+  --color-surface-hover: #45403d;
+  --color-surface-header: #363432;
+  --color-border-faint: #2e2c2b;
+  --color-border-subtle: #363432;
+  --color-border: #45403d;
+  --color-border-alt: #4a4542;
+  --color-border-strong: #5a524c;
+  --color-border-stronger: #7c6f64;
+  --color-text-primary: #ddc7a1;
+  --color-text-heading: #ddc7a1;
+  --color-text-heading-alt: #d4be98;
+  --color-text-body: #d4be98;
+  --color-text-muted: #a89984;
+  --color-text-subtitle: #a89984;
+  --color-text-icon-muted: #a89984;
+  --color-text-empty: #928374;
+  --color-text-faint: #928374;
+  --color-text-dim: #7c6f64;
+  --color-text-placeholder: #5a524c;
+  --color-accent: #a9b665;
+  --color-accent-text: #a9b665;
+  --color-accent-hover: #b8c477;
+  --color-text-on-accent: #1d2021;
+  --color-danger: #ea6962;
+  --color-danger-text: #ea6962;
+  --color-success: #a9b665;
+  --color-star: #d8a657;
+  --color-warning: #e78a4e;
+  --color-info: #7daea3;
+  --color-highlight: #d3869b;
+  --silo-green: #a9b665;
+}
+
+/* ── Gruvbox Material, soft: the lightest of its dark backgrounds */
+
+[data-palette='gruvbox-material-dark-soft'] {
+  --color-bg: #32302f;
+  --color-bg-elevated: #252423;
+  --color-surface: #3c3836;
+  --color-surface-alt: #403c3a;
+  --color-surface-input: #45403d;
+  --color-surface-hover: #504945;
+  --color-surface-header: #403c3a;
+  --color-border-faint: #383533;
+  --color-border-subtle: #403c3a;
+  --color-border: #504945;
+  --color-border-alt: #564e4a;
+  --color-border-strong: #665c54;
+  --color-border-stronger: #7c6f64;
+  --color-text-primary: #ddc7a1;
+  --color-text-heading: #ddc7a1;
+  --color-text-heading-alt: #d4be98;
+  --color-text-body: #d4be98;
+  --color-text-muted: #a89984;
+  --color-text-subtitle: #a89984;
+  --color-text-icon-muted: #a89984;
+  --color-text-empty: #928374;
+  --color-text-faint: #928374;
+  --color-text-dim: #7c6f64;
+  --color-text-placeholder: #665c54;
+  --color-accent: #a9b665;
+  --color-accent-text: #a9b665;
+  --color-accent-hover: #b8c477;
+  --color-text-on-accent: #1d2021;
+  --color-danger: #ea6962;
+  --color-danger-text: #ea6962;
+  --color-success: #a9b665;
+  --color-star: #d8a657;
+  --color-warning: #e78a4e;
+  --color-info: #7daea3;
+  --color-highlight: #d3869b;
+  --silo-green: #a9b665;
+}
+
+/* ── Gruvbox Material Light: warm paper, olive accent */
+
+[data-palette='gruvbox-material-light'] {
+  --color-bg: #fbf1c7;
+  --color-bg-elevated: #f2e5bc;
+  --color-surface: #f9f5d7;
+  --color-surface-alt: #f4e8be;
+  --color-surface-input: #f4e8be;
+  --color-surface-hover: #eee0b7;
+  --color-surface-header: #f4e8be;
+  --color-border-faint: #f2e5bc;
+  --color-border-subtle: #eee0b7;
+  --color-border: #e5d5ad;
+  --color-border-alt: #ddccab;
+  --color-border-strong: #d0bf98;
+  --color-border-stronger: #a89984;
+  --color-text-primary: #4f3829;
+  --color-text-heading: #4f3829;
+  --color-text-heading-alt: #654735;
+  --color-text-body: #654735;
+  --color-text-muted: #7c6f64;
+  --color-text-subtitle: #7c6f64;
+  --color-text-icon-muted: #7c6f64;
+  --color-text-empty: #928374;
+  --color-text-faint: #928374;
+  --color-text-dim: #a89984;
+  --color-text-placeholder: #b5a68c;
+  --color-accent: #6c782e;
+  --color-accent-text: #6c782e;
+  --color-accent-hover: #5b6526;
+  --color-text-on-accent: #fbf1c7;
+  --color-danger: #c14a4a;
+  --color-danger-text: #c14a4a;
+  --color-success: #6c782e;
+  --color-star: #b47109;
+  --color-warning: #c35e0a;
+  --color-info: #45707a;
+  --color-highlight: #945e80;
+}
+
+/* ── Catppuccin Frappé: the lighter of Catppuccin's dark flavours */
+
+[data-palette='catppuccin-frappe'] {
+  --color-bg: #303446;
+  --color-bg-elevated: #292c3c;
+  --color-surface: #353849;
+  --color-surface-alt: #3a3e52;
+  --color-surface-input: #3a3e52;
+  --color-surface-hover: #414559;
+  --color-surface-header: #3a3e52;
+  --color-border-faint: #33374a;
+  --color-border-subtle: #3a3e52;
+  --color-border: #414559;
+  --color-border-alt: #484c62;
+  --color-border-strong: #51576d;
+  --color-border-stronger: #737994;
+  --color-text-primary: #c6d0f5;
+  --color-text-heading: #d3dbf8;
+  --color-text-heading-alt: #c6d0f5;
+  --color-text-body: #b5bfe2;
+  --color-text-muted: #a5adce;
+  --color-text-subtitle: #949cbb;
+  --color-text-icon-muted: #949cbb;
+  --color-text-empty: #838ba7;
+  --color-text-faint: #838ba7;
+  --color-text-dim: #737994;
+  --color-text-placeholder: #626880;
+  --color-accent: #ca9ee6;
+  --color-accent-text: #ca9ee6;
+  --color-accent-hover: #d6b3ec;
+  --color-text-on-accent: #232634;
+  --color-danger: #e78284;
+  --color-danger-text: #e78284;
+  --color-success: #a6d189;
+  --color-star: #e5c890;
+  --color-warning: #ef9f76;
+  --color-info: #8caaee;
+  --color-highlight: #babbf1;
+}
+
+/* ── Catppuccin Macchiato: between Frappé and Mocha */
+
+[data-palette='catppuccin-macchiato'] {
+  --color-bg: #24273a;
+  --color-bg-elevated: #1e2030;
+  --color-surface: #292c3f;
+  --color-surface-alt: #2e3247;
+  --color-surface-input: #2e3247;
+  --color-surface-hover: #363a4f;
+  --color-surface-header: #2e3247;
+  --color-border-faint: #272a3d;
+  --color-border-subtle: #2e3247;
+  --color-border: #363a4f;
+  --color-border-alt: #3e4258;
+  --color-border-strong: #494d64;
+  --color-border-stronger: #6e738d;
+  --color-text-primary: #cad3f5;
+  --color-text-heading: #d6ddf8;
+  --color-text-heading-alt: #cad3f5;
+  --color-text-body: #b8c0e0;
+  --color-text-muted: #a5adcb;
+  --color-text-subtitle: #939ab7;
+  --color-text-icon-muted: #939ab7;
+  --color-text-empty: #8087a2;
+  --color-text-faint: #8087a2;
+  --color-text-dim: #6e738d;
+  --color-text-placeholder: #5b6078;
+  --color-accent: #c6a0f6;
+  --color-accent-text: #c6a0f6;
+  --color-accent-hover: #d3b6f8;
+  --color-text-on-accent: #181926;
+  --color-danger: #ed8796;
+  --color-danger-text: #ed8796;
+  --color-success: #a6da95;
+  --color-star: #eed49f;
+  --color-warning: #f5a97f;
+  --color-info: #8aadf4;
+  --color-highlight: #b7bdf8;
+}
+
+/* ── Kanagawa: ink and the colours of a famous wave print */
+
+[data-palette='kanagawa'] {
+  --color-bg: #1f1f28;
+  --color-bg-elevated: #16161d;
+  --color-surface: #2a2a37;
+  --color-surface-alt: #2d2d3b;
+  --color-surface-input: #2a2a37;
+  --color-surface-hover: #363646;
+  --color-surface-header: #2d2d3b;
+  --color-border-faint: #23232e;
+  --color-border-subtle: #2a2a37;
+  --color-border: #363646;
+  --color-border-alt: #3c3c4f;
+  --color-border-strong: #54546d;
+  --color-border-stronger: #727169;
+  --color-text-primary: #dcd7ba;
+  --color-text-heading: #e6e1c4;
+  --color-text-heading-alt: #dcd7ba;
+  --color-text-body: #c8c093;
+  --color-text-muted: #a8a48c;
+  --color-text-subtitle: #9a9785;
+  --color-text-icon-muted: #9a9785;
+  --color-text-empty: #8a8879;
+  --color-text-faint: #868478;
+  --color-text-dim: #727169;
+  --color-text-placeholder: #54546d;
+  --color-accent: #7e9cd8;
+  --color-accent-text: #7e9cd8;
+  --color-accent-hover: #7fb4ca;
+  --color-text-on-accent: #16161d;
+  --color-danger: #e46876;
+  --color-danger-text: #e46876;
+  --color-success: #98bb6c;
+  --color-star: #e6c384;
+  --color-warning: #ffa066;
+  --color-info: #7fb4ca;
+  --color-highlight: #957fb8;
+}
+
+/* ── Ayu Dark: near-black with a golden accent */
+
+[data-palette='ayu-dark'] {
+  --color-bg: #0b0e14;
+  --color-bg-elevated: #0d1017;
+  --color-surface: #11151c;
+  --color-surface-alt: #131721;
+  --color-surface-input: #131721;
+  --color-surface-hover: #1b1f27;
+  --color-surface-header: #131721;
+  --color-border-faint: #0f131a;
+  --color-border-subtle: #131721;
+  --color-border: #1b1f27;
+  --color-border-alt: #22272f;
+  --color-border-strong: #2a2f38;
+  --color-border-stronger: #565b66;
+  --color-text-primary: #e6e1cf;
+  --color-text-heading: #e6e1cf;
+  --color-text-heading-alt: #d8d5c8;
+  --color-text-body: #bfbdb6;
+  --color-text-muted: #9a9890;
+  --color-text-subtitle: #8a8986;
+  --color-text-icon-muted: #8a8986;
+  --color-text-empty: #6c7380;
+  --color-text-faint: #6c7380;
+  --color-text-dim: #565b66;
+  --color-text-placeholder: #3d424d;
+  --color-accent: #e6b450;
+  --color-accent-text: #e6b450;
+  --color-accent-hover: #ffcc66;
+  --color-text-on-accent: #0b0e14;
+  --color-danger: #d95757;
+  --color-danger-text: #f07178;
+  --color-success: #aad94c;
+  --color-star: #ffb454;
+  --color-warning: #ff8f40;
+  --color-info: #39bae6;
+  --color-highlight: #d2a6ff;
+}
+
+/* ── Ayu Mirage: Ayu on a softer slate */
+
+[data-palette='ayu-mirage'] {
+  --color-bg: #242936;
+  --color-bg-elevated: #1f2430;
+  --color-surface: #282e3b;
+  --color-surface-alt: #2a3040;
+  --color-surface-input: #2a3040;
+  --color-surface-hover: #313848;
+  --color-surface-header: #2a3040;
+  --color-border-faint: #262b38;
+  --color-border-subtle: #2a3040;
+  --color-border: #33394a;
+  --color-border-alt: #383f50;
+  --color-border-strong: #434a5c;
+  --color-border-stronger: #707a8c;
+  --color-text-primary: #dedbd2;
+  --color-text-heading: #dedbd2;
+  --color-text-heading-alt: #cccac2;
+  --color-text-body: #cccac2;
+  --color-text-muted: #a6a49c;
+  --color-text-subtitle: #8a919f;
+  --color-text-icon-muted: #8a919f;
+  --color-text-empty: #707a8c;
+  --color-text-faint: #707a8c;
+  --color-text-dim: #5c6773;
+  --color-text-placeholder: #4a5363;
+  --color-accent: #ffcc66;
+  --color-accent-text: #ffcc66;
+  --color-accent-hover: #ffd580;
+  --color-text-on-accent: #1f2430;
+  --color-danger: #ff6666;
+  --color-danger-text: #ff7a7a;
+  --color-success: #d5ff80;
+  --color-star: #ffd173;
+  --color-warning: #ffad66;
+  --color-info: #73d0ff;
+  --color-highlight: #dfbfff;
+}
+
+/* ── Night Owl: deep ocean blue, made for coding at night */
+
+[data-palette='night-owl'] {
+  --color-bg: #011627;
+  --color-bg-elevated: #010e1a;
+  --color-surface: #0b2942;
+  --color-surface-alt: #0e2b45;
+  --color-surface-input: #0b253a;
+  --color-surface-hover: #13344f;
+  --color-surface-header: #0e2b45;
+  --color-border-faint: #021a2e;
+  --color-border-subtle: #0b2942;
+  --color-border: #1d3b53;
+  --color-border-alt: #22405a;
+  --color-border-strong: #2b4a63;
+  --color-border-stronger: #5f7e97;
+  --color-text-primary: #d6deeb;
+  --color-text-heading: #e0e7f2;
+  --color-text-heading-alt: #d6deeb;
+  --color-text-body: #b9c4d6;
+  --color-text-muted: #8fa4b8;
+  --color-text-subtitle: #7f93a7;
+  --color-text-icon-muted: #7f93a7;
+  --color-text-empty: #637777;
+  --color-text-faint: #637777;
+  --color-text-dim: #4b6479;
+  --color-text-placeholder: #3b5266;
+  --color-accent: #82aaff;
+  --color-accent-text: #82aaff;
+  --color-accent-hover: #9bbcff;
+  --color-text-on-accent: #011627;
+  --color-danger: #ef5350;
+  --color-danger-text: #ff6e6b;
+  --color-success: #addb67;
+  --color-star: #ecc48d;
+  --color-warning: #f78c6c;
+  --color-info: #7fdbca;
+  --color-highlight: #c792ea;
+}
+
+/* ── Rosé Pine Moon: Rosé Pine with a lighter night */
+
+[data-palette='rose-pine-moon'] {
+  --color-bg: #232136;
+  --color-bg-elevated: #1d1b2e;
+  --color-surface: #2a273f;
+  --color-surface-alt: #2e2b45;
+  --color-surface-input: #2e2b45;
+  --color-surface-hover: #393552;
+  --color-surface-header: #2e2b45;
+  --color-border-faint: #28253b;
+  --color-border-subtle: #2e2b45;
+  --color-border: #393552;
+  --color-border-alt: #403c5a;
+  --color-border-strong: #44415a;
+  --color-border-stronger: #6e6a86;
+  --color-text-primary: #e0def4;
+  --color-text-heading: #e0def4;
+  --color-text-heading-alt: #e0def4;
+  --color-text-body: #d2cfe8;
+  --color-text-muted: #a9a5c4;
+  --color-text-subtitle: #908caa;
+  --color-text-icon-muted: #908caa;
+  --color-text-empty: #817d9c;
+  --color-text-faint: #7f7b99;
+  --color-text-dim: #6e6a86;
+  --color-text-placeholder: #56526e;
+  --color-accent: #c4a7e7;
+  --color-accent-text: #c4a7e7;
+  --color-accent-hover: #d1bbec;
+  --color-text-on-accent: #232136;
+  --color-danger: #eb6f92;
+  --color-danger-text: #eb6f92;
+  --color-success: #9ccfd8;
+  --color-star: #f6c177;
+  --color-warning: #f6c177;
+  --color-info: #9ccfd8;
+  --color-highlight: #ea9a97;
+}
+
+/* ── Ayu Light: bright and airy, warm orange accent */
+
+[data-palette='ayu-light'] {
+  --color-bg: #f8f9fa;
+  --color-bg-elevated: #eceef0;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f8f9fa;
+  --color-surface-input: #f3f4f5;
+  --color-surface-hover: #eef0f2;
+  --color-surface-header: #f8f9fa;
+  --color-border-faint: #f0f2f4;
+  --color-border-subtle: #e8eaec;
+  --color-border: #dfe2e5;
+  --color-border-alt: #d9dcdf;
+  --color-border-strong: #cdd1d5;
+  --color-border-stronger: #8a9199;
+  --color-text-primary: #3c4146;
+  --color-text-heading: #33383d;
+  --color-text-heading-alt: #3c4146;
+  --color-text-body: #5c6166;
+  --color-text-muted: #6b7177;
+  --color-text-subtitle: #787e84;
+  --color-text-icon-muted: #787e84;
+  --color-text-empty: #8a9199;
+  --color-text-faint: #8a9199;
+  --color-text-dim: #a0a6ad;
+  --color-text-placeholder: #b4b9be;
+  --color-accent: #ffaa33;
+  --color-accent-text: #ba6f00;
+  --color-accent-hover: #f29718;
+  --color-text-on-accent: #2f2200;
+  --color-danger: #e65050;
+  --color-danger-text: #d73b3b;
+  --color-success: #86b300;
+  --color-star: #f2ae49;
+  --color-warning: #fa8d3e;
+  --color-info: #399ee6;
+  --color-highlight: #a37acc;
+}
+
+/* ── Everforest Light: soft green-beige, easy on the eyes */
+
+[data-palette='everforest-light'] {
+  --color-bg: #fdf6e3;
+  --color-bg-elevated: #f4f0d9;
+  --color-surface: #fffbef;
+  --color-surface-alt: #f8f3e2;
+  --color-surface-input: #f4f0d9;
+  --color-surface-hover: #efebd4;
+  --color-surface-header: #f8f3e2;
+  --color-border-faint: #f4f0d9;
+  --color-border-subtle: #efebd4;
+  --color-border: #e6e2cc;
+  --color-border-alt: #e0dcc7;
+  --color-border-strong: #d3cfb8;
+  --color-border-stronger: #a6b0a0;
+  --color-text-primary: #47555c;
+  --color-text-heading: #3f4c53;
+  --color-text-heading-alt: #4a575f;
+  --color-text-body: #5c6a72;
+  --color-text-muted: #6c7a80;
+  --color-text-subtitle: #829181;
+  --color-text-icon-muted: #829181;
+  --color-text-empty: #939f91;
+  --color-text-faint: #939f91;
+  --color-text-dim: #a6b0a0;
+  --color-text-placeholder: #b9c0ad;
+  --color-accent: #6f7f00;
+  --color-accent-text: #5f6d00;
+  --color-accent-hover: #627000;
+  --color-text-on-accent: #fffbef;
+  --color-danger: #f85552;
+  --color-danger-text: #d63b39;
+  --color-success: #8da101;
+  --color-star: #dfa000;
+  --color-warning: #f57d26;
+  --color-info: #3a94c5;
+  --color-highlight: #df69ba;
+}
+
+/* ── Tokyo Night Day: Tokyo Night in daylight, blue on soft grey */
+
+[data-palette='tokyo-night-day'] {
+  --color-bg: #e1e2e7;
+  --color-bg-elevated: #d0d5e3;
+  --color-surface: #eceef4;
+  --color-surface-alt: #e9e9ed;
+  --color-surface-input: #e4e5ea;
+  --color-surface-hover: #dcdee6;
+  --color-surface-header: #e9e9ed;
+  --color-border-faint: #dadce4;
+  --color-border-subtle: #d5d7e0;
+  --color-border: #c4c8da;
+  --color-border-alt: #babfd4;
+  --color-border-strong: #a8aecb;
+  --color-border-stronger: #8990b3;
+  --color-text-primary: #3760bf;
+  --color-text-heading: #3760bf;
+  --color-text-heading-alt: #3760bf;
+  --color-text-body: #4b5b9c;
+  --color-text-muted: #6172b0;
+  --color-text-subtitle: #6172b0;
+  --color-text-icon-muted: #6c76a8;
+  --color-text-empty: #848cb5;
+  --color-text-faint: #848cb5;
+  --color-text-dim: #9aa0c4;
+  --color-text-placeholder: #a8aecb;
+  --color-accent: #2e7de9;
+  --color-accent-text: #1f6ad1;
+  --color-accent-hover: #2770d4;
+  --color-text-on-accent: #ffffff;
+  --color-danger: #f52a65;
+  --color-danger-text: #d20f4c;
+  --color-success: #587539;
+  --color-star: #8c6c3e;
+  --color-warning: #b15c00;
+  --color-info: #007197;
+  --color-highlight: #9854f1;
 }

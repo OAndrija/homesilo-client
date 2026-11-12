@@ -467,6 +467,9 @@ export function spans(size: TileSize, columns: number): [number, number] {
 }
 
 export function reducedMotion(): boolean {
+  // The Motion setting (or the device's own, when the setting follows it) marks <html>.
+  const setting = document.documentElement.dataset['motion'];
+  if (setting) return setting === 'reduced';
   return !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 }
 

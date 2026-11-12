@@ -454,44 +454,52 @@
                   @if (starredFiles().length === 0) {
                     <p class="panel-empty">Star a file and it shows up here.</p>
                   } @else {
-                    <div class="tile-grid">
-                      @for (file of starredFiles().slice(0, limit(tile)); track file.id) {
-                        <button
-                          type="button"
-                          class="tile"
-                          (click)="openStarred(file)"
-                          [title]="file.originalFileName"
-                        >
-                          <span
-                            class="tile-icon"
-                            [style.--tint]="getFileIcon(file.originalFileName).color"
+                    <div
+                      class="fit-area"
+                      appFitArea
+                      #starredArea="fitArea"
+                      [style.min-height.px]="listMinHeight(tile)"
+                    >
+                      @let starredFit = listFit(starredArea.size());
+                      <div class="tile-grid fit-list" [style.--columns]="starredFit.columns">
+                        @for (file of starredFiles().slice(0, starredFit.count); track file.id) {
+                          <button
+                            type="button"
+                            class="tile"
+                            (click)="openStarred(file)"
+                            [title]="file.originalFileName"
                           >
-                            @if (file.thumbnail && !brokenThumbs().has(file.id)) {
-                              <img
-                                class="tile-thumb"
-                                [src]="thumbnailUrl(file)"
-                                alt=""
-                                loading="lazy"
-                                (error)="onThumbError(file)"
-                              />
-                            } @else {
-                              <span class="material-symbols-rounded" aria-hidden="true">{{
-                                getFileIcon(file.originalFileName).icon
-                              }}</span>
-                            }
-                          </span>
-                          <span class="tile-text">
-                            <span class="tile-name">{{ file.originalFileName }}</span>
-                            <span class="tile-meta"
-                              >{{ formatSize(file.size) }} ·
-                              {{ file.lastModified | friendlyDate }}</span
+                            <span
+                              class="tile-icon"
+                              [style.--tint]="getFileIcon(file.originalFileName).color"
                             >
-                          </span>
-                          <span class="material-symbols-rounded tile-star" aria-hidden="true"
-                            >star</span
-                          >
-                        </button>
-                      }
+                              @if (file.thumbnail && !brokenThumbs().has(file.id)) {
+                                <img
+                                  class="tile-thumb"
+                                  [src]="thumbnailUrl(file)"
+                                  alt=""
+                                  loading="lazy"
+                                  (error)="onThumbError(file)"
+                                />
+                              } @else {
+                                <span class="material-symbols-rounded" aria-hidden="true">{{
+                                  getFileIcon(file.originalFileName).icon
+                                }}</span>
+                              }
+                            </span>
+                            <span class="tile-text">
+                              <span class="tile-name">{{ file.originalFileName }}</span>
+                              <span class="tile-meta"
+                                >{{ formatSize(file.size) }} ·
+                                {{ file.lastModified | friendlyDate }}</span
+                              >
+                            </span>
+                            <span class="material-symbols-rounded tile-star" aria-hidden="true"
+                              >star</span
+                            >
+                          </button>
+                        }
+                      </div>
                     </div>
                   }
                 </section>
@@ -505,25 +513,35 @@
                   @if (folders().length === 0) {
                     <p class="panel-empty">Folders you create in My Files show up here.</p>
                   } @else {
-                    <div class="tile-grid">
-                      @for (folder of folders().slice(0, limit(tile)); track folder.id) {
-                        <a
-                          class="tile"
-                          routerLink="/my-files"
-                          [queryParams]="{ folderId: folder.id }"
-                          [title]="folder.name"
-                        >
-                          <span class="tile-icon folder" aria-hidden="true">
-                            <span class="material-symbols-rounded" aria-hidden="true">folder</span>
-                          </span>
-                          <span class="tile-text">
-                            <span class="tile-name">{{ folder.name }}</span>
-                            <span class="tile-meta"
-                              >Edited {{ folder.lastModified | friendlyDate }}</span
-                            >
-                          </span>
-                        </a>
-                      }
+                    <div
+                      class="fit-area"
+                      appFitArea
+                      #folderArea="fitArea"
+                      [style.min-height.px]="listMinHeight(tile)"
+                    >
+                      @let folderFit = listFit(folderArea.size());
+                      <div class="tile-grid fit-list" [style.--columns]="folderFit.columns">
+                        @for (folder of folders().slice(0, folderFit.count); track folder.id) {
+                          <a
+                            class="tile"
+                            routerLink="/my-files"
+                            [queryParams]="{ folderId: folder.id }"
+                            [title]="folder.name"
+                          >
+                            <span class="tile-icon folder" aria-hidden="true">
+                              <span class="material-symbols-rounded" aria-hidden="true"
+                                >folder</span
+                              >
+                            </span>
+                            <span class="tile-text">
+                              <span class="tile-name">{{ folder.name }}</span>
+                              <span class="tile-meta"
+                                >Edited {{ folder.lastModified | friendlyDate }}</span
+                              >
+                            </span>
+                          </a>
+                        }
+                      </div>
                     </div>
                   }
                 </section>
@@ -560,27 +578,39 @@
                       {{ photosLoading() ? 'Loading…' : 'Pictures you upload show up here.' }}
                     </p>
                   } @else {
-                    <div #photoGrid class="photo-grid" [style.--columns]="photoColumns()">
-                      @for (photo of photos().slice(0, photoCount(tile.size)); track photo.id) {
-                        <button
-                          type="button"
-                          class="photo"
-                          (click)="openPhoto(photo)"
-                          [title]="photo.originalFileName"
-                          [attr.aria-label]="'Open ' + photo.originalFileName"
-                        >
-                          @if (photo.thumbnail && !brokenThumbs().has(photo.id)) {
-                            <img
-                              [src]="thumbnailUrl(photo)"
-                              alt=""
-                              loading="lazy"
-                              (error)="onThumbError(photo)"
-                            />
-                          } @else {
-                            <span class="material-symbols-rounded" aria-hidden="true">image</span>
-                          }
-                        </button>
-                      }
+                    <div
+                      class="fit-area"
+                      appFitArea
+                      #photoArea="fitArea"
+                      [style.min-height.px]="photoMinHeight(tile)"
+                    >
+                      @let photoLayout = photoFit(tile, photoArea.size());
+                      <div
+                        class="photo-grid fit-list"
+                        [style.--columns]="photoLayout.columns"
+                        [style.--cell.px]="photoLayout.cell"
+                      >
+                        @for (photo of photos().slice(0, photoLayout.count); track photo.id) {
+                          <button
+                            type="button"
+                            class="photo"
+                            (click)="openPhoto(photo)"
+                            [title]="photo.originalFileName"
+                            [attr.aria-label]="'Open ' + photo.originalFileName"
+                          >
+                            @if (photo.thumbnail && !brokenThumbs().has(photo.id)) {
+                              <img
+                                [src]="thumbnailUrl(photo)"
+                                alt=""
+                                loading="lazy"
+                                (error)="onThumbError(photo)"
+                              />
+                            } @else {
+                              <span class="material-symbols-rounded" aria-hidden="true">image</span>
+                            }
+                          </button>
+                        }
+                      </div>
                     </div>
                   }
                 </section>

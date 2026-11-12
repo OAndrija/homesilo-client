@@ -421,6 +421,41 @@
   }
 }
 
+/* ── Lists that fill their tile ──
+   The area takes the height the grid row gives the tile (at least what its
+   size asks for); the list inside is placed absolutely, so how many items it
+   shows never changes the row's height. Home works out the columns and rows. */
+.fit-area {
+  position: relative;
+  flex: 1;
+}
+
+.fit-list {
+  position: absolute;
+  inset: 0;
+  align-content: start;
+  overflow: hidden;
+}
+
+.tile-grid.fit-list {
+  grid-template-columns: repeat(var(--columns, 2), minmax(0, 1fr));
+  grid-auto-rows: 66px;
+}
+
+.fit-list .tile {
+  box-sizing: border-box;
+  height: 66px;
+}
+
+.photo-grid.fit-list {
+  grid-auto-rows: var(--cell, 96px);
+}
+
+.photo-grid.fit-list .photo {
+  aspect-ratio: auto;
+  height: 100%;
+}
+
 /* ── Recent photos ── */
 
 .photo-grid {
@@ -475,4 +510,21 @@
 
 .activity-list li + li {
   border-top: 1px solid var(--color-border-subtle);
+}
+
+/* ── Flat cards (Settings → Appearance → Cards): plain surfaces, no glows ── */
+:host-context([data-cards='flat']) .hero,
+:host-context([data-cards='flat']) .stat-card {
+  border-color: var(--color-border);
+  background: var(--color-surface);
+}
+
+:host-context([data-cards='flat']) .hero::after,
+:host-context([data-cards='flat']) .stat-card::after,
+:host-context([data-cards='flat']) .stat-watermark {
+  display: none;
+}
+
+:host-context([data-cards='flat']) .stat-icon {
+  box-shadow: none;
 }

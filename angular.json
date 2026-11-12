@@ -28,6 +28,8 @@
               "@fontsource-variable/inter/index.css",
               "@fontsource/space-grotesk/600.css",
               "@fontsource/space-grotesk/700.css",
+              "@fontsource/atkinson-hyperlegible/400.css",
+              "@fontsource/atkinson-hyperlegible/700.css",
               "material-symbols/rounded.css",
               "src/styles.css",
               "src/themes.css"

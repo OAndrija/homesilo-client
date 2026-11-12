@@ -29,6 +29,9 @@ import { FriendlyDatePipe } from '../../shared/pipes/friendly-date';
 import { reducedMotion, spans, TileGestures } from './tile-gestures';
 import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
 import { UndoHistory } from '../../core/utils/undo-history';
+import { FitArea } from '../../shared/fit-area/fit-area';
+import { Area, fitItems, fitPhotos } from '../../core/utils/fit';
+import { ThemeService } from '../../core/services/theme';
 import { ActivityItem } from '../../shared/activity-item/activity-item';
 import { ActivityApi } from '../../core/services/activity';
 import { ActivityEntry } from '../../core/models/activity';
@@ -61,7 +64,7 @@ const CATEGORY_META: Record<string, { color: string; icon: string }> = {
 
 @Component({
   selector: 'app-home',
-  imports: [FileTable, RouterLink, FriendlyDatePipe, ActivityItem, ConfirmDialog],
+  imports: [FileTable, RouterLink, FriendlyDatePipe, ActivityItem, ConfirmDialog, FitArea],
   templateUrl: './home.html',
   styleUrls: ['./home.css', './dashboard-tiles.css', './dashboard-edit.css'],
 })
@@ -88,11 +91,36 @@ export class Home {
   photos = signal<FileMetadata[]>([]);
   photosLoading = signal(false);
   private photosLoaded = false;
-  private photoGrid = viewChild<ElementRef<HTMLElement>>('photoGrid');
-  private photoGridWidth = signal(0);
-  private static readonly PHOTO_MIN = 84;
-  private static readonly PHOTO_GAP = 8;
-  /** Rows of photos at each size: one per grid row the tile spans. */
+
+  // ── Tiles that fill their space ─────────────────────────────
+  // Starred, Folders and Recent photos sit in an area whose height is set by the
+  // grid row (often taller than they need, next to the storage tile on a large
+  // screen). They show as many items as fit that area, and photos grow to fill it.
+
+  private theme = inject(ThemeService);
+  /** Rows each list shows at least, per size; the tile is sized for these. */
+  private static readonly LIST_ROWS: Partial<Record<TileSize, number>> = {
+    tall: 4,
+    medium: 2,
+    large: 4,
+    wide: 2,
+    'wide-tall': 4,
+  };
+  /** Starred and folder items: the shared .tile is 66px tall. */
+  private static readonly ITEM = { minWidth: 220, height: 66 };
+  private itemGap = computed(() => 12 * this.theme.spaceScale());
+
+  listMinHeight(tile: PlacedTile): number {
+    const rows = Home.LIST_ROWS[tile.size] ?? 2;
+    return rows * Home.ITEM.height + (rows - 1) * this.itemGap();
+  }
+
+  listFit(area: Area): { columns: number; rows: number; count: number } {
+    const fit = fitItems(area, { ...Home.ITEM, gap: this.itemGap(), minRows: 1 });
+    return { ...fit, count: fit.columns * fit.rows };
+  }
+
+  /** Photo rows per size (the least; more when the tile is tall enough). */
   private static readonly PHOTO_ROWS: Partial<Record<TileSize, number>> = {
     tall: 2,
     medium: 1,
@@ -100,18 +128,21 @@ export class Home {
     wide: 1,
     'wide-tall': 2,
   };
-  /** As many columns of at least PHOTO_MIN pixels as the tile is wide. */
-  photoColumns = computed(() =>
-    Math.max(
-      1,
-      Math.floor((this.photoGridWidth() + Home.PHOTO_GAP) / (Home.PHOTO_MIN + Home.PHOTO_GAP)),
-    ),
-  );
+  private static readonly PHOTO = { gap: 8, minCell: 72, maxCell: 180, sizedFor: 96 };
 
-  /** Exactly enough photos to fill the tile's rows, so there's never a half-empty row. */
-  photoCount(size: TileSize): number {
-    return this.photoColumns() * (Home.PHOTO_ROWS[size] ?? 1);
+  photoMinHeight(tile: PlacedTile): number {
+    const rows = Home.PHOTO_ROWS[tile.size] ?? 1;
+    return rows * Home.PHOTO.sizedFor + (rows - 1) * Home.PHOTO.gap;
   }
+
+  photoFit(
+    tile: PlacedTile,
+    area: Area,
+  ): { columns: number; rows: number; cell: number; count: number } {
+    const fit = fitPhotos(area, { ...Home.PHOTO, rows: Home.PHOTO_ROWS[tile.size] ?? 1 });
+    return { ...fit, count: fit.columns * fit.rows };
+  }
+
   activity = signal<ActivityEntry[]>([]);
   activityLoading = signal(false);
   private activityLoaded = false;
@@ -241,18 +272,6 @@ export class Home {
       if (this.shownTiles().some((t) => t.id === 'activity')) this.loadActivity();
       if (this.shownTiles().some((t) => t.id === 'photos')) this.loadPhotos();
     });
-    // Recent photos picks its column count from its width, so it follows the tile.
-    effect((onCleanup) => {
-      const el = this.photoGrid()?.nativeElement;
-      if (!el) return;
-      this.photoGridWidth.set(el.clientWidth);
-      if (typeof ResizeObserver === 'undefined') return;
-      const observer = new ResizeObserver(([entry]) =>
-        this.photoGridWidth.set(entry.contentRect.width),
-      );
-      observer.observe(el);
-      onCleanup(() => observer.disconnect());
-    });
     // Keep the size picker next to its tile as tiles move and change size.
     effect(() => {
       this.draft();
@@ -295,7 +314,7 @@ export class Home {
       .getRootContents(0)
       .pipe(finalize(() => this.loadingFolders.set(false)))
       .subscribe({
-        next: (contents) => this.folders.set(contents.subfolders.slice(0, 16)),
+        next: (contents) => this.folders.set(contents.subfolders),
       });
   }
 
@@ -328,7 +347,7 @@ export class Home {
     this.photosLoaded = true;
     this.photosLoading.set(true);
     this.fileService
-      .listPhotos(0, 60)
+      .listPhotos(0, 120)
       .pipe(finalize(() => this.photosLoading.set(false)))
       .subscribe({ next: (page) => this.photos.set(page.content) });
   }
@@ -416,8 +435,6 @@ export class Home {
    * (a 2×1 tile is one grid row, 2×2 two) instead of stretching the whole row.
    */
   private static readonly LIMITS: Partial<Record<TileId, Partial<Record<TileSize, number>>>> = {
-    'starred-files': { tall: 4, medium: 4, large: 8, wide: 8, 'wide-tall': 16 },
-    folders: { tall: 4, medium: 4, large: 8, wide: 8, 'wide-tall': 16 },
     recent: { medium: 2, large: 5, wide: 8, 'wide-tall': 16 },
     activity: { tall: 4, medium: 2, large: 4, wide: 5, 'wide-tall': 10 },
   };
