@@ -20,6 +20,13 @@ export class Files {
     });
   }
 
+  /** Pictures from every folder, newest upload first. */
+  listPhotos(page = 0, size = 24): Observable<PageResponse<FileMetadata>> {
+    return this.http.get<PageResponse<FileMetadata>>(`${FILES_URL}/photos`, {
+      params: pageParams(page, size),
+    });
+  }
+
   listTrashed(page = 0, size = 50, sort?: string): Observable<PageResponse<FileMetadata>> {
     return this.http.get<PageResponse<FileMetadata>>(`${FILES_URL}/trash`, {
       params: pageParams(page, size, sort),

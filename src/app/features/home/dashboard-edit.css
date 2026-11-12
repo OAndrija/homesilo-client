@@ -1,0 +1,411 @@
+/* The dashboard's edit mode: carrying, resizing, the size picker and the add tray. */
+
+/* ── Editing ────────────────────────────────────────────────
+   Like editing quick settings: every tile shows its content (inert) and can be
+   picked up anywhere, carried and dropped. A tile has two controls: remove
+   (top right) and a resize grip (bottom right). */
+
+.dash-grid {
+  position: relative; /* tiles' offsets are measured from the grid */
+}
+
+.dash.editing .dash-tile {
+  border-radius: var(--radius-2xl);
+  outline: 1.5px dashed var(--color-border-stronger);
+  outline-offset: 4px;
+  cursor: grab;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  transition:
+    scale 0.18s cubic-bezier(0.2, 0, 0, 1),
+    box-shadow 0.18s ease,
+    opacity 0.18s ease;
+}
+
+.dash.editing .tile-body {
+  pointer-events: none;
+}
+
+.dash.editing .dash-tile:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 4px;
+}
+
+/* The tile in your hand: above everything, a little bigger, a real shadow. */
+.dash-tile.lifted {
+  z-index: 20;
+  scale: 1.04;
+  outline-color: transparent;
+  border-radius: var(--radius-2xl);
+  box-shadow:
+    0 24px 48px -12px rgba(0, 0, 0, 0.45),
+    0 0 0 2px var(--color-accent);
+  cursor: grabbing;
+  pointer-events: none;
+}
+
+.dash.carrying,
+.dash.carrying .dash-tile {
+  cursor: grabbing;
+}
+
+/* The others hint they can be moved, without competing with the one in hand. */
+.dash.carrying .dash-tile:not(.lifted) .tile-body {
+  opacity: 0.85;
+}
+
+/* Where the carried tile will land. */
+.drop-slot {
+  position: absolute;
+  z-index: 0;
+  border: 2px dashed var(--color-accent);
+  border-radius: var(--radius-2xl);
+  background: var(--color-accent-bg-faint);
+  pointer-events: none;
+  transition:
+    left 0.24s cubic-bezier(0.2, 0, 0, 1),
+    top 0.24s cubic-bezier(0.2, 0, 0, 1),
+    width 0.24s cubic-bezier(0.2, 0, 0, 1),
+    height 0.24s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.dash-tile.just-added {
+  outline: 2px solid var(--color-accent);
+}
+
+.dash-tile.sizing {
+  outline: 2px solid var(--color-accent);
+}
+
+.tile-edit {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.tile-edit > button {
+  pointer-events: auto;
+}
+
+.tile-remove,
+.tile-grip {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border-radius: 50%;
+  box-shadow: var(--shadow-floating);
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    opacity 0.15s ease;
+}
+
+/* Bigger targets for fingers, without bigger buttons. */
+.tile-remove::after,
+.tile-grip::after {
+  content: '';
+  position: absolute;
+  inset: -8px;
+}
+
+.tile-remove {
+  top: -11px;
+  right: -11px;
+  border: none;
+  background: var(--color-danger);
+  color: #fff;
+}
+
+.tile-grip {
+  right: -11px;
+  bottom: -11px;
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface);
+  color: var(--color-text-heading);
+  cursor: nwse-resize;
+  touch-action: none;
+}
+
+.tile-remove .material-symbols-rounded,
+.tile-grip .material-symbols-rounded {
+  font-size: 18px;
+}
+
+.tile-grip .material-symbols-rounded {
+  transform: rotate(90deg);
+}
+
+.tile-remove:hover {
+  transform: scale(1.08);
+}
+
+.tile-grip:hover,
+.dash-tile.sizing .tile-grip {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-text-on-accent);
+}
+
+/* While one tile is carried, the others' controls step back. */
+.dash.carrying .tile-remove,
+.dash.carrying .tile-grip,
+.dash.resizing .dash-tile:not(.sizing) .tile-remove,
+.dash.resizing .dash-tile:not(.sizing) .tile-grip {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* A tapped tile: its sizes show in the picker. */
+.dash.editing .dash-tile.selected {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 4px;
+}
+
+/* ── Size picker ── */
+
+.size-picker {
+  position: absolute;
+  z-index: 30;
+  display: flex;
+  gap: 4px;
+  padding: 6px;
+  border: 1px solid var(--color-floating-border);
+  border-radius: var(--radius-xl);
+  background: var(--color-floating-bg);
+  box-shadow: var(--shadow-floating);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  animation: picker-in 0.16s cubic-bezier(0.2, 0, 0, 1);
+}
+
+@keyframes picker-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+}
+
+.size-picker.above {
+  animation-name: picker-in-above;
+}
+
+@keyframes picker-in-above {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.97);
+  }
+}
+
+.size-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 62px;
+  padding: 8px 8px 6px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-lg);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.size-option:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text-heading);
+}
+
+.size-option.active {
+  border-color: var(--color-accent);
+  background: var(--color-accent-bg);
+  color: var(--color-accent-text);
+}
+
+.size-option:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+/* A 4 × 2 sketch of the grid with the cells the size covers filled in. */
+.size-diagram {
+  display: grid;
+  grid-template-columns: repeat(4, 9px);
+  grid-template-rows: repeat(2, 9px);
+  gap: 2px;
+}
+
+.size-diagram span {
+  border-radius: 2px;
+  background: var(--color-border-strong);
+}
+
+.size-diagram span.on {
+  background: var(--color-text-heading);
+}
+
+.size-option.active .size-diagram span.on {
+  background: var(--color-accent);
+}
+
+@media (max-width: 760px) {
+  .size-picker {
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: calc(100vw - 48px);
+  }
+  .size-option {
+    min-width: 56px;
+  }
+}
+
+/* The size you're about to get, while dragging the grip. */
+.size-badge {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  padding: 6px 14px;
+  transform: translate(-50%, -50%);
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  box-shadow: var(--shadow-floating);
+  color: var(--color-text-on-accent);
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.dash.resizing {
+  cursor: nwse-resize;
+}
+
+/* ── Add tiles tray ── */
+
+.add-tray {
+  margin-top: 36px;
+  padding: 20px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2xl);
+  background: var(--color-bg-elevated);
+}
+
+.add-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 10px;
+}
+
+.add-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.add-card:hover {
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-sm);
+}
+
+.add-card:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.add-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: var(--color-accent-bg-medium);
+  color: var(--color-accent-text);
+}
+
+.add-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.add-title {
+  color: var(--color-text-heading);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.add-desc {
+  color: var(--color-text-muted);
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+.add-plus {
+  color: var(--color-text-faint);
+  font-size: 22px;
+}
+
+.add-card:hover .add-plus {
+  color: var(--color-accent-text);
+}
+
+/* Undo and redo sit together. */
+.history {
+  display: flex;
+  gap: 6px;
+}
+
+.narrow-only {
+  display: none;
+}
+
+/* Phones: room for the edit controls, and header buttons that fit. */
+@media (max-width: 760px) {
+  .dash.editing .dash-grid {
+    gap: 22px 16px;
+  }
+  .header-actions {
+    flex-wrap: wrap;
+  }
+  .edit-actions .header-btn {
+    height: 42px;
+    padding: 0 14px;
+  }
+  .wide-only {
+    display: none;
+  }
+  .narrow-only {
+    display: inline;
+  }
+}
+
+.header-btn.icon-only {
+  flex-shrink: 0;
+}

@@ -15,6 +15,8 @@ export interface TileGestureHost {
   tapped(id: TileId): void;
   /** A tile was picked up or its grip pressed. */
   started(id: TileId): void;
+  /** A carry or resize is over (dropped, finished or cancelled). */
+  ended(): void;
 }
 
 /** How long a finger rests on a tile before it lifts (Android uses about this). */
@@ -404,6 +406,7 @@ export class TileGestures {
   }
 
   private stop(): void {
+    const wasEditing = !!(this.drag || this.resize);
     if (this.pending) clearTimeout(this.pending.timer);
     cancelAnimationFrame(this.frame);
     this.unlisten();
@@ -413,6 +416,7 @@ export class TileGestures {
     this.pointer = null;
     this.lifted.set(null);
     this.resizing.set(null);
+    if (wasEditing) this.host.ended();
   }
 
   private tile(id: TileId): HTMLElement | null {
