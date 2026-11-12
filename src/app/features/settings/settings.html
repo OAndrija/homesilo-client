@@ -150,6 +150,60 @@
               </div>
             </div>
           }
+
+          <div class="appearance-group">
+            <div class="group-head">
+              <h4 id="corners-heading" class="group-title">Corners</h4>
+              <p class="group-hint">How round cards, buttons and fields are.</p>
+            </div>
+            <div class="choice-row" role="radiogroup" aria-labelledby="corners-heading">
+              @for (option of cornerOptions; track option.value) {
+                <button
+                  type="button"
+                  role="radio"
+                  class="choice"
+                  [class.selected]="themeService.corners() === option.value"
+                  [attr.aria-checked]="themeService.corners() === option.value"
+                  (click)="themeService.setCorners(option.value)"
+                >
+                  <span
+                    class="corner-sample"
+                    [attr.data-corners]="option.value"
+                    aria-hidden="true"
+                  ></span>
+                  {{ option.label }}
+                </button>
+              }
+            </div>
+          </div>
+
+          <div class="appearance-group">
+            <div class="group-head">
+              <h4 id="spacing-heading" class="group-title">Spacing</h4>
+              <p class="group-hint">How much room there is between cards.</p>
+            </div>
+            <div class="choice-row" role="radiogroup" aria-labelledby="spacing-heading">
+              @for (option of spacingOptions; track option.value) {
+                <button
+                  type="button"
+                  role="radio"
+                  class="choice"
+                  [class.selected]="themeService.spacing() === option.value"
+                  [attr.aria-checked]="themeService.spacing() === option.value"
+                  (click)="themeService.setSpacing(option.value)"
+                >
+                  <span
+                    class="spacing-sample"
+                    [attr.data-spacing]="option.value"
+                    aria-hidden="true"
+                  >
+                    <span></span><span></span><span></span><span></span>
+                  </span>
+                  {{ option.label }}
+                </button>
+              }
+            </div>
+          </div>
         </div>
 
         <!-- A miniature window drawn with the theme's own colour tokens. -->

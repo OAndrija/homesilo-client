@@ -153,41 +153,78 @@
           <div class="tile-body" [attr.inert]="editing() ? '' : null">
             @switch (tile.id) {
               @case ('storage') {
-                <section class="hero" [attr.data-level]="storageLevel()">
-                  <div class="hero-visual">
-                    <!-- The silo from the HomeSilo logo: greyed out when empty, its colour rising as storage fills. -->
-                    <div
-                      class="silo"
-                      role="img"
-                      [attr.aria-label]="
-                        storageUsedGB() +
-                        ' of ' +
-                        storageLimitGB() +
-                        ' GB used, ' +
-                        storageFreeLabel() +
-                        ' free'
-                      "
-                    >
-                      <img
-                        class="silo-empty"
-                        src="homesilo-silo.png"
-                        alt=""
-                        width="340"
-                        height="638"
-                      />
-                      <img
-                        class="silo-full"
-                        src="homesilo-silo.png"
-                        alt=""
-                        width="340"
-                        height="638"
-                        [style.clip-path]="'inset(' + siloFillTop() + '% 0 0 0)'"
-                      />
-                      @if (storageUsedBytes() > 0) {
-                        <span class="silo-level" [style.top.%]="siloFillTop()"></span>
+                @let storageLook = look(tile);
+                <section
+                  class="hero"
+                  [attr.data-level]="storageLevel()"
+                  [attr.data-look]="storageLook"
+                >
+                  @if (storageLook !== 'bars') {
+                    <div class="hero-visual">
+                      @if (storageLook === 'ring') {
+                        <!-- A ring: one arc per file type, measured against the whole quota. -->
+                        <div
+                          class="ring"
+                          role="img"
+                          [attr.aria-label]="
+                            storagePercent() + '% of storage used, ' + storageFreeLabel() + ' free'
+                          "
+                        >
+                          <svg viewBox="0 0 120 120" aria-hidden="true">
+                            <circle class="ring-track" cx="60" cy="60" r="52" />
+                            @for (segment of ringSegments(); track segment.label) {
+                              <circle
+                                class="ring-arc"
+                                cx="60"
+                                cy="60"
+                                r="52"
+                                [attr.stroke]="segment.color"
+                                [attr.stroke-dasharray]="segment.dash"
+                                [attr.stroke-dashoffset]="segment.offset"
+                              />
+                            }
+                          </svg>
+                          <span class="ring-center">
+                            <span class="ring-value">{{ storagePercent() }}%</span>
+                            <span class="ring-label">used</span>
+                          </span>
+                        </div>
+                      } @else {
+                        <!-- The silo from the HomeSilo logo: greyed out when empty, its colour rising as storage fills. -->
+                        <div
+                          class="silo"
+                          role="img"
+                          [attr.aria-label]="
+                            storageUsedGB() +
+                            ' of ' +
+                            storageLimitGB() +
+                            ' GB used, ' +
+                            storageFreeLabel() +
+                            ' free'
+                          "
+                        >
+                          <img
+                            class="silo-empty"
+                            src="homesilo-silo.png"
+                            alt=""
+                            width="340"
+                            height="638"
+                          />
+                          <img
+                            class="silo-full"
+                            src="homesilo-silo.png"
+                            alt=""
+                            width="340"
+                            height="638"
+                            [style.clip-path]="'inset(' + siloFillTop() + '% 0 0 0)'"
+                          />
+                          @if (storageUsedBytes() > 0) {
+                            <span class="silo-level" [style.top.%]="siloFillTop()"></span>
+                          }
+                        </div>
                       }
                     </div>
-                  </div>
+                  }
 
                   <div class="hero-body">
                     <div class="hero-cols">
@@ -253,6 +290,14 @@
                               }
                               <span class="bd-size">{{ type.sizeLabel }}</span>
                               <span class="bd-pct">{{ type.capacityLabel }}</span>
+                              @if (storageLook === 'bars') {
+                                <span class="bd-bar" aria-hidden="true">
+                                  <span
+                                    [style.width.%]="type.percent"
+                                    [style.background]="type.color"
+                                  ></span>
+                                </span>
+                              }
                             </li>
                           }
                           <li class="bd-free">
@@ -615,32 +660,53 @@
       }
       @if (editing() && selectedTile(); as sel) {
         @let selDef = definition(sel.id);
-        <div
-          #picker
-          class="size-picker"
-          role="radiogroup"
-          [attr.aria-label]="'Size of ' + selDef.title"
-          (keydown)="onPickerKeydown($event)"
-        >
-          @for (size of selDef.sizes; track size) {
-            <button
-              type="button"
-              role="radio"
-              class="size-option"
-              [class.active]="sel.size === size"
-              [attr.aria-checked]="sel.size === size"
-              [attr.tabindex]="sel.size === size ? 0 : -1"
-              [attr.aria-label]="sizeLabels[size].long + ', ' + sizeLabels[size].short"
-              [title]="sizeLabels[size].long"
-              (click)="setSize(sel.id, size)"
+        <div #picker class="size-picker" (keydown)="onPickerKeydown($event)">
+          <div class="picker-row" role="radiogroup" [attr.aria-label]="'Size of ' + selDef.title">
+            @for (size of selDef.sizes; track size) {
+              <button
+                type="button"
+                role="radio"
+                class="size-option"
+                [class.active]="sel.size === size"
+                [attr.aria-checked]="sel.size === size"
+                [attr.tabindex]="sel.size === size ? 0 : -1"
+                [attr.aria-label]="sizeLabels[size].long + ', ' + sizeLabels[size].short"
+                [title]="sizeLabels[size].long"
+                (click)="setSize(sel.id, size)"
+              >
+                <span class="size-diagram" aria-hidden="true">
+                  @for (cell of sizeCells(size); track $index) {
+                    <span [class.on]="cell"></span>
+                  }
+                </span>
+                <span class="size-name">{{ sizeLabels[size].short }}</span>
+              </button>
+            }
+          </div>
+          @if (selDef.variants; as variants) {
+            <div
+              class="picker-row looks"
+              role="radiogroup"
+              [attr.aria-label]="'Look of ' + selDef.title"
             >
-              <span class="size-diagram" aria-hidden="true">
-                @for (cell of sizeCells(size); track $index) {
-                  <span [class.on]="cell"></span>
-                }
-              </span>
-              <span class="size-name">{{ sizeLabels[size].short }}</span>
-            </button>
+              @for (variant of variants; track variant.id) {
+                <button
+                  type="button"
+                  role="radio"
+                  class="size-option"
+                  [class.active]="look(sel) === variant.id"
+                  [attr.aria-checked]="look(sel) === variant.id"
+                  [attr.tabindex]="look(sel) === variant.id ? 0 : -1"
+                  [attr.aria-label]="variant.label"
+                  (click)="setVariant(sel.id, variant.id)"
+                >
+                  <span class="material-symbols-rounded look-icon" aria-hidden="true">{{
+                    variant.icon
+                  }}</span>
+                  <span class="size-name">{{ variant.label }}</span>
+                </button>
+              }
+            </div>
           }
         </div>
       }

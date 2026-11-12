@@ -91,11 +91,13 @@
   --cat-trash: #f87171;
 
   /* ── Radius ── */
-  --radius-sm: 8px;
-  --radius-md: 10px;
-  --radius-lg: 12px;
-  --radius-xl: 14px;
-  --radius-2xl: 20px;
+  /* Scaled by the Corners setting (data-corners on <html>). */
+  --radius-scale: 1;
+  --radius-sm: calc(8px * var(--radius-scale));
+  --radius-md: calc(10px * var(--radius-scale));
+  --radius-lg: calc(12px * var(--radius-scale));
+  --radius-xl: calc(14px * var(--radius-scale));
+  --radius-2xl: calc(20px * var(--radius-scale));
   --radius-pill: 50px;
 
   /* ── Transitions ── */
@@ -110,6 +112,33 @@
 
   /* ── Spacing ── */
   --space-page-x: 36px;
+  /* Room between cards and tiles, scaled by the Spacing setting (data-spacing). */
+  --space-scale: 1;
+  --gap-cards: calc(16px * var(--space-scale));
+  --gap-items: calc(12px * var(--space-scale));
+}
+
+/* ── Corners and spacing (Settings → Appearance) ── */
+[data-corners='sharp'] {
+  --radius-scale: 0.3;
+}
+[data-corners='subtle'] {
+  --radius-scale: 0.6;
+}
+[data-corners='rounded'] {
+  --radius-scale: 1;
+}
+[data-corners='round'] {
+  --radius-scale: 1.45;
+}
+[data-spacing='compact'] {
+  --space-scale: 0.55;
+}
+[data-spacing='comfortable'] {
+  --space-scale: 1;
+}
+[data-spacing='spacious'] {
+  --space-scale: 1.6;
 }
 
 [data-theme='light'] {

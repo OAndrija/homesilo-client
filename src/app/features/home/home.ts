@@ -45,6 +45,7 @@ import {
   TILES,
   TileSize,
   tileDefinition,
+  variantOf,
 } from '../../core/models/dashboard-layout';
 
 // Colours live in styles.css (--cat-*) so they adapt to light/dark themes.
@@ -192,6 +193,26 @@ export class Home {
           capacityLabel: this.formatPercent(limit > 0 ? (t.bytes / limit) * 100 : 0),
         };
       });
+  });
+
+  /** The storage ring: one arc per file type, in proportion to the whole quota. */
+  private static readonly RING_RADIUS = 52;
+  readonly ringCircumference = 2 * Math.PI * Home.RING_RADIUS;
+  ringSegments = computed(() => {
+    const c = this.ringCircumference;
+    let start = 0;
+    return this.breakdownWithPercent().map((type) => {
+      // Even a tiny share gets a visible sliver.
+      const length = Math.min(Math.max((type.capacityPct / 100) * c, c * 0.012), c - start);
+      const segment = {
+        color: type.color,
+        dash: `${length} ${c}`,
+        offset: -start,
+        label: type.label,
+      };
+      start += length;
+      return segment;
+    });
   });
 
   /** Biggest file type (the breakdown is already sorted by size); null while empty. */
@@ -522,11 +543,10 @@ export class Home {
     return Array.from({ length: 8 }, (_, i) => i % 4 < columns && Math.floor(i / 4) < rows);
   }
 
-  /** Arrow keys move between the sizes, as in any radio group. */
+  /** Arrow keys move between the options of a row (sizes, or looks), as in any radio group. */
   onPickerKeydown(event: KeyboardEvent): void {
-    const options = Array.from(
-      this.picker()?.nativeElement.querySelectorAll<HTMLElement>('[role="radio"]') ?? [],
-    );
+    const group = (document.activeElement as Element | null)?.closest('[role="radiogroup"]');
+    const options = Array.from(group?.querySelectorAll<HTMLElement>('[role="radio"]') ?? []);
     const index = options.indexOf(document.activeElement as HTMLElement);
     const step =
       event.key === 'ArrowRight' || event.key === 'ArrowDown'
@@ -674,6 +694,30 @@ export class Home {
       },
       { injector: this.injector },
     );
+  }
+
+  /** Changes a tile's look (the storage tile as a silo, ring or bars). */
+  setVariant(id: TileId, variant: string): void {
+    const def = tileDefinition(id);
+    const next = variantOf(def, variant);
+    if (this.draft().find((t) => t.id === id)?.variant === next) return;
+    this.animate(() =>
+      this.draft.update((d) =>
+        d.map((t) => {
+          if (t.id !== id) return t;
+          const { variant: _old, ...rest } = t;
+          return next ? { ...rest, variant: next } : rest;
+        }),
+      ),
+    );
+    this.settle();
+    const label = def.variants?.find((v) => v.id === variant)?.label ?? variant;
+    this.announcement.set(`${def.title}: ${label}.`);
+  }
+
+  /** The look a tile shows: its variant, or the default (first) one. */
+  look(tile: PlacedTile): string {
+    return tile.variant ?? tileDefinition(tile.id).variants?.[0].id ?? '';
   }
 
   setSize(id: TileId, size: TileSize): void {

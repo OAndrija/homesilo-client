@@ -31,6 +31,14 @@ export type TileId =
 export interface PlacedTile {
   id: TileId;
   size: TileSize;
+  /** The tile's look, for tiles that have several; absent means the first (default) one. */
+  variant?: string;
+}
+
+export interface TileVariant {
+  id: string;
+  label: string;
+  icon: string;
 }
 
 export interface TileDefinition {
@@ -42,12 +50,14 @@ export interface TileDefinition {
   /** Sizes the tile can take, smallest first. */
   sizes: readonly TileSize[];
   defaultSize: TileSize;
+  /** Looks the tile can take; the first is the default. */
+  variants?: readonly TileVariant[];
 }
 
 /** What the server keeps; `customized` is false until someone saves a layout. */
 export interface DashboardLayoutResponse {
   customized: boolean;
-  tiles: { id: string; size: string }[];
+  tiles: { id: string; size: string; variant?: string | null }[];
   updatedAt: string | null;
 }
 
@@ -68,6 +78,11 @@ export const TILES: readonly TileDefinition[] = [
     icon: 'database',
     sizes: ['small', 'tall', 'medium', 'large', 'wide'],
     defaultSize: 'large',
+    variants: [
+      { id: 'silo', label: 'Silo', icon: 'warehouse' },
+      { id: 'ring', label: 'Ring', icon: 'donut_large' },
+      { id: 'bars', label: 'Bars', icon: 'bar_chart' },
+    ],
   },
   {
     id: 'total-files',
@@ -178,7 +193,9 @@ export function tileDefinition(id: TileId): TileDefinition {
  * Keeps only tiles this version of the app knows, each once, at a size it allows
  * (a saved layout can come from an older or newer version of the app).
  */
-export function normalizeLayout(tiles: readonly { id: string; size: string }[]): PlacedTile[] {
+export function normalizeLayout(
+  tiles: readonly { id: string; size: string; variant?: string | null }[],
+): PlacedTile[] {
   const seen = new Set<string>();
   const result: PlacedTile[] = [];
   for (const tile of tiles) {
@@ -188,11 +205,27 @@ export function normalizeLayout(tiles: readonly { id: string; size: string }[]):
     const size = def.sizes.includes(tile.size as TileSize)
       ? (tile.size as TileSize)
       : def.defaultSize;
-    result.push({ id: def.id, size });
+    const variant = variantOf(def, tile.variant);
+    result.push(variant ? { id: def.id, size, variant } : { id: def.id, size });
   }
   return result;
 }
 
+/** A known, non-default look of the tile, or undefined for its default. */
+export function variantOf(
+  def: TileDefinition,
+  variant: string | null | undefined,
+): string | undefined {
+  const known = def.variants?.some((v) => v.id === variant);
+  return known && variant !== def.variants![0].id ? variant! : undefined;
+}
+
 export function sameLayout(a: readonly PlacedTile[], b: readonly PlacedTile[]): boolean {
-  return a.length === b.length && a.every((t, i) => t.id === b[i].id && t.size === b[i].size);
+  return (
+    a.length === b.length &&
+    a.every(
+      (t, i) =>
+        t.id === b[i].id && t.size === b[i].size && (t.variant ?? null) === (b[i].variant ?? null),
+    )
+  );
 }

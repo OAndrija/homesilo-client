@@ -11,7 +11,7 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   grid-auto-rows: minmax(150px, auto);
-  gap: 16px;
+  gap: var(--gap-cards);
 }
 
 .dash-tile {
@@ -57,7 +57,7 @@
 @container dash (max-width: 760px) {
   .dash-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
+    gap: calc(12px * var(--space-scale));
   }
 }
 
@@ -234,6 +234,97 @@
   }
   .stat-value-text {
     font-size: 22px;
+  }
+}
+
+/* ── Storage looks: silo (default), ring, bars ── */
+
+.ring {
+  container-type: inline-size;
+  position: relative;
+  width: 100%;
+  max-width: 190px;
+  aspect-ratio: 1;
+  margin: 0 auto;
+}
+
+.ring svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.ring-track,
+.ring-arc {
+  fill: none;
+  stroke-width: 12;
+}
+
+.ring-track {
+  stroke: var(--color-border);
+}
+
+.ring-arc {
+  transition:
+    stroke-dasharray 0.6s cubic-bezier(0.2, 0, 0, 1),
+    stroke-dashoffset 0.6s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.ring-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.05;
+}
+
+/* Sized from the ring's own width, so it reads at every tile size. */
+.ring-value {
+  color: var(--color-text-heading);
+  font-family: var(--font-heading);
+  font-size: clamp(13px, 21cqi, 40px);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.ring-label {
+  color: var(--color-text-muted);
+  font-size: clamp(9px, 8cqi, 14px);
+}
+
+.dash-tile[data-size='tall'] .ring {
+  max-width: 120px;
+}
+
+/* Bars: no picture; each file type gets a bar for its share of what you use. */
+.dash-tile[data-size] .hero[data-look='bars'] {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.bd-bar {
+  grid-column: 2 / -1;
+  height: 6px;
+  margin-top: -2px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--color-border-subtle);
+}
+
+.bd-bar span {
+  display: block;
+  min-width: 4px;
+  height: 100%;
+  border-radius: inherit;
+  transition: width 0.6s cubic-bezier(0.2, 0, 0, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ring-arc,
+  .bd-bar span {
+    transition: none;
   }
 }
 

@@ -33,3 +33,32 @@ describe('dashboard layout', () => {
     expect(normalizeLayout(DEFAULT_LAYOUT)).toEqual([...DEFAULT_LAYOUT]);
   });
 });
+
+describe('tile looks', () => {
+  it('keeps a known look and drops the default or unknown ones', () => {
+    expect(
+      normalizeLayout([
+        { id: 'storage', size: 'large', variant: 'ring' },
+        { id: 'recent', size: 'wide', variant: 'ring' },
+      ]),
+    ).toEqual([
+      { id: 'storage', size: 'large', variant: 'ring' },
+      { id: 'recent', size: 'wide' },
+    ]);
+    expect(normalizeLayout([{ id: 'storage', size: 'large', variant: 'silo' }])).toEqual([
+      { id: 'storage', size: 'large' },
+    ]);
+    expect(normalizeLayout([{ id: 'storage', size: 'large', variant: null }])).toEqual([
+      { id: 'storage', size: 'large' },
+    ]);
+  });
+
+  it('counts a different look as a different layout', () => {
+    expect(
+      sameLayout(
+        [{ id: 'storage', size: 'large' }],
+        [{ id: 'storage', size: 'large', variant: 'bars' }],
+      ),
+    ).toBe(false);
+  });
+});

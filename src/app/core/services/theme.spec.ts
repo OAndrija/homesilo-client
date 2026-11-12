@@ -87,3 +87,31 @@ describe('ThemeService themes', () => {
     expect(service.chosen()).toEqual({ light: 'homesilo-light', dark: 'homesilo-dark' });
   });
 });
+
+describe('ThemeService corners and spacing', () => {
+  beforeEach(() => localStorage.clear());
+
+  it('defaults to rounded corners and comfortable spacing', () => {
+    const service = TestBed.inject(ThemeService);
+    TestBed.tick();
+    expect(service.corners()).toBe('rounded');
+    expect(document.documentElement.getAttribute('data-corners')).toBe('rounded');
+    expect(document.documentElement.getAttribute('data-spacing')).toBe('comfortable');
+  });
+
+  it('applies and saves a choice at once', () => {
+    const service = TestBed.inject(ThemeService);
+    service.setCorners('sharp');
+    service.setSpacing('spacious');
+    expect(localStorage.getItem('hs-corners')).toBe('sharp');
+    expect(localStorage.getItem('hs-spacing')).toBe('spacious');
+    TestBed.tick();
+    expect(document.documentElement.getAttribute('data-corners')).toBe('sharp');
+    expect(document.documentElement.getAttribute('data-spacing')).toBe('spacious');
+  });
+
+  it('ignores unknown saved values', () => {
+    localStorage.setItem('hs-corners', 'wobbly');
+    expect(TestBed.inject(ThemeService).corners()).toBe('rounded');
+  });
+});

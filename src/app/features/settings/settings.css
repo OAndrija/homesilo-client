@@ -465,6 +465,68 @@
   font-size: 12.5px;
 }
 
+/* Corners and spacing: a row of choices, each with a small sample. */
+.choice-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.choice {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 132px;
+  padding: 10px 14px 10px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: transparent;
+  color: var(--color-text-heading-alt);
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.choice:hover {
+  border-color: var(--color-border-stronger);
+}
+
+.choice.selected {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 1px var(--color-accent);
+}
+
+.choice:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* The sample sets its own scale (data-corners / data-spacing), so each shows its option. */
+.corner-sample {
+  width: 30px;
+  height: 30px;
+  border: 2px solid var(--color-accent);
+  border-radius: calc(12px * var(--radius-scale));
+  background: var(--color-accent-bg);
+}
+
+.spacing-sample {
+  display: grid;
+  grid-template-columns: repeat(2, 11px);
+  gap: calc(5px * var(--space-scale));
+  padding: 2px;
+}
+
+.spacing-sample span {
+  height: 11px;
+  border-radius: 3px;
+  background: var(--color-accent);
+}
+
 /* ── Security ─────────────────────────────────────────────────── */
 
 .fields {
