@@ -8,6 +8,13 @@ import { FileMetadata } from '../../core/models/file-metadata';
 import { Folder } from '../../core/models/folder';
 import { catchError, concatMap, finalize, forkJoin, from, Observable, of } from 'rxjs';
 import { FileTable } from '../../shared/file-table/file-table';
+import { FileGrid } from '../../shared/file-grid/file-grid';
+import {
+  FileView,
+  loadView,
+  saveView,
+  ViewControls,
+} from '../../shared/view-controls/view-controls';
 import { SelectionBar } from '../../shared/selection-bar/selection-bar';
 import { LoadingDelayPipe } from '../../shared/pipes/loading-delay';
 import { FileActions } from '../../core/services/file-actions';
@@ -19,7 +26,15 @@ import { TableSkeleton } from '../../shared/table-skeleton/table-skeleton';
 
 @Component({
   selector: 'app-starred',
-  imports: [FileTable, SelectionBar, LoadingDelayPipe, RouterLink, TableSkeleton],
+  imports: [
+    FileTable,
+    FileGrid,
+    ViewControls,
+    SelectionBar,
+    LoadingDelayPipe,
+    RouterLink,
+    TableSkeleton,
+  ],
   templateUrl: './starred.html',
   styleUrl: './starred.css',
 })
@@ -34,6 +49,10 @@ export class Starred {
   private router = inject(Router);
 
   fileTable = viewChild(FileTable);
+  fileGrid = viewChild(FileGrid);
+  /** Whichever of the list or the grid is showing; both share the selection API. */
+  items = computed(() => this.fileTable() ?? this.fileGrid());
+  view = signal<FileView>(loadView('starred'));
 
   files = signal<FileMetadata[]>([]);
   folders = signal<Folder[]>([]);
@@ -50,9 +69,7 @@ export class Starred {
   isEmpty = computed(() => this.files().length === 0 && this.folders().length === 0);
 
   selectedCount = computed(
-    () =>
-      (this.fileTable()?.selectedIds().size ?? 0) +
-      (this.fileTable()?.selectedFolderIds().size ?? 0),
+    () => (this.items()?.selectedIds().size ?? 0) + (this.items()?.selectedFolderIds().size ?? 0),
   );
   selectionStarred = computed(() => allStarred(this.getSelectedFiles(), this.getSelectedFolders()));
 
@@ -77,6 +94,12 @@ export class Starred {
       this.sort(); // reload when the sort changes
       this.load(query);
     });
+  }
+
+  setView(view: FileView): void {
+    this.items()?.clearSelection();
+    this.view.set(view);
+    saveView('starred', view);
   }
 
   onSortChange(sort: SortState): void {
@@ -321,12 +344,12 @@ export class Starred {
   }
 
   private getSelectedFiles(): FileMetadata[] {
-    const ids = this.fileTable()?.selectedIds() ?? new Set<string>();
+    const ids = this.items()?.selectedIds() ?? new Set<string>();
     return this.files().filter((f) => ids.has(f.id));
   }
 
   private getSelectedFolders(): Folder[] {
-    const ids = this.fileTable()?.selectedFolderIds() ?? new Set<string>();
+    const ids = this.items()?.selectedFolderIds() ?? new Set<string>();
     return this.folders().filter((f) => ids.has(f.id));
   }
 }

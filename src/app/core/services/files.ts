@@ -111,6 +111,11 @@ export class Files {
     return `${FILES_URL}/${encodeURIComponent(fileId)}/download`;
   }
 
+  /** A small preview of an image; only for files whose `thumbnail` flag is set. */
+  thumbnailUrl(fileId: string): string {
+    return `${FILES_URL}/${encodeURIComponent(fileId)}/thumbnail`;
+  }
+
   previewUrl(fileId: string): string {
     return `${FILES_URL}/${encodeURIComponent(fileId)}/preview`;
   }

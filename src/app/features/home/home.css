@@ -569,6 +569,14 @@
   font-size: 22px;
 }
 
+/* A photo's own preview instead of the generic image icon. */
+.tile-thumb {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+}
+
 .tile-icon.folder {
   --tint: var(--color-accent);
 }

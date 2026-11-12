@@ -259,9 +259,19 @@
             [title]="file.originalFileName"
           >
             <span class="tile-icon" [style.--tint]="getFileIcon(file.originalFileName).color">
-              <span class="material-symbols-rounded" aria-hidden="true">{{
-                getFileIcon(file.originalFileName).icon
-              }}</span>
+              @if (file.thumbnail && !brokenThumbs().has(file.id)) {
+                <img
+                  class="tile-thumb"
+                  [src]="thumbnailUrl(file)"
+                  alt=""
+                  loading="lazy"
+                  (error)="onThumbError(file)"
+                />
+              } @else {
+                <span class="material-symbols-rounded" aria-hidden="true">{{
+                  getFileIcon(file.originalFileName).icon
+                }}</span>
+              }
             </span>
             <span class="tile-text">
               <span class="tile-name">{{ file.originalFileName }}</span>

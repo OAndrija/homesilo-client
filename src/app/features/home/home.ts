@@ -177,6 +177,17 @@ export class Home {
   }
 
   /** Opens the viewer, stepping through the section the file was clicked in. */
+  /** Starred photos show their own preview; a failed one falls back to the icon. */
+  brokenThumbs = signal<Set<string>>(new Set());
+
+  thumbnailUrl(file: FileMetadata): string {
+    return this.fileService.thumbnailUrl(file.id);
+  }
+
+  onThumbError(file: FileMetadata): void {
+    this.brokenThumbs.update((s) => new Set(s).add(file.id));
+  }
+
   openStarred(file: FileMetadata): void {
     this.fileActions.open(file, this.starredFiles());
   }

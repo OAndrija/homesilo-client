@@ -29,6 +29,13 @@ import { FileTable, MovePayload } from '../../shared/file-table/file-table';
 import { FolderNameDialog } from '../../shared/folder-name-dialog/folder-name-dialog';
 import { FolderPickerDialog } from '../../shared/folder-picker-dialog/folder-picker-dialog';
 import { LoadingDelayPipe } from '../../shared/pipes/loading-delay';
+import { FileGrid } from '../../shared/file-grid/file-grid';
+import {
+  FileView,
+  loadView,
+  saveView,
+  ViewControls,
+} from '../../shared/view-controls/view-controls';
 import { SelectionBar } from '../../shared/selection-bar/selection-bar';
 import { TableSkeleton } from '../../shared/table-skeleton/table-skeleton';
 
@@ -38,6 +45,8 @@ type RenameTarget = { kind: 'file'; item: FileMetadata } | { kind: 'folder'; ite
   selector: 'app-my-files',
   imports: [
     FileTable,
+    FileGrid,
+    ViewControls,
     SelectionBar,
     LoadingDelayPipe,
     FolderPickerDialog,
@@ -61,6 +70,10 @@ export class MyFiles {
   private stars = inject(Stars);
 
   fileTable = viewChild(FileTable);
+  fileGrid = viewChild(FileGrid);
+  /** Whichever of the list or the grid is showing; both share the selection API. */
+  items = computed(() => this.fileTable() ?? this.fileGrid());
+  view = signal<FileView>(loadView('my-files'));
   fileInput = viewChild<ElementRef<HTMLInputElement>>('fileInput');
 
   // ── Navigation ───────────────────────────────────────────────
@@ -103,9 +116,7 @@ export class MyFiles {
   }
   isAtRoot = computed(() => this.currentFolderId() === null);
   selectedCount = computed(
-    () =>
-      (this.fileTable()?.selectedIds().size ?? 0) +
-      (this.fileTable()?.selectedFolderIds().size ?? 0),
+    () => (this.items()?.selectedIds().size ?? 0) + (this.items()?.selectedFolderIds().size ?? 0),
   );
 
   /** Everything selected is starred, so the bar's star button reads as "on". */
@@ -151,6 +162,12 @@ export class MyFiles {
       // The upload is idempotent, so a re-upload may return an entry we already show.
       this.files.update((files) => [file, ...files.filter((f) => f.id !== file.id)]);
     });
+  }
+
+  setView(view: FileView): void {
+    this.items()?.clearSelection();
+    this.view.set(view);
+    saveView('my-files', view);
   }
 
   onSortChange(sort: SortState): void {
@@ -247,12 +264,12 @@ export class MyFiles {
   navigateToFolder(folder: Folder): void {
     this.searchService.clear();
     this.router.navigate([], { queryParams: { folderId: folder.id } });
-    this.fileTable()?.clearSelection();
+    this.items()?.clearSelection();
   }
 
   navigateViaBreadcrumb(folder: Folder | null): void {
     this.router.navigate([], { queryParams: { folderId: folder?.id ?? null } });
-    this.fileTable()?.clearSelection();
+    this.items()?.clearSelection();
   }
 
   // ── Folders ──────────────────────────────────────────────────
@@ -497,7 +514,7 @@ export class MyFiles {
   }
 
   getSelectedFolderIds(): string[] {
-    return [...(this.fileTable()?.selectedFolderIds() ?? new Set<string>())];
+    return [...(this.items()?.selectedFolderIds() ?? new Set<string>())];
   }
 
   private moveItems(fileIds: string[], folderIds: string[], targetFolderId: string | null): void {
@@ -546,12 +563,12 @@ export class MyFiles {
   }
 
   private getSelectedFiles(): FileMetadata[] {
-    const ids = this.fileTable()?.selectedIds() ?? new Set<string>();
+    const ids = this.items()?.selectedIds() ?? new Set<string>();
     return this.files().filter((f) => ids.has(f.id));
   }
 
   private getSelectedFolders(): Folder[] {
-    const ids = this.fileTable()?.selectedFolderIds() ?? new Set<string>();
+    const ids = this.items()?.selectedFolderIds() ?? new Set<string>();
     return this.folders().filter((f) => ids.has(f.id));
   }
 

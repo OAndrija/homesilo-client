@@ -105,25 +105,53 @@
       }
     </div>
   } @else if (!loading()) {
-    <app-file-table
-      [files]="files()"
-      [folders]="sortedFolders()"
-      [actions]="['download', 'rename', 'trash', 'star']"
-      dateColumnLabel="Modified"
-      [sort]="sort()"
-      (sortChange)="onSortChange($event)"
-      (download)="downloadFile($event)"
-      (rename)="renameFile($event)"
-      (folderRename)="renameFolder($event)"
-      (folderDownload)="downloadFolder($event)"
-      (trash)="trashFile($event)"
-      (star)="toggleStar($event)"
-      (openFile)="openFile($event)"
-      (folderOpen)="navigateToFolder($event)"
-      (folderTrash)="trashFolder($event)"
-      (folderStar)="toggleFolderStar($event)"
-      (itemsMoved)="onItemsMoved($event)"
-    />
+    <div class="list-toolbar">
+      <app-view-controls
+        [view]="view()"
+        [sort]="sort()"
+        dateLabel="Modified"
+        (viewChange)="setView($event)"
+        (sortChange)="onSortChange($event)"
+      />
+    </div>
+    @if (view() === 'grid') {
+      <app-file-grid
+        [files]="files()"
+        [folders]="sortedFolders()"
+        [actions]="['download', 'rename', 'trash', 'star']"
+        (download)="downloadFile($event)"
+        (rename)="renameFile($event)"
+        (folderRename)="renameFolder($event)"
+        (folderDownload)="downloadFolder($event)"
+        (trash)="trashFile($event)"
+        (star)="toggleStar($event)"
+        (openFile)="openFile($event)"
+        (folderOpen)="navigateToFolder($event)"
+        (folderTrash)="trashFolder($event)"
+        (folderStar)="toggleFolderStar($event)"
+        (itemsMoved)="onItemsMoved($event)"
+      />
+    } @else {
+      <app-file-table
+        [files]="files()"
+        [folders]="sortedFolders()"
+        [actions]="['download', 'rename', 'trash', 'star']"
+        dateColumnLabel="Modified"
+        [sort]="sort()"
+        (sortChange)="onSortChange($event)"
+        (download)="downloadFile($event)"
+        (rename)="renameFile($event)"
+        (folderRename)="renameFolder($event)"
+        (folderDownload)="downloadFolder($event)"
+        (trash)="trashFile($event)"
+        (star)="toggleStar($event)"
+        (openFile)="openFile($event)"
+        (folderOpen)="navigateToFolder($event)"
+        (folderTrash)="trashFolder($event)"
+        (folderStar)="toggleFolderStar($event)"
+        (itemsMoved)="onItemsMoved($event)"
+      />
+    }
 
     @if (hasMore()) {
       <div class="show-more-wrap">
@@ -179,7 +207,7 @@
     (moveAll)="onMoveAll()"
     (trashAll)="onTrashAll()"
     (starAll)="onStarAll()"
-    (clearSelection)="fileTable()?.clearSelection()"
+    (clearSelection)="items()?.clearSelection()"
   >
   </app-selection-bar>
 </div>

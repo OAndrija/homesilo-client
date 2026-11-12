@@ -1,0 +1,455 @@
+:host {
+  display: block;
+}
+
+.group + .group {
+  margin-top: 26px;
+}
+
+.group-label {
+  margin: 0 0 12px;
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ── Folders: compact cards ───────────────────────────────────── */
+
+.folder-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.folder-tile {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 56px;
+  padding: 0 6px 0 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+  cursor: pointer;
+  user-select: none;
+  transition:
+    border-color var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.folder-tile:hover {
+  background: var(--color-surface-hover);
+}
+
+.folder-icon {
+  flex-shrink: 0;
+  color: var(--color-accent);
+  font-size: 24px;
+  font-variation-settings: 'FILL' 1;
+}
+
+.folder-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-text-heading);
+  font-size: 14px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.folder-tile .tile-check {
+  position: absolute;
+  top: 50%;
+  left: 18px;
+  transform: translateY(-50%);
+  opacity: 0;
+}
+
+.folder-tile:hover .tile-check,
+.folder-tile.selected .tile-check,
+:host(.has-selection) .folder-tile .tile-check {
+  opacity: 1;
+}
+
+/* The checkbox takes the icon's place when you hover or select. */
+.folder-tile:hover .folder-icon,
+.folder-tile.selected .folder-icon,
+:host(.has-selection) .folder-icon {
+  visibility: hidden;
+}
+
+.folder-tile.drag-over {
+  border-color: var(--color-accent);
+  background: var(--color-accent-bg);
+}
+
+/* ── Files: preview tiles ─────────────────────────────────────── */
+
+.file-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+}
+
+.file-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+  cursor: pointer;
+  user-select: none;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.file-tile:hover {
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+.preview {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 4 / 3;
+  margin: 6px 6px 0;
+  overflow: hidden;
+  border-radius: calc(var(--radius-xl) - 4px);
+  /* Tinted with the file type's colour when there is no picture. */
+  background: color-mix(
+    in srgb,
+    var(--tint, var(--color-text-faint)) 12%,
+    var(--color-surface-alt)
+  );
+}
+
+.preview.has-thumb {
+  background: var(--color-surface-alt);
+}
+
+.preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.25s ease;
+}
+
+.file-tile:hover .preview img {
+  transform: scale(1.03);
+}
+
+.type-icon {
+  color: var(--tint);
+  font-size: 46px;
+}
+
+.type-label {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: calc(100% - 20px);
+  padding: 2px 8px;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--tint) 18%, transparent);
+  color: var(--tint);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-tile .tile-check {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  opacity: 0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+
+.file-tile:hover .tile-check,
+.file-tile.selected .tile-check,
+:host(.has-selection) .file-tile .tile-check {
+  opacity: 1;
+}
+
+.star-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(10, 12, 20, 0.55);
+  color: var(--color-star);
+  font-size: 16px;
+  font-variation-settings: 'FILL' 1;
+}
+
+.caption {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 10px 4px 10px 12px;
+}
+
+.caption-icon {
+  flex-shrink: 0;
+  font-size: 20px;
+}
+
+.caption-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.file-name {
+  overflow: hidden;
+  color: var(--color-text-heading);
+  font-size: 13.5px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-meta {
+  margin-top: 2px;
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.star-mark {
+  flex-shrink: 0;
+  color: var(--color-star);
+  font-size: 16px;
+  font-variation-settings: 'FILL' 1;
+}
+
+/* ── Selection and focus ──────────────────────────────────────── */
+
+.folder-tile.selected,
+.file-tile.selected {
+  border-color: var(--color-accent);
+  background: var(--color-accent-bg);
+  box-shadow: 0 0 0 1px var(--color-accent);
+}
+
+.folder-tile:focus-visible,
+.file-tile:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.tile-check {
+  appearance: none;
+  -webkit-appearance: none;
+  display: grid;
+  place-content: center;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  border: 1.5px solid var(--color-border-stronger);
+  border-radius: 6px;
+  background: var(--color-surface);
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+
+.tile-check::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  transform: scale(0);
+  background: var(--color-text-on-accent);
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+  transition: transform 0.1s ease-in-out;
+}
+
+.tile-check:checked {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+}
+
+.tile-check:checked::before {
+  transform: scale(1);
+}
+
+/* ── Item menu ────────────────────────────────────────────────── */
+
+.tile-menu {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.menu-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.folder-tile:hover .menu-btn,
+.file-tile:hover .menu-btn,
+.folder-tile:focus-within .menu-btn,
+.file-tile:focus-within .menu-btn,
+.menu-btn[aria-expanded='true'] {
+  opacity: 1;
+}
+
+.menu-btn:hover,
+.menu-btn[aria-expanded='true'] {
+  background: var(--color-surface-hover);
+  color: var(--color-text-heading);
+}
+
+.menu-btn:focus-visible {
+  opacity: 1;
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 30;
+  min-width: 210px;
+  padding: 6px;
+  border: 1px solid var(--color-floating-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-floating-bg);
+  box-shadow: var(--shadow-floating);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  animation: menu-in 0.14s ease-out;
+}
+
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-heading-alt);
+  font-family: var(--font-body);
+  font-size: 14px;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.menu-item .material-symbols-rounded {
+  color: var(--color-text-muted);
+  font-size: 19px;
+}
+
+.menu-item .material-symbols-rounded.filled {
+  color: var(--color-star);
+  font-variation-settings: 'FILL' 1;
+}
+
+.menu-item:hover,
+.menu-item:focus-visible {
+  outline: none;
+  background: var(--color-surface-hover);
+  color: var(--color-text-heading);
+}
+
+.menu-item.danger,
+.menu-item.danger .material-symbols-rounded {
+  color: var(--color-danger-text);
+}
+
+.menu-item.danger:hover,
+.menu-item.danger:focus-visible {
+  background: var(--color-danger-bg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .preview img,
+  .menu {
+    transition: none;
+    animation: none;
+  }
+
+  .file-tile:hover .preview img {
+    transform: none;
+  }
+}
+
+/* Phones: two columns, and the menu button is always there (no hover). */
+@media (max-width: 700px) {
+  .folder-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .file-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  /* No hover on touch: the menu button is always there; checkboxes appear once
+     a tap has selected something. */
+  .menu-btn {
+    opacity: 1;
+  }
+
+  .folder-tile:hover .tile-check,
+  .file-tile:hover .tile-check {
+    opacity: 0;
+  }
+
+  .folder-tile:hover .folder-icon {
+    visibility: visible;
+  }
+
+  :host(.has-selection) .tile-check {
+    opacity: 1 !important;
+  }
+
+  :host(.has-selection) .folder-icon {
+    visibility: hidden !important;
+  }
+
+  .file-meta {
+    font-size: 11.5px;
+  }
+}

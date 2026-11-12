@@ -60,6 +60,10 @@
       @switch (kind()) {
         @case ('image') {
           @if (mediaLoading() && !mediaFailed()) {
+            <!-- The small preview stands in while the full image downloads. -->
+            @if (file.thumbnail) {
+              <img class="placeholder" [src]="thumbUrl()" alt="" aria-hidden="true" />
+            }
             <span class="spinner" aria-hidden="true"></span>
           }
           @if (mediaFailed()) {

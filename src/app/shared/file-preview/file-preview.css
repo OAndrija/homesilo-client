@@ -172,6 +172,24 @@
   object-fit: contain;
 }
 
+.placeholder {
+  position: absolute;
+  inset: 24px 80px;
+  width: calc(100% - 160px);
+  height: calc(100% - 48px);
+  object-fit: contain;
+  filter: blur(8px);
+  opacity: 0.85;
+}
+
+@media (max-width: 700px) {
+  .placeholder {
+    inset: 12px 12px 72px;
+    width: calc(100% - 24px);
+    height: calc(100% - 84px);
+  }
+}
+
 .image.hidden {
   visibility: hidden;
   position: absolute;

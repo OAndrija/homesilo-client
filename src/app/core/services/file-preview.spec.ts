@@ -15,6 +15,7 @@ function file(id: string): FileMetadata {
     trashedAt: null,
     folderId: null,
     folderName: null,
+    thumbnail: false,
   };
 }
 

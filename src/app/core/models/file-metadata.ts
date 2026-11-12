@@ -10,6 +10,8 @@ export interface FileMetadata {
   trashedAt: string | null;
   folderId: string | null;
   folderName: string | null;
+  /** The server can show a small preview (GET /files/{id}/thumbnail). */
+  thumbnail: boolean;
 }
 
 export interface PageResponse<T> {

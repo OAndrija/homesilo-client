@@ -167,3 +167,10 @@
 .drop-icon {
   font-size: 56px;
 }
+
+/* List / grid switch above the items. */
+.list-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
