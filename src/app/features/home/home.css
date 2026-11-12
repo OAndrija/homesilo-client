@@ -697,8 +697,8 @@
   .photo img {
     transition: none;
   }
-  .tile-ghost {
-    transform: none;
+  .dash-tile {
+    transition: none !important;
   }
   .stat-card.is-link:hover {
     transform: none;

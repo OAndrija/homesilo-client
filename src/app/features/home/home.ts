@@ -26,6 +26,7 @@ import { UploadService } from '../../core/services/uploads';
 import { formatBytes } from '../../core/utils/format';
 import { getFileIcon } from '../../core/utils/file-icon.util';
 import { FriendlyDatePipe } from '../../shared/pipes/friendly-date';
+import { reducedMotion, TileGestures } from './tile-gestures';
 import { ActivityItem } from '../../shared/activity-item/activity-item';
 import { ActivityApi } from '../../core/services/activity';
 import { ActivityEntry } from '../../core/models/activity';
@@ -191,7 +192,7 @@ export class Home {
     effect(() => {
       if (this.shownTiles().some((t) => t.id === 'activity')) this.loadActivity();
     });
-    inject(DestroyRef).onDestroy(() => this.endDrag());
+    inject(DestroyRef).onDestroy(() => this.saveOnLeave());
     this.store.ensureLoaded();
     this.loadRecentFiles();
     this.loadStarred();
@@ -345,26 +346,42 @@ export class Home {
     return Home.LIMITS[tile.id]?.[tile.size] ?? 8;
   }
 
+  /** Pick up, carry, drop and resize tiles with a mouse, pen or finger. */
+  readonly gestures = new TileGestures({
+    grid: () => this.grid()?.nativeElement ?? null,
+    tiles: () => this.draft(),
+    moveTile: (id, to, skip) => this.moveTile(id, to, skip),
+    resizeTile: (id, size) => this.setSize(id, size),
+    restoreOrder: (tiles) =>
+      this.animate(() => this.draft.set(tiles), this.gestures.lifted() ?? undefined),
+    afterRender: (fn) => afterNextRender({ write: fn }, { injector: this.injector }),
+    announce: (message) => this.announcement.set(message),
+  });
+
+  /** The draft differs from what is saved. */
+  private dirty = computed(
+    () => this.editing() && !sameLayout(this.draft(), this.layout.tiles() ?? DEFAULT_LAYOUT),
+  );
+
   startEdit(): void {
     this.draft.set([...(this.layout.tiles() ?? DEFAULT_LAYOUT)]);
     this.editing.set(true);
   }
 
   cancelEdit(): void {
-    this.endDrag();
+    this.gestures.dispose();
     this.editing.set(false);
   }
 
   finishEdit(): void {
-    this.endDrag();
-    const draft = this.draft();
-    if (sameLayout(draft, this.layout.tiles() ?? DEFAULT_LAYOUT)) {
+    this.gestures.dispose();
+    if (!this.dirty()) {
       this.editing.set(false);
       return;
     }
     this.saving.set(true);
     this.layout
-      .save(draft)
+      .save(this.draft())
       .pipe(finalize(() => this.saving.set(false)))
       .subscribe({
         next: () => {
@@ -375,10 +392,27 @@ export class Home {
       });
   }
 
+  /** Leaving the page while editing keeps the changes, like closing quick settings. */
+  private saveOnLeave(): void {
+    this.gestures.dispose();
+    if (!this.dirty() || this.saving()) return;
+    const toast = this.toast;
+    this.layout.save(this.draft()).subscribe({
+      next: () => toast.success('Dashboard saved'),
+      error: (err) => toast.error(errorMessage(err, 'Couldn’t save your dashboard.')),
+    });
+  }
+
+  /** Closing the tab can't wait for a save, so the browser asks first. */
+  @HostListener('window:beforeunload', ['$event'])
+  onBeforeUnload(event: BeforeUnloadEvent): void {
+    if (this.dirty()) event.preventDefault();
+  }
+
   @HostListener('document:keydown.escape')
   onEscape(): void {
-    if (this.draggingId()) this.endDrag();
-    else if (this.editing() && !this.saving()) this.cancelEdit();
+    if (this.gestures.cancel()) return;
+    if (this.editing() && !this.saving()) this.cancelEdit();
   }
 
   resetLayout(): void {
@@ -394,8 +428,8 @@ export class Home {
     afterNextRender(
       () => {
         const el = this.tileElement(def.id);
-        el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        el?.querySelector<HTMLElement>('.tile-handle')?.focus({ preventScroll: true });
+        el?.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'nearest' });
+        el?.focus({ preventScroll: true });
       },
       { injector: this.injector },
     );
@@ -405,46 +439,76 @@ export class Home {
     const index = this.draft().findIndex((t) => t.id === id);
     this.animate(() => this.draft.update((d) => d.filter((t) => t.id !== id)));
     this.announcement.set(`${tileDefinition(id).title} removed.`);
-    // Keep the keyboard nearby: the next tile's handle, or the previous one's.
+    // Keep the keyboard nearby: the tile that took its place, or the one before.
     afterNextRender(
       () => {
         const next = this.draft()[index] ?? this.draft()[index - 1];
-        if (next) this.tileElement(next.id)?.querySelector<HTMLElement>('.tile-remove')?.focus();
+        if (next) this.tileElement(next.id)?.focus();
       },
       { injector: this.injector },
     );
   }
 
   setSize(id: TileId, size: TileSize): void {
+    if (this.draft().find((t) => t.id === id)?.size === size) return;
     this.animate(() => this.draft.update((d) => d.map((t) => (t.id === id ? { ...t, size } : t))));
     this.announcement.set(`${tileDefinition(id).title}: ${TILE_SIZE_LABELS[size].long}.`);
   }
 
-  private moveTile(id: TileId, to: number): void {
+  private moveTile(id: TileId, to: number, skipAnimation?: TileId): void {
     const from = this.draft().findIndex((t) => t.id === id);
     if (from < 0 || to < 0 || to >= this.draft().length || from === to) return;
-    this.animate(() =>
-      this.draft.update((d) => {
-        const next = [...d];
-        const [tile] = next.splice(from, 1);
-        next.splice(to, 0, tile);
-        return next;
-      }),
+    this.animate(
+      () =>
+        this.draft.update((d) => {
+          const next = [...d];
+          const [tile] = next.splice(from, 1);
+          next.splice(to, 0, tile);
+          return next;
+        }),
+      skipAnimation,
     );
   }
 
-  onHandleKeydown(tile: PlacedTile, index: number, event: KeyboardEvent): void {
+  /** What a tile says to screen readers in edit mode. */
+  tileLabel(tile: PlacedTile, index: number): string {
+    const def = tileDefinition(tile.id);
+    return `${def.title}, ${TILE_SIZE_LABELS[tile.size].long.toLowerCase()}, position ${index + 1} of ${this.draft().length}`;
+  }
+
+  /**
+   * Keyboard editing on a focused tile: arrows move it, Shift with arrows
+   * resizes it, Delete removes it.
+   */
+  onTileKeydown(tile: PlacedTile, index: number, event: KeyboardEvent): void {
+    if (event.target !== event.currentTarget || this.gestures.active) return;
+    const { key } = event;
+    if (key === 'Delete' || key === 'Backspace') {
+      event.preventDefault();
+      this.removeTile(tile.id);
+      return;
+    }
+    const forward = key === 'ArrowRight' || key === 'ArrowDown';
+    const back = key === 'ArrowLeft' || key === 'ArrowUp';
+
+    if (event.shiftKey && (forward || back)) {
+      event.preventDefault();
+      const sizes = tileDefinition(tile.id).sizes;
+      const next = sizes[sizes.indexOf(tile.size) + (forward ? 1 : -1)];
+      if (next) this.setSize(tile.id, next);
+      return;
+    }
+
     const last = this.draft().length - 1;
-    const to =
-      event.key === 'ArrowLeft' || event.key === 'ArrowUp'
+    const to = forward
+      ? index + 1
+      : back
         ? index - 1
-        : event.key === 'ArrowRight' || event.key === 'ArrowDown'
-          ? index + 1
-          : event.key === 'Home'
-            ? 0
-            : event.key === 'End'
-              ? last
-              : null;
+        : key === 'Home'
+          ? 0
+          : key === 'End'
+            ? last
+            : null;
     if (to === null) return;
     event.preventDefault();
     if (to < 0 || to > last || to === index) return;
@@ -453,154 +517,9 @@ export class Home {
       `${tileDefinition(tile.id).title} moved to position ${to + 1} of ${last + 1}.`,
     );
     // Moving the tile re-inserts it in the page, which drops focus; put it back.
-    afterNextRender(
-      () => this.tileElement(tile.id)?.querySelector<HTMLElement>('.tile-handle')?.focus(),
-      { injector: this.injector },
-    );
-  }
-
-  // ── Dragging (mouse, pen and touch) ──────────────────────────
-
-  draggingId = signal<TileId | null>(null);
-  ghost = signal<{
-    x: number;
-    y: number;
-    w: number;
-    h: number;
-    icon: string;
-    title: string;
-  } | null>(null);
-  private drag: {
-    id: TileId;
-    offsetX: number;
-    offsetY: number;
-    x: number;
-    y: number;
-    lastTarget: string | null;
-    lastMove: number;
-    scroller: HTMLElement;
-    frame: number;
-  } | null = null;
-
-  onHandlePointerDown(tile: PlacedTile, event: PointerEvent): void {
-    if (event.button !== 0 || this.drag) return;
-    const el = this.tileElement(tile.id);
-    if (!el) return;
-    event.preventDefault();
-    const rect = el.getBoundingClientRect();
-    const def = tileDefinition(tile.id);
-    this.drag = {
-      id: tile.id,
-      offsetX: event.clientX - rect.left,
-      offsetY: event.clientY - rect.top,
-      x: event.clientX,
-      y: event.clientY,
-      lastTarget: null,
-      lastMove: 0,
-      scroller: scrollParent(el),
-      frame: requestAnimationFrame(this.autoScroll),
-    };
-    this.draggingId.set(tile.id);
-    this.ghost.set({
-      x: rect.left,
-      y: rect.top,
-      w: Math.min(rect.width, 360),
-      h: Math.min(rect.height, 220),
-      icon: def.icon,
-      title: def.title,
+    afterNextRender(() => this.tileElement(tile.id)?.focus({ preventScroll: true }), {
+      injector: this.injector,
     });
-    window.addEventListener('pointermove', this.onPointerMove);
-    window.addEventListener('pointerup', this.onPointerUp);
-    window.addEventListener('pointercancel', this.onPointerUp);
-  }
-
-  private onPointerMove = (event: PointerEvent): void => {
-    const drag = this.drag;
-    if (!drag) return;
-    drag.x = event.clientX;
-    drag.y = event.clientY;
-    this.ghost.update((g) => g && { ...g, x: drag.x - drag.offsetX, y: drag.y - drag.offsetY });
-    this.reorderAt(drag.x, drag.y);
-  };
-
-  private onPointerUp = (): void => {
-    const id = this.drag?.id;
-    this.endDrag();
-    if (id) {
-      const position = this.draft().findIndex((t) => t.id === id) + 1;
-      this.announcement.set(
-        `${tileDefinition(id).title} placed at position ${position} of ${this.draft().length}.`,
-      );
-    }
-  };
-
-  /** Moves the dragged tile into the place of the tile under the pointer. */
-  private reorderAt(x: number, y: number): void {
-    const drag = this.drag;
-    const grid = this.grid()?.nativeElement;
-    if (!drag || !grid) return;
-    // Let a move settle before the next, so tiles of different sizes don't trade places back and forth.
-    if (performance.now() - drag.lastMove < 140) return;
-
-    const hit = document.elementFromPoint(x, y)?.closest<HTMLElement>('[data-tile]');
-    if (hit && grid.contains(hit)) {
-      const id = hit.dataset['tile'] as TileId;
-      if (id === drag.id) {
-        drag.lastTarget = null;
-        return;
-      }
-      if (id === drag.lastTarget) return;
-      drag.lastTarget = id;
-      drag.lastMove = performance.now();
-      this.moveTile(
-        drag.id,
-        this.draft().findIndex((t) => t.id === id),
-      );
-      return;
-    }
-
-    // Past the last tile: move to the end.
-    const tiles = grid.querySelectorAll<HTMLElement>('[data-tile]');
-    const lastTile = tiles[tiles.length - 1];
-    if (!lastTile || lastTile.dataset['tile'] === drag.id) return;
-    const last = lastTile.getBoundingClientRect();
-    if (y > last.bottom || (y > last.top && x > last.right)) {
-      drag.lastTarget = null;
-      drag.lastMove = performance.now();
-      this.moveTile(drag.id, this.draft().length - 1);
-    }
-  }
-
-  /** Scrolls the page while a tile is held near its top or bottom edge. */
-  private autoScroll = (): void => {
-    const drag = this.drag;
-    if (!drag) return;
-    const bounds =
-      drag.scroller === document.scrollingElement
-        ? { top: 0, bottom: window.innerHeight }
-        : drag.scroller.getBoundingClientRect();
-    const edge = 72;
-    const speed =
-      drag.y < bounds.top + edge
-        ? -Math.ceil((bounds.top + edge - drag.y) / 6)
-        : drag.y > bounds.bottom - edge
-          ? Math.ceil((drag.y - (bounds.bottom - edge)) / 6)
-          : 0;
-    if (speed !== 0) {
-      drag.scroller.scrollBy(0, speed);
-      this.reorderAt(drag.x, drag.y);
-    }
-    drag.frame = requestAnimationFrame(this.autoScroll);
-  };
-
-  private endDrag(): void {
-    if (this.drag) cancelAnimationFrame(this.drag.frame);
-    this.drag = null;
-    this.draggingId.set(null);
-    this.ghost.set(null);
-    window.removeEventListener('pointermove', this.onPointerMove);
-    window.removeEventListener('pointerup', this.onPointerUp);
-    window.removeEventListener('pointercancel', this.onPointerUp);
   }
 
   private tileElement(id: TileId): HTMLElement | null {
@@ -608,13 +527,13 @@ export class Home {
   }
 
   /**
-   * Runs a layout change and slides each tile from its old place to its new one,
-   * so a move, resize or removal is easy to follow.
+   * Runs a layout change and slides each tile from where it is on screen to its
+   * new place. Starting from the on-screen position means a slide that is cut
+   * short by the next change carries on smoothly instead of jumping.
    */
-  private animate(change: () => void): void {
+  private animate(change: () => void, skip?: TileId): void {
     const grid = this.grid()?.nativeElement;
-    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    if (!grid || reduce || typeof grid.animate !== 'function') {
+    if (!grid || reducedMotion() || typeof grid.animate !== 'function') {
       change();
       return;
     }
@@ -624,31 +543,42 @@ export class Home {
     });
     change();
     afterNextRender(
-      () => {
-        grid.querySelectorAll<HTMLElement>('[data-tile]').forEach((el) => {
-          const old = before.get(el.dataset['tile']!);
-          if (!old) {
+      {
+        write: () => {
+          grid.querySelectorAll<HTMLElement>('[data-tile]').forEach((el) => {
+            const id = el.dataset['tile']!;
+            if (id === skip) return;
+            const old = before.get(id);
+            el.getAnimations().forEach((a) => a.cancel());
+            if (!old) {
+              el.animate(
+                [
+                  { opacity: 0, transform: 'scale(0.92)' },
+                  { opacity: 1, transform: 'none' },
+                ],
+                { duration: 220, easing: 'cubic-bezier(0.2, 0, 0, 1)' },
+              );
+              return;
+            }
+            const now = el.getBoundingClientRect();
+            const dx = old.left - now.left;
+            const dy = old.top - now.top;
+            const sx = old.width / now.width;
+            const sy = old.height / now.height;
+            const resized = Math.abs(sx - 1) > 0.01 || Math.abs(sy - 1) > 0.01;
+            if (Math.abs(dx) < 1 && Math.abs(dy) < 1 && !resized) return;
             el.animate(
               [
-                { opacity: 0, transform: 'scale(0.96)' },
-                { opacity: 1, transform: 'none' },
+                {
+                  transformOrigin: 'top left',
+                  transform: `translate(${dx}px, ${dy}px)${resized ? ` scale(${sx}, ${sy})` : ''}`,
+                },
+                { transformOrigin: 'top left', transform: 'none' },
               ],
-              {
-                duration: 200,
-                easing: 'ease-out',
-              },
+              { duration: 240, easing: 'cubic-bezier(0.2, 0, 0, 1)' },
             );
-            return;
-          }
-          const now = el.getBoundingClientRect();
-          const dx = old.left - now.left;
-          const dy = old.top - now.top;
-          if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
-          el.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], {
-            duration: 220,
-            easing: 'cubic-bezier(0.2, 0, 0, 1)',
           });
-        });
+        },
       },
       { injector: this.injector },
     );
@@ -663,17 +593,6 @@ export class Home {
   }
 
   formatSize = formatBytes;
-}
-
-/** The element that scrolls the page around this one. */
-function scrollParent(el: HTMLElement): HTMLElement {
-  for (let node = el.parentElement; node; node = node.parentElement) {
-    const { overflowY } = getComputedStyle(node);
-    if ((overflowY === 'auto' || overflowY === 'scroll') && node.scrollHeight > node.clientHeight) {
-      return node;
-    }
-  }
-  return document.scrollingElement as HTMLElement;
 }
 
 function hasFiles(event: DragEvent): boolean {
