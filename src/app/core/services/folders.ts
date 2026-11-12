@@ -44,6 +44,17 @@ export class Folders {
     return this.http.patch<Folder>(`${FOLDERS_URL}/${folderId}/move`, { targetParentId });
   }
 
+  /** Starred folders (not in trash), by name; `query` narrows them like search. */
+  listStarred(query?: string): Observable<Folder[]> {
+    return this.http.get<Folder[]>(`${FOLDERS_URL}/starred`, {
+      params: query ? { query } : {},
+    });
+  }
+
+  toggleStar(folderId: string): Observable<Folder> {
+    return this.http.patch<Folder>(`${FOLDERS_URL}/${folderId}/star`, {});
+  }
+
   trashFolder(folderId: string): Observable<Folder> {
     return this.http.patch<Folder>(`${FOLDERS_URL}/${folderId}/trash`, {});
   }

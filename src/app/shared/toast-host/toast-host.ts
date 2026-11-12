@@ -1,4 +1,5 @@
 import { Component, inject } from '@angular/core';
+import { FloatingBars } from '../../core/services/floating-bars';
 import { ToastService } from '../../core/services/toast';
 
 @Component({
@@ -8,6 +9,7 @@ import { ToastService } from '../../core/services/toast';
 })
 export class ToastHost {
   protected toastService = inject(ToastService);
+  protected bars = inject(FloatingBars);
 
   readonly icons = { success: 'check_circle', info: 'info', error: 'error' } as const;
 }
