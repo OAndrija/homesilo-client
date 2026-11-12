@@ -22,7 +22,14 @@ import { finalize } from 'rxjs';
 import { errorMessage } from '../../core/http/http-error';
 import { Auth } from '../../core/services/auth';
 import { DashboardStore } from '../../core/services/dashboard-store';
-import { Theme, ThemeDefinition, ThemePreference, ThemeService } from '../../core/services/theme';
+import {
+  CORNERS,
+  SPACING,
+  Theme,
+  ThemeDefinition,
+  ThemePreference,
+  ThemeService,
+} from '../../core/services/theme';
 import { formatBytes } from '../../core/utils/format';
 import { ActivityEntry } from '../../core/models/activity';
 import { ActivityApi } from '../../core/services/activity';
@@ -89,6 +96,8 @@ export class Settings {
     },
   ];
   chosen = this.themeService.chosen;
+  readonly cornerOptions = CORNERS;
+  readonly spacingOptions = SPACING;
 
   // ── Storage ──
   stats = this.store.stats;

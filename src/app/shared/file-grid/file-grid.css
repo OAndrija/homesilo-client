@@ -19,7 +19,7 @@
 .folder-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 12px;
+  gap: var(--gap-items);
 }
 
 .folder-tile {
@@ -92,7 +92,7 @@
 .file-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 14px;
+  gap: calc(14px * var(--space-scale));
 }
 
 .file-tile {
@@ -420,12 +420,12 @@
 @media (max-width: 700px) {
   .folder-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
+    gap: calc(10px * var(--space-scale));
   }
 
   .file-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
+    gap: calc(10px * var(--space-scale));
   }
 
   /* No hover on touch: the menu button is always there; checkboxes appear once

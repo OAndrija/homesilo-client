@@ -174,7 +174,8 @@
   position: absolute;
   z-index: 30;
   display: flex;
-  gap: 4px;
+  flex-direction: column;
+  gap: 6px;
   padding: 6px;
   border: 1px solid var(--color-floating-border);
   border-radius: var(--radius-xl);
@@ -201,6 +202,23 @@
     opacity: 0;
     transform: translateY(6px) scale(0.97);
   }
+}
+
+.picker-row {
+  display: flex;
+  gap: 4px;
+}
+
+/* The tile's looks, under its sizes. */
+.picker-row.looks {
+  padding-top: 6px;
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.look-icon {
+  height: 20px;
+  font-size: 20px;
+  line-height: 20px;
 }
 
 .size-option {
@@ -263,9 +281,11 @@
 
 @media (max-width: 760px) {
   .size-picker {
+    max-width: calc(100vw - 48px);
+  }
+  .picker-row {
     flex-wrap: wrap;
     justify-content: center;
-    max-width: calc(100vw - 48px);
   }
   .size-option {
     min-width: 56px;
