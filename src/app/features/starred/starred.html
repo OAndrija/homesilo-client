@@ -38,23 +38,48 @@
       }
     </div>
   } @else if (!loading()) {
-    <app-file-table
-      #fileTableRef
-      [files]="files()"
-      [folders]="sortedFolders()"
-      [actions]="['download', 'trash', 'star']"
-      dateColumnLabel="Modified"
-      [sort]="sort()"
-      (sortChange)="onSortChange($event)"
-      (download)="downloadFile($event)"
-      (trash)="trashFile($event)"
-      (star)="toggleStar($event)"
-      (openFile)="openFile($event)"
-      (folderOpen)="openFolder($event)"
-      (folderDownload)="downloadFolder($event)"
-      (folderTrash)="trashFolder($event)"
-      (folderStar)="toggleFolderStar($event)"
-    />
+    <div class="list-toolbar">
+      <app-view-controls
+        [view]="view()"
+        [sort]="sort()"
+        dateLabel="Modified"
+        (viewChange)="setView($event)"
+        (sortChange)="onSortChange($event)"
+      />
+    </div>
+    @if (view() === 'grid') {
+      <app-file-grid
+        [files]="files()"
+        [folders]="sortedFolders()"
+        [actions]="['download', 'trash', 'star']"
+        (download)="downloadFile($event)"
+        (trash)="trashFile($event)"
+        (star)="toggleStar($event)"
+        (openFile)="openFile($event)"
+        (folderOpen)="openFolder($event)"
+        (folderDownload)="downloadFolder($event)"
+        (folderTrash)="trashFolder($event)"
+        (folderStar)="toggleFolderStar($event)"
+      />
+    } @else {
+      <app-file-table
+        #fileTableRef
+        [files]="files()"
+        [folders]="sortedFolders()"
+        [actions]="['download', 'trash', 'star']"
+        dateColumnLabel="Modified"
+        [sort]="sort()"
+        (sortChange)="onSortChange($event)"
+        (download)="downloadFile($event)"
+        (trash)="trashFile($event)"
+        (star)="toggleStar($event)"
+        (openFile)="openFile($event)"
+        (folderOpen)="openFolder($event)"
+        (folderDownload)="downloadFolder($event)"
+        (folderTrash)="trashFolder($event)"
+        (folderStar)="toggleFolderStar($event)"
+      />
+    }
     @if (hasMore()) {
       <div class="show-more-wrap">
         <button class="show-more-btn" (click)="loadMore()" [disabled]="loadingMore()">
@@ -75,7 +100,7 @@
     (downloadAll)="onDownloadAll()"
     (trashAll)="onTrashAll()"
     (starAll)="onStarAll()"
-    (clearSelection)="fileTable()?.clearSelection()"
+    (clearSelection)="items()?.clearSelection()"
   >
   </app-selection-bar>
 </div>

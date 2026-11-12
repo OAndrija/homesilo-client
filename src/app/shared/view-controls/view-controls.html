@@ -1,0 +1,53 @@
+<div class="controls">
+  @if (view() === 'grid' && sort(); as s) {
+    <div class="sort">
+      <label class="sort-select">
+        <span class="visually-hidden">Sort by</span>
+        <select (change)="setKey($any($event.target).value)">
+          <option value="name" [selected]="s.key === 'name'">Name</option>
+          <option value="size" [selected]="s.key === 'size'">Size</option>
+          <option value="date" [selected]="s.key === 'date'">{{ dateLabel() }}</option>
+        </select>
+        <span class="material-symbols-rounded chevron" aria-hidden="true">expand_more</span>
+      </label>
+      <button
+        type="button"
+        class="icon-toggle"
+        (click)="flipDirection()"
+        [attr.aria-label]="
+          s.direction === 'asc'
+            ? 'Ascending; switch to descending'
+            : 'Descending; switch to ascending'
+        "
+        [title]="s.direction === 'asc' ? 'Ascending' : 'Descending'"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">{{
+          s.direction === 'asc' ? 'arrow_upward' : 'arrow_downward'
+        }}</span>
+      </button>
+    </div>
+  }
+
+  <div class="switch" role="radiogroup" aria-label="Layout">
+    <button
+      type="button"
+      role="radio"
+      [attr.aria-checked]="view() === 'list'"
+      (click)="viewChange.emit('list')"
+      aria-label="List"
+      title="List"
+    >
+      <span class="material-symbols-rounded" aria-hidden="true">view_list</span>
+    </button>
+    <button
+      type="button"
+      role="radio"
+      [attr.aria-checked]="view() === 'grid'"
+      (click)="viewChange.emit('grid')"
+      aria-label="Grid"
+      title="Grid"
+    >
+      <span class="material-symbols-rounded" aria-hidden="true">grid_view</span>
+    </button>
+  </div>
+</div>

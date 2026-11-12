@@ -18,6 +18,7 @@ function file(id: string, contentType = 'text/plain'): FileMetadata {
     trashedAt: null,
     folderId: null,
     folderName: null,
+    thumbnail: false,
   };
 }
 

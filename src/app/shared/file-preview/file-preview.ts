@@ -46,6 +46,10 @@ export class FilePreview {
     const file = this.file();
     return file ? this.files.previewUrl(file.id) : '';
   });
+  thumbUrl = computed(() => {
+    const file = this.file();
+    return file?.thumbnail ? this.files.thumbnailUrl(file.id) : '';
+  });
   /** PDFs go in an iframe; the URL is our own API, built from the file id. */
   frameUrl = computed<SafeResourceUrl | null>(() =>
     this.kind() === 'pdf' ? this.sanitizer.bypassSecurityTrustResourceUrl(this.url()) : null,

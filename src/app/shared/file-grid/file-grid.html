@@ -1,0 +1,300 @@
+@if (folders().length > 0) {
+  <section class="group" aria-label="Folders">
+    <h3 class="group-label">Folders</h3>
+    <div
+      class="folder-grid"
+      role="listbox"
+      aria-label="Folders"
+      [attr.aria-multiselectable]="selectable()"
+    >
+      @for (folder of folders(); track folder.id; let i = $index) {
+        <div
+          class="folder-tile"
+          role="option"
+          tabindex="0"
+          [attr.aria-selected]="isFolderSelected(folder.id)"
+          [attr.aria-label]="folder.name + (folder.starred ? ', starred' : '')"
+          [class.selected]="isFolderSelected(folder.id)"
+          [class.drag-over]="dragOverFolderId() === folder.id"
+          draggable="true"
+          (dragstart)="onDragStart('folder', folder.id, $event)"
+          (dragend)="onDragEnd()"
+          (dragover)="onFolderDragOver(folder, $event)"
+          (dragleave)="onFolderDragLeave($event)"
+          (drop)="onFolderDrop(folder, $event)"
+          (click)="onFolderClick(folder, i, $event)"
+          (dblclick)="folderOpen.emit(folder)"
+          (keydown)="onFolderKeydown(folder, i, $event)"
+          [title]="folder.name"
+        >
+          @if (selectable()) {
+            <input
+              type="checkbox"
+              class="tile-check"
+              tabindex="-1"
+              [checked]="isFolderSelected(folder.id)"
+              (click)="$event.stopPropagation()"
+              (dblclick)="$event.stopPropagation()"
+              (change)="toggleFolder(folder, i)"
+              [attr.aria-label]="'Select ' + folder.name"
+            />
+          }
+          <span class="material-symbols-rounded folder-icon" aria-hidden="true">folder</span>
+          <span class="folder-name">{{ folder.name }}</span>
+          @if (folder.starred) {
+            <span class="material-symbols-rounded star-mark" aria-hidden="true">star</span>
+          }
+          <ng-container
+            *ngTemplateOutlet="
+              menuButton;
+              context: { target: { kind: 'folder', item: folder }, name: folder.name }
+            "
+          />
+        </div>
+      }
+    </div>
+  </section>
+}
+
+@if (files().length > 0) {
+  <section class="group" aria-label="Files">
+    @if (folders().length > 0) {
+      <h3 class="group-label">Files</h3>
+    }
+    <div
+      class="file-grid"
+      role="listbox"
+      aria-label="Files"
+      [attr.aria-multiselectable]="selectable()"
+    >
+      @for (file of files(); track file.id; let i = $index) {
+        @let thumb = thumbnailUrl(file);
+        @let icon = getFileIcon(file.originalFileName);
+        <div
+          class="file-tile"
+          role="option"
+          tabindex="0"
+          [attr.aria-selected]="isSelected(file.id)"
+          [attr.aria-label]="file.originalFileName + (file.starred ? ', starred' : '')"
+          [class.selected]="isSelected(file.id)"
+          draggable="true"
+          (dragstart)="onDragStart('file', file.id, $event)"
+          (dragend)="onDragEnd()"
+          (click)="onFileClick(file, i, $event)"
+          (dblclick)="openFile.emit(file)"
+          (keydown)="onFileKeydown(file, i, $event)"
+        >
+          <div class="preview" [class.has-thumb]="!!thumb" [style.--tint]="icon.color">
+            @if (thumb) {
+              <img
+                [src]="thumb"
+                alt=""
+                loading="lazy"
+                decoding="async"
+                draggable="false"
+                (error)="onThumbError(file)"
+              />
+            } @else {
+              <span class="material-symbols-rounded type-icon" aria-hidden="true">{{
+                icon.icon
+              }}</span>
+              @if (extension(file)) {
+                <span class="type-label" aria-hidden="true">{{ extension(file) }}</span>
+              }
+            }
+            @if (selectable()) {
+              <input
+                type="checkbox"
+                class="tile-check"
+                tabindex="-1"
+                [checked]="isSelected(file.id)"
+                (click)="$event.stopPropagation()"
+                (dblclick)="$event.stopPropagation()"
+                (change)="toggleFile(file, i)"
+                [attr.aria-label]="'Select ' + file.originalFileName"
+              />
+            }
+            @if (file.starred) {
+              <span class="material-symbols-rounded star-badge" aria-hidden="true">star</span>
+            }
+          </div>
+          <div class="caption">
+            <span
+              class="material-symbols-rounded caption-icon"
+              [style.color]="icon.color"
+              aria-hidden="true"
+              >{{ icon.icon }}</span
+            >
+            <div class="caption-text">
+              <div class="file-name" [title]="file.originalFileName">
+                {{ file.originalFileName }}
+              </div>
+              <div class="file-meta" [title]="file.trashedAt ?? file.lastModified | exactDate">
+                {{ formatBytes(file.size) }} ·
+                {{ file.trashedAt ?? file.lastModified | friendlyDate }}
+              </div>
+            </div>
+            <ng-container
+              *ngTemplateOutlet="
+                menuButton;
+                context: { target: { kind: 'file', item: file }, name: file.originalFileName }
+              "
+            />
+          </div>
+        </div>
+      }
+    </div>
+  </section>
+}
+
+<!-- The ⋯ button and its menu, shared by folder and file tiles. -->
+<ng-template #menuButton let-target="target" let-name="name">
+  <div class="tile-menu" (click)="$event.stopPropagation()" (dblclick)="$event.stopPropagation()">
+    <button
+      type="button"
+      class="menu-btn"
+      [attr.data-menu-for]="target.item.id"
+      aria-haspopup="menu"
+      [attr.aria-expanded]="isMenuOpen(target.item.id)"
+      [attr.aria-label]="'Actions for ' + name"
+      (click)="openMenu(target, $event)"
+    >
+      <span class="material-symbols-rounded" aria-hidden="true">more_vert</span>
+    </button>
+    @if (isMenuOpen(target.item.id)) {
+      <div
+        class="menu"
+        role="menu"
+        [attr.aria-label]="'Actions for ' + name"
+        (keydown)="onMenuKeydown($event)"
+      >
+        @if (target.kind === 'folder') {
+          <button type="button" role="menuitem" class="menu-item" (click)="run('open', target)">
+            <span class="material-symbols-rounded" aria-hidden="true">folder_open</span>Open
+          </button>
+          @if (hasAction('download')) {
+            <button
+              type="button"
+              role="menuitem"
+              class="menu-item"
+              (click)="run('download', target)"
+            >
+              <span class="material-symbols-rounded" aria-hidden="true">download</span>Download as
+              zip
+            </button>
+          }
+          @if (hasAction('rename')) {
+            <button type="button" role="menuitem" class="menu-item" (click)="run('rename', target)">
+              <span class="material-symbols-rounded" aria-hidden="true">edit</span>Rename
+            </button>
+          }
+          @if (hasAction('star')) {
+            <button type="button" role="menuitem" class="menu-item" (click)="run('star', target)">
+              <span
+                class="material-symbols-rounded"
+                [class.filled]="target.item.starred"
+                aria-hidden="true"
+                >star</span
+              >
+              {{ target.item.starred ? 'Remove from Starred' : 'Add to Starred' }}
+            </button>
+          }
+          @if (hasAction('restore')) {
+            <button
+              type="button"
+              role="menuitem"
+              class="menu-item"
+              (click)="run('restore', target)"
+            >
+              <span class="material-symbols-rounded" aria-hidden="true">restore_from_trash</span
+              >Restore
+            </button>
+          }
+          @if (hasAction('trash')) {
+            <button
+              type="button"
+              role="menuitem"
+              class="menu-item danger"
+              (click)="run('trash', target)"
+            >
+              <span class="material-symbols-rounded" aria-hidden="true">delete</span>Move to trash
+            </button>
+          }
+          @if (hasAction('deleteForever')) {
+            <button
+              type="button"
+              role="menuitem"
+              class="menu-item danger"
+              (click)="run('deleteForever', target)"
+            >
+              <span class="material-symbols-rounded" aria-hidden="true">delete_forever</span>Delete
+              forever
+            </button>
+          }
+        } @else {
+          <button type="button" role="menuitem" class="menu-item" (click)="run('open', target)">
+            <span class="material-symbols-rounded" aria-hidden="true">visibility</span>Open
+          </button>
+          @if (hasAction('download')) {
+            <button
+              type="button"
+              role="menuitem"
+              class="menu-item"
+              (click)="run('download', target)"
+            >
+              <span class="material-symbols-rounded" aria-hidden="true">download</span>Download
+            </button>
+          }
+          @if (hasAction('rename')) {
+            <button type="button" role="menuitem" class="menu-item" (click)="run('rename', target)">
+              <span class="material-symbols-rounded" aria-hidden="true">edit</span>Rename
+            </button>
+          }
+          @if (hasAction('star')) {
+            <button type="button" role="menuitem" class="menu-item" (click)="run('star', target)">
+              <span
+                class="material-symbols-rounded"
+                [class.filled]="target.item.starred"
+                aria-hidden="true"
+                >star</span
+              >
+              {{ target.item.starred ? 'Remove from Starred' : 'Add to Starred' }}
+            </button>
+          }
+          @if (hasAction('restore')) {
+            <button
+              type="button"
+              role="menuitem"
+              class="menu-item"
+              (click)="run('restore', target)"
+            >
+              <span class="material-symbols-rounded" aria-hidden="true">restore_from_trash</span
+              >Restore
+            </button>
+          }
+          @if (hasAction('trash')) {
+            <button
+              type="button"
+              role="menuitem"
+              class="menu-item danger"
+              (click)="run('trash', target)"
+            >
+              <span class="material-symbols-rounded" aria-hidden="true">delete</span>Move to trash
+            </button>
+          }
+          @if (hasAction('deleteForever')) {
+            <button
+              type="button"
+              role="menuitem"
+              class="menu-item danger"
+              (click)="run('deleteForever', target)"
+            >
+              <span class="material-symbols-rounded" aria-hidden="true">delete_forever</span>Delete
+              forever
+            </button>
+          }
+        }
+      </div>
+    }
+  </div>
+</ng-template>
