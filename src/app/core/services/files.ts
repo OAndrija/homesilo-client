@@ -1,4 +1,4 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpEvent, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_BASE } from '../api';
@@ -20,28 +20,43 @@ export class Files {
     });
   }
 
-  listTrashed(page = 0, size = 50): Observable<PageResponse<FileMetadata>> {
+  listTrashed(page = 0, size = 50, sort?: string): Observable<PageResponse<FileMetadata>> {
     return this.http.get<PageResponse<FileMetadata>>(`${FILES_URL}/trash`, {
-      params: pageParams(page, size),
+      params: pageParams(page, size, sort),
     });
   }
 
-  listStarred(page = 0, size = 50): Observable<PageResponse<FileMetadata>> {
+  listStarred(page = 0, size = 50, sort?: string): Observable<PageResponse<FileMetadata>> {
     return this.http.get<PageResponse<FileMetadata>>(`${FILES_URL}/starred`, {
-      params: pageParams(page, size),
+      params: pageParams(page, size, sort),
     });
   }
 
-  searchActive(query: string, page = 0, size = 50): Observable<PageResponse<FileMetadata>> {
-    return this.search(`${FILES_URL}/search`, query, page, size);
+  searchActive(
+    query: string,
+    page = 0,
+    size = 50,
+    sort?: string,
+  ): Observable<PageResponse<FileMetadata>> {
+    return this.search(`${FILES_URL}/search`, query, page, size, sort);
   }
 
-  searchTrashed(query: string, page = 0, size = 50): Observable<PageResponse<FileMetadata>> {
-    return this.search(`${FILES_URL}/trash/search`, query, page, size);
+  searchTrashed(
+    query: string,
+    page = 0,
+    size = 50,
+    sort?: string,
+  ): Observable<PageResponse<FileMetadata>> {
+    return this.search(`${FILES_URL}/trash/search`, query, page, size, sort);
   }
 
-  searchStarred(query: string, page = 0, size = 50): Observable<PageResponse<FileMetadata>> {
-    return this.search(`${FILES_URL}/starred/search`, query, page, size);
+  searchStarred(
+    query: string,
+    page = 0,
+    size = 50,
+    sort?: string,
+  ): Observable<PageResponse<FileMetadata>> {
+    return this.search(`${FILES_URL}/starred/search`, query, page, size, sort);
   }
 
   upload(file: File, folderId: string | null = null): Observable<FileMetadata> {
@@ -49,6 +64,20 @@ export class Files {
     formData.append('file', file);
     if (folderId) formData.append('folderId', folderId);
     return this.http.post<FileMetadata>(`${FILES_URL}/upload`, formData);
+  }
+
+  /** Same as upload, but emits progress events so the upload panel can show a bar. */
+  uploadWithProgress(
+    file: File,
+    folderId: string | null = null,
+  ): Observable<HttpEvent<FileMetadata>> {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (folderId) formData.append('folderId', folderId);
+    return this.http.post<FileMetadata>(`${FILES_URL}/upload`, formData, {
+      observe: 'events',
+      reportProgress: true,
+    });
   }
 
   rename(fileId: string, name: string): Observable<FileMetadata> {
@@ -91,13 +120,14 @@ export class Files {
     return `${FILES_URL}/download-zip?${params.toString()}`;
   }
 
-  private search(url: string, query: string, page: number, size: number) {
+  private search(url: string, query: string, page: number, size: number, sort?: string) {
     return this.http.get<PageResponse<FileMetadata>>(url, {
-      params: pageParams(page, size).set('query', query),
+      params: pageParams(page, size, sort).set('query', query),
     });
   }
 }
 
-function pageParams(page: number, size: number): HttpParams {
-  return new HttpParams().set('page', page).set('size', size);
+function pageParams(page: number, size: number, sort?: string): HttpParams {
+  const params = new HttpParams().set('page', page).set('size', size);
+  return sort ? params.set('sort', sort) : params;
 }

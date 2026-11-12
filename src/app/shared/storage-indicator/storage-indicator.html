@@ -1,21 +1,10 @@
-<div class="storage" [attr.data-level]="level()">
-  <div class="storage-head">
-    <span class="storage-title">Storage</span>
-    @if (loaded()) {
-      <span class="storage-percent tabular"
-        >{{ percent() < 1 && percent() > 0 ? '<1' : (percent() | number: '1.0-0') }}%</span
-      >
-    }
+<div class="storage-indicator">
+  <div class="storage-header">
+    <span class="material-symbols-rounded storage-icon">cloud</span>
+    <span class="storage-label">Storage</span>
   </div>
-  <div
-    class="storage-track"
-    role="progressbar"
-    aria-label="Storage used"
-    [attr.aria-valuenow]="percent() | number: '1.0-0'"
-    aria-valuemin="0"
-    aria-valuemax="100"
-  >
-    <div class="storage-fill" [style.width.%]="percent()"></div>
+  <div class="storage-bar-track">
+    <div class="storage-bar-fill" [style.width.%]="percentUsed()"></div>
   </div>
-  <p class="storage-text tabular">{{ loaded() ? label() : ' ' }}</p>
+  <p class="storage-text">{{ formatGB(usedBytes()) }} GB of {{ formatGB(maxBytes()) }} GB used</p>
 </div>

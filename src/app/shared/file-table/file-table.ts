@@ -1,39 +1,28 @@
 import {
   Component,
   computed,
-  effect,
   ElementRef,
   HostListener,
   inject,
   input,
   output,
   signal,
+  effect,
 } from '@angular/core';
 import { FileMetadata } from '../../core/models/file-metadata';
-import { Folder } from '../../core/models/folder';
 import { getFileIcon } from '../../core/utils/file-icon.util';
-import { isPreviewable } from '../../core/utils/file-preview.utils';
+import { Folder } from '../../core/models/folder';
+import { nextSort, SortKey, SortState } from '../../core/models/sort';
 import { formatBytes } from '../../core/utils/format';
 import { ExactDatePipe, FriendlyDatePipe } from '../pipes/friendly-date';
 
-export type FileAction =
-  | 'download'
-  | 'rename'
-  | 'move'
-  | 'trash'
-  | 'restore'
-  | 'deleteForever'
-  | 'star';
+export type FileAction = 'download' | 'rename' | 'trash' | 'restore' | 'deleteForever' | 'star';
 
 export interface MovePayload {
   fileIds: string[];
   folderIds: string[];
   targetFolderId: string;
 }
-
-type MenuTarget = { kind: 'file'; item: FileMetadata } | { kind: 'folder'; item: Folder };
-
-const MENU_HEIGHT_ESTIMATE = 300;
 
 @Component({
   selector: 'app-file-table',
@@ -42,34 +31,31 @@ const MENU_HEIGHT_ESTIMATE = 300;
   styleUrl: './file-table.css',
 })
 export class FileTable {
-  private elementRef = inject(ElementRef<HTMLElement>);
+  private elementRef = inject(ElementRef);
 
   files = input.required<FileMetadata[]>();
-  folders = input<Folder[]>([]);
   actions = input<FileAction[]>(['download', 'trash', 'star']);
-  dateColumnLabel = input('Modified');
-  /** Show a checkbox column and allow multi-select. */
+  dateColumnLabel = input('Uploaded');
+  /** Show a checkbox column for picking several items. */
   selectable = input(true);
-
-  // File events
-  openFile = output<FileMetadata>();
+  /** When set, column headers become buttons that ask the page to re-sort. */
+  sort = input<SortState | null>(null);
+  sortChange = output<SortState>();
   download = output<FileMetadata>();
   rename = output<FileMetadata>();
   trash = output<FileMetadata>();
   star = output<FileMetadata>();
   restore = output<FileMetadata>();
   deleteForever = output<FileMetadata>();
+  openFile = output<FileMetadata>();
 
-  // Folder events
+  folders = input<Folder[]>([]);
   folderOpen = output<Folder>();
   folderDownload = output<Folder>();
   folderRename = output<Folder>();
   folderTrash = output<Folder>();
   folderRestore = output<Folder>();
   folderDeleteForever = output<Folder>();
-
-  /** The selection now holds just the item; the page opens its move dialog. */
-  moveRequested = output<void>();
   itemsMoved = output<MovePayload>();
 
   errorRowId = signal<string | null>(null);
@@ -80,34 +66,44 @@ export class FileTable {
   private lastClickedIndex: number | null = null;
   private lastClickedFolderIndex: number | null = null;
 
-  menu = signal<{ id: string; up: boolean } | null>(null);
-
-  dragOverFolderId = signal<string | null>(null);
-  private dragPayload: { fileIds: string[]; folderIds: string[] } | null = null;
-
   totalCount = computed(() => this.files().length + this.folders().length);
   selectedCount = computed(() => this.selectedIds().size + this.selectedFolderIds().size);
   allSelected = computed(() => this.totalCount() > 0 && this.selectedCount() === this.totalCount());
-  someSelected = computed(() => this.selectedCount() > 0 && !this.allSelected());
 
-  readonly getFileIcon = getFileIcon;
-  readonly formatSize = formatBytes;
-  readonly isPreviewable = isPreviewable;
+  // ── Drag state ────────────────────────────────────────────────
+  dragOverFolderId = signal<string | null>(null);
+  private dragPayload: { fileIds: string[]; folderIds: string[] } | null = null;
 
   constructor() {
-    // Drop selections that no longer exist (deleted, moved, filtered out).
     effect(() => {
-      const ids = new Set(this.files().map((f) => f.id));
-      this.selectedIds.update((s) => prune(s, ids));
+      const currentFileIds = new Set(this.files().map((f) => f.id));
+      this.selectedIds.update((selected) => {
+        const pruned = new Set([...selected].filter((id) => currentFileIds.has(id)));
+        return pruned.size !== selected.size ? pruned : selected;
+      });
     });
+
     effect(() => {
-      const ids = new Set(this.folders().map((f) => f.id));
-      this.selectedFolderIds.update((s) => prune(s, ids));
+      const currentFolderIds = new Set(this.folders().map((f) => f.id));
+      this.selectedFolderIds.update((selected) => {
+        const pruned = new Set([...selected].filter((id) => currentFolderIds.has(id)));
+        return pruned.size !== selected.size ? pruned : selected;
+      });
     });
   }
 
   hasAction(action: FileAction): boolean {
     return this.actions().includes(action);
+  }
+
+  getFileIcon = getFileIcon;
+
+  formatSize = formatBytes;
+
+  flashRowError(fileId: string): void {
+    clearTimeout(this.errorTimeout);
+    this.errorRowId.set(fileId);
+    this.errorTimeout = setTimeout(() => this.errorRowId.set(null), 1200);
   }
 
   isSelected(fileId: string): boolean {
@@ -118,29 +114,28 @@ export class FileTable {
     return this.selectedFolderIds().has(folderId);
   }
 
-  flashRowError(fileId: string): void {
-    clearTimeout(this.errorTimeout);
-    this.errorRowId.set(fileId);
-    this.errorTimeout = setTimeout(() => this.errorRowId.set(null), 1200);
+  // ── Sorting ───────────────────────────────────────────────────
+
+  onSort(key: SortKey): void {
+    const current = this.sort();
+    if (current) this.sortChange.emit(nextSort(current, key));
   }
 
-  clearSelection(): void {
-    this.selectedIds.set(new Set());
-    this.selectedFolderIds.set(new Set());
-    this.lastClickedIndex = null;
-    this.lastClickedFolderIndex = null;
+  ariaSort(key: SortKey): 'ascending' | 'descending' | null {
+    const current = this.sort();
+    if (!current || current.key !== key) return null;
+    return current.direction === 'asc' ? 'ascending' : 'descending';
   }
 
-  // ── Selection ────────────────────────────────────────────────────────
-
-  toggleAll(): void {
-    if (this.allSelected()) {
-      this.clearSelection();
-      return;
-    }
-    this.selectedIds.set(new Set(this.files().map((f) => f.id)));
-    this.selectedFolderIds.set(new Set(this.folders().map((f) => f.id)));
+  /** The active column shows its direction; the others show a faint hint on hover. */
+  sortArrow(key: SortKey): string {
+    const current = this.sort();
+    if (current?.key === key && current.direction === 'asc') return 'arrow_upward';
+    return 'arrow_downward';
   }
+
+  // ── Checkboxes ────────────────────────────────────────────────
+  // Checkboxes add to or remove from the selection, like Ctrl/Cmd-click.
 
   toggleFile(file: FileMetadata, index: number): void {
     this.selectedIds.update((s) => toggled(s, file.id));
@@ -152,140 +147,51 @@ export class FileTable {
     this.lastClickedFolderIndex = index;
   }
 
-  onRowClick(file: FileMetadata, index: number, event: MouseEvent): void {
-    if (event.shiftKey && this.lastClickedIndex !== null) {
-      const ids = rangeIds(this.files(), this.lastClickedIndex, index);
-      this.selectedIds.update((s) => new Set([...s, ...ids]));
+  toggleAll(): void {
+    if (this.allSelected()) {
+      this.clearSelection();
       return;
     }
-    if (event.ctrlKey || event.metaKey) {
-      this.toggleFile(file, index);
-      return;
-    }
-    this.selectedIds.set(new Set([file.id]));
-    this.selectedFolderIds.set(new Set());
-    this.lastClickedIndex = index;
+    this.selectedIds.set(new Set(this.files().map((f) => f.id)));
+    this.selectedFolderIds.set(new Set(this.folders().map((f) => f.id)));
   }
 
-  onFolderClick(folder: Folder, index: number, event: MouseEvent): void {
-    if (event.shiftKey && this.lastClickedFolderIndex !== null) {
-      const ids = rangeIds(this.folders(), this.lastClickedFolderIndex, index);
-      this.selectedFolderIds.update((s) => new Set([...s, ...ids]));
-      return;
-    }
-    if (event.ctrlKey || event.metaKey) {
-      this.toggleFolder(folder, index);
-      return;
-    }
-    this.selectedFolderIds.set(new Set([folder.id]));
-    this.selectedIds.set(new Set());
-    this.lastClickedFolderIndex = index;
-  }
-
-  activateFile(file: FileMetadata): void {
-    if (this.hasAction('restore')) return; // nothing to open in trash
-    this.openFile.emit(file);
-  }
-
-  activateFolder(folder: Folder): void {
-    if (this.hasAction('restore')) return;
-    this.folderOpen.emit(folder);
-  }
-
-  // ── Row menu ─────────────────────────────────────────────────────────
-
-  toggleMenu(id: string, event: MouseEvent): void {
-    event.stopPropagation();
-    if (this.menu()?.id === id) {
-      this.menu.set(null);
-      return;
-    }
-    const trigger = (event.currentTarget as HTMLElement).getBoundingClientRect();
-    const up =
-      window.innerHeight - trigger.bottom < MENU_HEIGHT_ESTIMATE &&
-      trigger.top > MENU_HEIGHT_ESTIMATE;
-    this.menu.set({ id, up });
-  }
-
-  isMenuOpen(id: string): boolean {
-    return this.menu()?.id === id;
-  }
-
-  /** Runs a menu choice and closes the menu. */
-  choose(target: MenuTarget, action: FileAction | 'open'): void {
-    this.menu.set(null);
-    if (target.kind === 'file') {
-      const file = target.item;
-      switch (action) {
-        case 'open':
-          return this.openFile.emit(file);
-        case 'download':
-          return this.download.emit(file);
-        case 'rename':
-          return this.rename.emit(file);
-        case 'star':
-          return this.star.emit(file);
-        case 'trash':
-          return this.trash.emit(file);
-        case 'restore':
-          return this.restore.emit(file);
-        case 'deleteForever':
-          return this.deleteForever.emit(file);
-        case 'move':
-          this.selectedIds.set(new Set([file.id]));
-          this.selectedFolderIds.set(new Set());
-          return this.moveRequested.emit();
-      }
-    } else {
-      const folder = target.item;
-      switch (action) {
-        case 'open':
-          return this.folderOpen.emit(folder);
-        case 'download':
-          return this.folderDownload.emit(folder);
-        case 'rename':
-          return this.folderRename.emit(folder);
-        case 'trash':
-          return this.folderTrash.emit(folder);
-        case 'restore':
-          return this.folderRestore.emit(folder);
-        case 'deleteForever':
-          return this.folderDeleteForever.emit(folder);
-        case 'move':
-          this.selectedFolderIds.set(new Set([folder.id]));
-          this.selectedIds.set(new Set());
-          return this.moveRequested.emit();
-      }
-    }
-  }
-
-  // ── Drag and drop onto folders ───────────────────────────────────────
+  // ── Drag handlers ─────────────────────────────────────────────
 
   onFileDragStart(file: FileMetadata, event: DragEvent): void {
-    const dragSelection = this.selectedIds().has(file.id);
-    this.dragPayload = {
-      fileIds: dragSelection ? [...this.selectedIds()] : [file.id],
-      folderIds: dragSelection ? [...this.selectedFolderIds()] : [],
-    };
-    this.startDrag(event);
+    // If the dragged file isn't selected, drag just it; otherwise drag all selected
+    const fileIds = this.selectedIds().has(file.id) ? [...this.selectedIds()] : [file.id];
+    const folderIds = this.selectedIds().has(file.id) ? [...this.selectedFolderIds()] : [];
+
+    this.dragPayload = { fileIds, folderIds };
+    event.dataTransfer!.effectAllowed = 'move';
+    event.dataTransfer!.setData('text/plain', 'items');
   }
 
   onFolderDragStart(folder: Folder, event: DragEvent): void {
-    const dragSelection = this.selectedFolderIds().has(folder.id);
-    this.dragPayload = {
-      fileIds: dragSelection ? [...this.selectedIds()] : [],
-      folderIds: dragSelection ? [...this.selectedFolderIds()] : [folder.id],
-    };
-    this.startDrag(event);
+    // If the dragged folder isn't selected, drag just it; otherwise drag all selected
+    const folderIds = this.selectedFolderIds().has(folder.id)
+      ? [...this.selectedFolderIds()]
+      : [folder.id];
+    const fileIds = this.selectedFolderIds().has(folder.id) ? [...this.selectedIds()] : [];
+
+    this.dragPayload = { fileIds, folderIds };
+    event.dataTransfer!.effectAllowed = 'move';
+    event.dataTransfer!.setData('text/plain', 'items');
   }
 
   onFolderDragOver(folder: Folder, event: DragEvent): void {
-    if (!this.dragPayload) return; // external files are handled by the page (upload)
     event.preventDefault();
     event.stopPropagation();
-    const self = this.dragPayload.folderIds.includes(folder.id);
-    event.dataTransfer!.dropEffect = self ? 'none' : 'move';
-    this.dragOverFolderId.set(self ? null : folder.id);
+
+    // Don't allow dropping onto a folder that is being dragged
+    if (this.dragPayload?.folderIds.includes(folder.id)) {
+      event.dataTransfer!.dropEffect = 'none';
+      return;
+    }
+
+    event.dataTransfer!.dropEffect = 'move';
+    this.dragOverFolderId.set(folder.id);
   }
 
   onFolderDragLeave(event: DragEvent): void {
@@ -294,13 +200,24 @@ export class FileTable {
   }
 
   onFolderDrop(folder: Folder, event: DragEvent): void {
-    if (!this.dragPayload) return;
     event.preventDefault();
     event.stopPropagation();
     this.dragOverFolderId.set(null);
-    if (!this.dragPayload.folderIds.includes(folder.id)) {
-      this.itemsMoved.emit({ ...this.dragPayload, targetFolderId: folder.id });
+
+    if (!this.dragPayload) return;
+
+    // Guard: don't drop a folder into itself
+    if (this.dragPayload.folderIds.includes(folder.id)) {
+      this.dragPayload = null;
+      return;
     }
+
+    this.itemsMoved.emit({
+      fileIds: this.dragPayload.fileIds,
+      folderIds: this.dragPayload.folderIds,
+      targetFolderId: folder.id,
+    });
+
     this.dragPayload = null;
   }
 
@@ -309,34 +226,114 @@ export class FileTable {
     this.dragPayload = null;
   }
 
-  private startDrag(event: DragEvent): void {
-    this.menu.set(null);
-    event.dataTransfer!.effectAllowed = 'move';
-    event.dataTransfer!.setData('text/plain', 'homesilo-items');
+  // ── Selection handlers ────────────────────────────────────────
+
+  onFolderClick(folder: Folder, index: number, event: MouseEvent): void {
+    event.stopPropagation();
+    const isToggle = event.ctrlKey || event.metaKey;
+    const isRange = event.shiftKey;
+
+    if (isRange && this.lastClickedFolderIndex !== null) {
+      const list = this.folders();
+      const start = Math.min(this.lastClickedFolderIndex, index);
+      const end = Math.max(this.lastClickedFolderIndex, index);
+      const rangeIds = list.slice(start, end + 1).map((f) => f.id);
+      this.selectedFolderIds.update((current) => {
+        const next = new Set(current);
+        rangeIds.forEach((id) => next.add(id));
+        return next;
+      });
+      return;
+    }
+
+    if (isToggle) {
+      this.selectedFolderIds.update((current) => {
+        const next = new Set(current);
+        if (next.has(folder.id)) next.delete(folder.id);
+        else next.add(folder.id);
+        return next;
+      });
+      this.lastClickedFolderIndex = index;
+      return;
+    }
+
+    this.selectedFolderIds.set(new Set([folder.id]));
+    this.selectedIds.set(new Set());
+    this.lastClickedFolderIndex = index;
   }
 
-  // ── Dismissal ────────────────────────────────────────────────────────
+  onRowClick(file: FileMetadata, index: number, event: MouseEvent): void {
+    const isToggle = event.ctrlKey || event.metaKey;
+    const isRange = event.shiftKey;
 
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent): void {
-    const target = event.target as Element;
-    if (!target.closest?.('.row-menu')) this.menu.set(null);
-    const keepSelection =
-      this.elementRef.nativeElement.contains(target) ||
-      !!target.closest?.('[data-selection-bar], [data-dialog-backdrop], app-toast-host');
-    if (!keepSelection) this.clearSelection();
+    if (isRange && this.lastClickedIndex !== null) {
+      const list = this.files();
+      const start = Math.min(this.lastClickedIndex, index);
+      const end = Math.max(this.lastClickedIndex, index);
+      const rangeIds = list.slice(start, end + 1).map((f) => f.id);
+      this.selectedIds.update((current) => {
+        const next = new Set(current);
+        rangeIds.forEach((id) => next.add(id));
+        return next;
+      });
+      return;
+    }
+
+    if (isToggle) {
+      this.selectedIds.update((current) => {
+        const next = new Set(current);
+        if (next.has(file.id)) next.delete(file.id);
+        else next.add(file.id);
+        return next;
+      });
+      this.lastClickedIndex = index;
+      return;
+    }
+
+    this.selectedIds.set(new Set([file.id]));
+    this.selectedFolderIds.set(new Set());
+    this.lastClickedIndex = index;
+  }
+
+  clearSelection(): void {
+    this.selectedIds.set(new Set());
+    this.selectedFolderIds.set(new Set());
+    this.lastClickedIndex = null;
+    this.lastClickedFolderIndex = null;
+  }
+
+  // ── Phones: row actions open from a ⋯ button ─────────────────
+
+  openActionsId = signal<string | null>(null);
+
+  toggleActions(id: string, event: MouseEvent): void {
+    event.stopPropagation();
+    this.openActionsId.update((open) => (open === id ? null : id));
   }
 
   @HostListener('document:keydown.escape')
-  onEscape(): void {
-    if (this.menu()) this.menu.set(null);
-    else this.clearSelection();
+  onEscapeActions(): void {
+    this.openActionsId.set(null);
   }
-}
 
-function prune(selected: Set<string>, existing: Set<string>): Set<string> {
-  const next = new Set([...selected].filter((id) => existing.has(id)));
-  return next.size !== selected.size ? next : selected;
+  /** Called on pointerup inside the actions; waits so the button's click still lands. */
+  closeActionsSoon(): void {
+    setTimeout(() => this.openActionsId.set(null));
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as Node;
+    if (!(target as Element).closest?.('.actions')) this.openActionsId.set(null);
+    const clickedInsideTable = this.elementRef.nativeElement.contains(target);
+    const clickedInsideBar = !!(target as Element).closest?.('[data-selection-bar]');
+    const clickedInsideFolderPickerDialog = !!(target as Element).closest?.(
+      '[data-dialog-backdrop]',
+    );
+    if (!clickedInsideTable && !clickedInsideBar && !clickedInsideFolderPickerDialog) {
+      this.clearSelection();
+    }
+  }
 }
 
 function toggled(selected: Set<string>, id: string): Set<string> {
@@ -344,8 +341,4 @@ function toggled(selected: Set<string>, id: string): Set<string> {
   if (next.has(id)) next.delete(id);
   else next.add(id);
   return next;
-}
-
-function rangeIds<T extends { id: string }>(list: T[], from: number, to: number): string[] {
-  return list.slice(Math.min(from, to), Math.max(from, to) + 1).map((x) => x.id);
 }

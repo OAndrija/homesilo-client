@@ -1,39 +1,41 @@
-import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { computed, effect, inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 
 export type Theme = 'dark' | 'light';
+/** What the user picked; 'system' follows the operating system's setting. */
 export type ThemePreference = Theme | 'system';
 
-const STORAGE_KEY = 'hs-theme';
-
-/** Applies the colour theme; "system" follows the operating system and updates live. */
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
-  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
-  private readonly document = inject(DOCUMENT);
-  private readonly media = this.isBrowser
-    ? this.document.defaultView?.matchMedia?.('(prefers-color-scheme: light)')
+  private platformId = inject(PLATFORM_ID);
+  private readonly STORAGE_KEY = 'hs-theme';
+  private readonly media = isPlatformBrowser(this.platformId)
+    ? window.matchMedia?.('(prefers-color-scheme: light)')
     : undefined;
 
   private readonly systemTheme = signal<Theme>(this.media?.matches ? 'light' : 'dark');
-  readonly preference = signal<ThemePreference>(this.readPreference());
+
+  readonly preference = signal<ThemePreference>(this.storedPreference());
+  /** The theme actually applied. */
   readonly theme = computed<Theme>(() => {
-    const preference = this.preference();
-    return preference === 'system' ? this.systemTheme() : preference;
+    const pref = this.preference();
+    return pref === 'system' ? this.systemTheme() : pref;
   });
 
   constructor() {
-    this.media?.addEventListener?.('change', (event) =>
-      this.systemTheme.set(event.matches ? 'light' : 'dark'),
+    this.media?.addEventListener?.('change', (e) =>
+      this.systemTheme.set(e.matches ? 'light' : 'dark'),
     );
 
     effect(() => {
-      if (!this.isBrowser) return;
-      this.document.documentElement.setAttribute('data-theme', this.theme());
+      const theme = this.theme();
+      const pref = this.preference();
+      if (!isPlatformBrowser(this.platformId)) return;
+      document.documentElement.setAttribute('data-theme', theme);
       try {
-        localStorage.setItem(STORAGE_KEY, this.preference());
+        localStorage.setItem(this.STORAGE_KEY, pref);
       } catch {
-        // storage unavailable (private mode); the choice just won't persist
+        // Storage can be unavailable (private mode); the choice then lasts for this visit.
       }
     });
   }
@@ -42,18 +44,17 @@ export class ThemeService {
     this.preference.set(preference);
   }
 
-  /** Flips between light and dark, leaving "system" mode. */
   toggle(): void {
     this.preference.set(this.theme() === 'dark' ? 'light' : 'dark');
   }
 
-  private readPreference(): ThemePreference {
-    if (!this.isBrowser) return 'system';
+  private storedPreference(): ThemePreference {
+    if (!isPlatformBrowser(this.platformId)) return 'system';
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
+      const stored = localStorage.getItem(this.STORAGE_KEY);
       if (stored === 'light' || stored === 'dark' || stored === 'system') return stored;
     } catch {
-      // ignore
+      // fall through to the system setting
     }
     return 'system';
   }

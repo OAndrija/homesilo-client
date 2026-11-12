@@ -1,271 +1,508 @@
-.table-panel {
-  background: var(--steel);
-  border: 1px solid var(--rivet);
-  border-radius: var(--radius-panel);
+.files-table th,
+.files-table td {
+  vertical-align: middle;
+  line-height: 1.2;
 }
 
-.table {
+.files-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2xl);
+  overflow: hidden;
+}
+
+.files-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  table-layout: fixed;
 }
 
-th {
-  height: 40px;
-  padding: 0 12px;
-  border-bottom: 1px solid var(--rivet);
-  color: var(--haze);
-  font-size: var(--text-sm);
-  font-weight: 500;
-  text-align: left;
-  white-space: nowrap;
-}
-
-td {
-  height: 52px;
-  padding: 0 12px;
-  border-bottom: 1px solid var(--rivet);
-  color: var(--frost);
-  font-size: var(--text-md);
-  vertical-align: middle;
-}
-
-tbody tr:last-child td {
-  border-bottom: none;
-}
-
-tbody tr:last-child td:first-child {
-  border-bottom-left-radius: var(--radius-panel);
-}
-
-tbody tr:last-child td:last-child {
-  border-bottom-right-radius: var(--radius-panel);
-}
-
-.col-check {
-  width: 48px;
-  padding-left: 16px;
-  padding-right: 0;
-}
-
-.col-name {
-  width: auto;
-}
-
-.table:not(.is-selectable) .col-name {
-  padding-left: 16px;
-}
-
-.col-size {
-  width: 120px;
-}
-
-.col-date {
-  width: 168px;
-}
-
-.col-actions {
-  width: 56px;
-  padding-right: 10px;
-  text-align: right;
-}
-
-.cell-muted {
-  color: var(--haze);
-  white-space: nowrap;
-}
-
-/* ── Rows ── */
-
-.row {
-  cursor: default;
+.files-table tbody tr {
+  cursor: pointer;
   user-select: none;
-  transition: background var(--transition-fast);
 }
 
-.row:hover td {
-  background: color-mix(in srgb, var(--steel-raised) 70%, transparent);
+/* ── Error row ───────────────────────────────────────────────── */
+
+.files-table tbody tr.row-error {
+  background: var(--color-danger-bg);
+  box-shadow: inset 4px 0 var(--color-danger);
+  animation: row-error-flash 1.2s ease;
 }
 
-.row:focus-visible {
-  outline: none;
-  box-shadow: none;
-}
-
-.row:focus-visible td {
-  background: var(--steel-raised);
-}
-
-.row:focus-visible td:first-child {
-  box-shadow: inset 2px 0 0 var(--grain);
-}
-
-.row.is-selected td {
-  background: var(--grain-tint);
-}
-
-.row.is-drop-target td {
-  background: var(--grain-tint-strong);
-}
-
-.row.is-drop-target td:first-child {
-  box-shadow: inset 2px 0 0 var(--grain);
-}
-
-.row.is-error td {
-  animation: row-error 1.2s ease;
-}
-
-@keyframes row-error {
-  20%,
-  60% {
-    background: var(--danger-tint);
+@keyframes row-error-flash {
+  0% {
+    background: var(--color-danger-bg-deepest);
+  }
+  100% {
+    background: var(--color-danger-bg);
   }
 }
 
-/* ── Checkbox ── */
+/* ── Header ──────────────────────────────────────────────────── */
 
-.check {
-  width: 16px;
-  height: 16px;
-  margin: 0;
-  display: block;
-  accent-color: var(--grain);
+.files-table th {
+  padding: 13px 20px;
+  text-align: left;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-text-faint);
+  background: var(--color-surface-header);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+/* ── Sortable headers ────────────────────────────────────────── */
+
+.sort-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: -4px -6px;
+  padding: 4px 6px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: inherit;
+  font: inherit;
   cursor: pointer;
-  opacity: 0.55;
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.sort-btn:hover {
+  color: var(--color-text-heading);
+  background: var(--color-surface-hover);
+}
+
+.sort-btn.active {
+  color: var(--color-text-heading);
+}
+
+.sort-btn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+.sort-arrow {
+  font-size: 15px;
+  opacity: 0;
   transition: opacity var(--transition-fast);
 }
 
-.check:checked,
-.check:indeterminate,
-.row:hover .check,
-.check:focus-visible,
-th .check:hover {
+.sort-btn:hover .sort-arrow {
+  opacity: 0.45;
+}
+
+.sort-btn.active .sort-arrow {
+  opacity: 1;
+  color: var(--color-accent-text);
+}
+
+/* ── Checkbox column ─────────────────────────────────────────── */
+
+.files-table .col-check {
+  width: 52px;
+  padding: 0 0 0 20px;
+}
+
+.row-check {
+  appearance: none;
+  -webkit-appearance: none;
+  display: grid;
+  place-content: center;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  border: 1.5px solid var(--color-border-stronger);
+  border-radius: 5px;
+  background: transparent;
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity var(--transition-fast),
+    background var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.row-check:hover {
+  border-color: var(--color-accent);
+}
+
+.row-check::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  background: var(--color-text-on-accent);
+  transform: scale(0);
+  transition: transform 0.12s ease;
+}
+
+.row-check:checked,
+.row-check:indeterminate {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.row-check:checked::before {
+  transform: scale(1);
+  clip-path: polygon(14% 44%, 0 62%, 40% 100%, 100% 22%, 84% 8%, 38% 68%);
+}
+
+.row-check:indeterminate::before {
+  transform: scale(1);
+  height: 2px;
+}
+
+/* Checkboxes appear on hover, and stay once anything is selected. */
+.files-table tr:hover .row-check,
+.files-table.has-selection .row-check,
+.row-check:focus-visible {
   opacity: 1;
 }
 
-/* ── Name cell ── */
+.row-check:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
 
-.name {
+@media (hover: none) {
+  .row-check {
+    opacity: 1;
+  }
+}
+
+/* ── Cells ───────────────────────────────────────────────────── */
+
+.files-table td {
+  padding: 10px 20px;
+  font-size: 14px;
+  color: var(--color-text-heading-alt);
+  border-bottom: none;
+}
+
+.cell-muted {
+  color: var(--color-text-faint) !important;
+}
+
+/* ── Row base ────────────────────────────────────────────────── */
+
+.files-table tbody tr {
+  position: relative;
+  height: 54px;
+  transition: var(--transition-slow);
+}
+
+.files-table tbody tr::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--color-border-subtle);
+}
+
+.files-table tbody tr:hover {
+  background: var(--color-surface-alt);
+  box-shadow: inset 4px 0 var(--color-accent);
+}
+
+.files-table tbody tr:hover::after {
+  background: transparent;
+}
+
+/* ── Folder rows ─────────────────────────────────────────────── */
+
+.folder-row {
+  cursor: pointer;
+}
+
+.folder-row:hover {
+  background: var(--color-surface-alt);
+  box-shadow: inset 4px 0 var(--color-accent) !important;
+}
+
+.folder-icon {
+  color: var(--color-accent) !important;
+  font-variation-settings: 'FILL' 1;
+}
+
+/* ── File name cell ──────────────────────────────────────────── */
+
+.file-name {
+  font-weight: 600;
+  max-width: 560px;
+}
+
+.name-wrap {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 30px;
   min-width: 0;
 }
 
-.item-icon {
-  font-size: 22px;
-  flex-shrink: 0;
-}
-
-.item-icon.is-folder {
-  color: var(--grain);
-}
-
+/* Long names end in an ellipsis instead of pushing the other columns. */
 .name-text {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.name-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-  white-space: nowrap;
-  font-weight: 500;
-}
-
-.name-value {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.star-mark {
-  font-size: 15px;
-  color: var(--grain);
-  flex-shrink: 0;
+.cell-size,
+.cell-date {
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
-.name-meta {
-  display: none;
-  gap: 10px;
-  color: var(--haze);
-  font-size: var(--text-xs);
+.file-icon,
+.material-symbols-rounded {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  vertical-align: middle;
 }
 
-/* ── Row menu ── */
-
-.row-menu {
-  position: relative;
-  display: inline-block;
+.file-icon {
+  font-size: 24px;
 }
 
-.menu-trigger {
+/* ── Actions ─────────────────────────────────────────────────── */
+
+.actions {
+  width: 1%; /* shrink to its buttons */
+  white-space: nowrap;
   opacity: 0;
+  transition: opacity var(--transition-base);
 }
 
-.row:hover .menu-trigger,
-.row.is-selected .menu-trigger,
-.row:focus-within .menu-trigger,
-.menu-trigger[aria-expanded='true'] {
+.actions-wrap {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* Phones only (see the media query below). Doubled class so the later .icon-btn
+   rule, which sets display:flex, can't switch it back on. */
+.icon-btn.more-btn {
+  display: none;
+}
+
+/* Starred marker beside the name, for phones where the star button is tucked away. */
+.star-mark {
+  display: none;
+  flex-shrink: 0;
+  margin-left: -6px;
+  font-size: 16px;
+  color: var(--color-star);
+  font-variation-settings: 'FILL' 1;
+}
+
+tr:hover .actions {
   opacity: 1;
 }
 
-.menu-trigger[aria-expanded='true'] {
-  background: var(--steel-raised);
-  color: var(--frost);
+.icon-btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--radius-lg);
+  background: transparent;
+  color: var(--color-text-icon-muted);
+  cursor: pointer;
+  transition: var(--transition-slow);
 }
 
-.row-menu .menu {
-  right: 0;
-  top: calc(100% + 4px);
-  text-align: left;
+.icon-btn:hover {
+  background: var(--color-surface-hover);
+  transform: translateY(-2px);
+  color: var(--color-text-white);
 }
 
-.row-menu .menu.opens-up {
-  top: auto;
-  bottom: calc(100% + 4px);
+.download:hover {
+  color: var(--color-info);
 }
 
-/* Touch screens have no hover: keep row actions visible. */
+.restore:hover {
+  background: var(--color-success-bg-strong);
+  color: var(--color-success);
+}
+
+.danger:hover {
+  background: var(--color-danger-bg-strong);
+  color: var(--color-danger);
+}
+
+.icon-btn.star:hover {
+  background: var(--color-star-bg);
+  color: var(--color-star);
+}
+
+.icon-btn.starred span {
+  color: var(--color-star);
+  font-variation-settings: 'FILL' 1;
+}
+
+tr:has(.starred) .actions {
+  opacity: 1;
+}
+
+tr:has(.starred):not(:hover) .icon-btn:not(.star) {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.star-icon-glyph {
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+  color: var(--color-text-icon-muted);
+  transition:
+    font-variation-settings var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.icon-btn.starred .star-icon-glyph {
+  font-variation-settings:
+    'FILL' 1,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+  color: var(--color-star);
+}
+
+/* ── Selected rows ───────────────────────────────────────────── */
+
+.files-table tbody tr.row-selected {
+  background: var(--color-accent-bg);
+  box-shadow: inset 4px 0 var(--color-accent);
+}
+
+.files-table tbody tr.row-selected:hover {
+  background: var(--color-accent-bg-stronger);
+}
+
+.files-table tbody tr.drag-over {
+  background: var(--color-accent-bg-medium);
+  box-shadow:
+    inset 4px 0 var(--color-accent),
+    inset 0 0 0 2px var(--color-accent-bg-stronger);
+}
+
+.files-table tbody tr.drag-over td {
+  color: var(--color-accent-text);
+}
+
+.files-table tbody tr[draggable='true'] {
+  cursor: grab;
+}
+
+.files-table tbody tr[draggable='true']:active {
+  cursor: grabbing;
+}
+
+/* Touch screens have no hover, so row actions stay visible there. */
 @media (hover: none) {
-  .menu-trigger,
-  .check {
+  .actions,
+  tr:has(.starred) .actions {
     opacity: 1;
+  }
+
+  tr:has(.starred):not(:hover) .icon-btn:not(.star) {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .icon-btn:hover {
+    transform: none;
   }
 }
 
-/* ── Narrow screens: one stacked line of metadata under each name ── */
-
-@media (max-width: 720px) {
+/* Phones: name and actions only; size and date would push the actions off-screen. */
+@media (max-width: 700px) {
   .col-size,
-  .col-date {
+  .col-date,
+  .cell-size,
+  .cell-date {
     display: none;
   }
 
-  td {
-    height: 60px;
-  }
-
-  .col-check {
-    width: 40px;
+  .files-table th,
+  .files-table td {
     padding-left: 12px;
+    padding-right: 12px;
   }
 
-  .col-actions {
-    width: 48px;
-    padding-right: 6px;
+  .files-table .col-check {
+    width: 40px;
+    padding-left: 14px;
   }
 
-  .name-meta {
+  .name-wrap {
+    gap: 12px;
+  }
+
+  .file-name {
+    max-width: 0; /* let the name column take what's left and ellipsise */
+    width: 100%;
+  }
+
+  /* One ⋯ button per row; its actions float in a pill beside it when opened. */
+  .actions {
+    position: relative;
+    opacity: 1;
+  }
+
+  .icon-btn.more-btn {
     display: flex;
   }
 
-  .menu-trigger {
+  .star-mark {
+    display: inline;
+  }
+
+  .actions-wrap {
+    display: none;
+  }
+
+  .actions.open .actions-wrap {
+    position: absolute;
+    top: 50%;
+    right: 52px;
+    z-index: 5;
+    display: flex;
+    gap: 2px;
+    padding: 4px;
+    transform: translateY(-50%);
+    border: 1px solid var(--color-floating-border);
+    border-radius: var(--radius-pill);
+    background: var(--color-floating-bg);
+    box-shadow: var(--shadow-floating);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .actions.open .more-btn {
+    background: var(--color-surface-hover);
+    color: var(--color-text-heading);
+  }
+
+  /* Inside the pill every action is shown, starred or not. */
+  .actions.open .icon-btn {
     opacity: 1;
+    pointer-events: auto;
+  }
+
+  .icon-btn {
+    width: 36px;
+    height: 36px;
   }
 }

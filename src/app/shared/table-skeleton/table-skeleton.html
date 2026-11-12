@@ -1,0 +1,15 @@
+<div class="skeleton-card" aria-hidden="true">
+  <div class="head">
+    <span class="bone" style="width: 48px"></span>
+    <span class="bone col-size" style="width: 36px"></span>
+    <span class="bone col-date" style="width: 60px"></span>
+  </div>
+  @for (width of rowWidths(); track $index) {
+    <div class="row">
+      <span class="bone icon"></span>
+      <span class="bone name" [style.width.%]="width"></span>
+      <span class="bone col-size" style="width: 56px"></span>
+      <span class="bone col-date" style="width: 72px"></span>
+    </div>
+  }
+</div>

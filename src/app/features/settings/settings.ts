@@ -1,5 +1,13 @@
-import { DatePipe } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { DatePipe, DecimalPipe } from '@angular/common';
+import {
+  afterNextRender,
+  Component,
+  computed,
+  DestroyRef,
+  ElementRef,
+  inject,
+  signal,
+} from '@angular/core';
 import {
   AbstractControl,
   FormControl,
@@ -8,9 +16,11 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { errorMessage } from '../../core/http/http-error';
 import { Auth } from '../../core/services/auth';
+import { DashboardStore } from '../../core/services/dashboard-store';
 import { ThemePreference, ThemeService } from '../../core/services/theme';
 import { formatBytes } from '../../core/utils/format';
 
@@ -20,25 +30,54 @@ function passwordsMatch(group: AbstractControl): ValidationErrors | null {
   return next && confirm && next !== confirm ? { mismatch: true } : null;
 }
 
+type SectionId = 'account' | 'appearance' | 'security' | 'storage';
+
 @Component({
   selector: 'app-settings',
-  imports: [ReactiveFormsModule, DatePipe],
+  imports: [ReactiveFormsModule, DatePipe, DecimalPipe, RouterLink],
   templateUrl: './settings.html',
   styleUrl: './settings.css',
 })
 export class Settings {
   private auth = inject(Auth);
-  protected theme = inject(ThemeService);
+  private store = inject(DashboardStore);
+  protected themeService = inject(ThemeService);
+  private host = inject(ElementRef<HTMLElement>);
+
+  user = this.auth.user;
+  initial = computed(() => (this.user()?.username ?? '?').charAt(0).toUpperCase());
+
+  readonly sections: { id: SectionId; label: string; icon: string }[] = [
+    { id: 'account', label: 'Account', icon: 'person' },
+    { id: 'appearance', label: 'Appearance', icon: 'palette' },
+    { id: 'security', label: 'Security', icon: 'lock' },
+    { id: 'storage', label: 'Storage', icon: 'database' },
+  ];
+  activeSection = signal<SectionId>('account');
+  /** After a nav click, keep that item highlighted while the page scrolls to it. */
+  private holdHighlightUntil = 0;
 
   readonly themeOptions: { value: ThemePreference; label: string; hint: string }[] = [
     { value: 'system', label: 'System', hint: 'Match your device' },
-    { value: 'light', label: 'Light', hint: 'Always light' },
-    { value: 'dark', label: 'Dark', hint: 'Always dark' },
+    { value: 'light', label: 'Light', hint: 'Bright and clean' },
+    { value: 'dark', label: 'Dark', hint: 'Easy on the eyes' },
   ];
 
-  user = this.auth.user;
-  quota = computed(() => formatBytes(this.user()?.storageQuotaBytes ?? 0));
+  // ── Storage ──
+  stats = this.store.stats;
+  usedBytes = computed(() => this.stats()?.storageUsedBytes ?? 0);
+  quotaBytes = computed(
+    () => this.stats()?.storageQuotaBytes ?? this.user()?.storageQuotaBytes ?? 0,
+  );
+  trashedBytes = computed(() => this.stats()?.trashedBytes ?? 0);
+  usedPercent = computed(() => {
+    const quota = this.quotaBytes();
+    return quota > 0 ? Math.min(100, (this.usedBytes() / quota) * 100) : 0;
+  });
+  retentionDays = computed(() => this.stats()?.trashRetentionDays ?? 0);
+  readonly formatBytes = formatBytes;
 
+  // ── Password ──
   form = new FormGroup(
     {
       currentPassword: new FormControl('', {
@@ -57,10 +96,46 @@ export class Settings {
     { validators: passwordsMatch },
   );
 
+  showPasswords = signal(false);
   submitted = signal(false);
   saving = signal(false);
   errorMessage = signal('');
   success = signal(false);
+
+  constructor() {
+    this.store.ensureLoaded();
+
+    // Highlight the section being read in the side navigation.
+    const destroyRef = inject(DestroyRef);
+    afterNextRender(() => {
+      if (typeof IntersectionObserver === 'undefined') return;
+      const observer = new IntersectionObserver(
+        (entries) => {
+          if (Date.now() < this.holdHighlightUntil) return;
+          const visible = entries.filter((e) => e.isIntersecting);
+          if (visible.length > 0) this.activeSection.set(visible[0].target.id as SectionId);
+        },
+        { rootMargin: '-35% 0px -55% 0px' },
+      );
+      for (const section of this.sections) {
+        const el = this.host.nativeElement.querySelector(`#${section.id}`);
+        if (el) observer.observe(el);
+      }
+      destroyRef.onDestroy(() => observer.disconnect());
+    });
+  }
+
+  goTo(id: SectionId): void {
+    this.activeSection.set(id);
+    this.holdHighlightUntil = Date.now() + 1000;
+    this.host.nativeElement
+      .querySelector(`#${id}`)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  setTheme(preference: ThemePreference): void {
+    this.themeService.setPreference(preference);
+  }
 
   onSubmit(): void {
     this.submitted.set(true);

@@ -1,0 +1,311 @@
+/* Form styles shared by the sign-in and register pages (inside app-auth-shell). */
+
+.auth-card {
+  width: 100%;
+  max-width: 400px;
+}
+
+.form-head h2 {
+  margin: 0;
+  color: var(--color-text-heading);
+  font-family: var(--font-heading);
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.form-head p {
+  margin-top: 8px;
+  color: var(--color-text-subtitle);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 28px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.field label {
+  color: var(--color-text-heading-alt);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+/* Input with a leading icon and an optional trailing button. */
+.input {
+  position: relative;
+}
+
+.input > .material-symbols-rounded {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  transform: translateY(-50%);
+  color: var(--color-text-faint);
+  font-size: 20px;
+  pointer-events: none;
+  transition: color var(--transition-fast);
+}
+
+.input input {
+  width: 100%;
+  height: 48px;
+  padding: 0 14px 0 44px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-input);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-size: 15px;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.input input.has-toggle {
+  padding-right: 48px;
+}
+
+.input input::placeholder {
+  color: var(--color-text-placeholder);
+}
+
+.input input:hover {
+  border-color: var(--color-border-strong);
+}
+
+.input input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-bg);
+}
+
+.input:focus-within > .material-symbols-rounded {
+  color: var(--color-accent-text);
+}
+
+.input input.input-error {
+  border-color: var(--color-danger);
+}
+
+.input input.input-error:focus {
+  box-shadow: 0 0 0 3px var(--color-danger-bg);
+}
+
+.toggle-visibility {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-faint);
+  cursor: pointer;
+}
+
+.toggle-visibility:hover {
+  color: var(--color-text-heading);
+  background: var(--color-surface-hover);
+}
+
+.toggle-visibility:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 0;
+}
+
+.toggle-visibility .material-symbols-rounded {
+  font-size: 20px;
+}
+
+.hint {
+  color: var(--color-text-faint);
+  font-size: 12.5px;
+}
+
+.error {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--color-danger-text);
+  font-size: 12.5px;
+}
+
+.error::before {
+  content: 'error';
+  font-family: 'Material Symbols Rounded';
+  font-size: 15px;
+}
+
+/* Server-side problems and notices, above the button. */
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--radius-lg);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.alert .material-symbols-rounded {
+  flex-shrink: 0;
+  font-size: 20px;
+}
+
+.alert-error {
+  color: var(--color-danger-text);
+  background: var(--color-danger-bg);
+  border: 1px solid var(--color-danger-bg-deep);
+}
+
+.alert-info {
+  color: var(--color-text-body);
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+}
+
+.alert-info .material-symbols-rounded {
+  color: var(--color-accent-text);
+}
+
+/* Password strength: four segments plus a word. */
+.strength {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.strength-bars {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  flex: 1;
+}
+
+.strength-bars span {
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--color-border);
+  transition: background var(--transition-base);
+}
+
+.strength[data-level='1'] .strength-bars span:nth-child(-n + 1) {
+  background: var(--color-danger);
+}
+.strength[data-level='2'] .strength-bars span:nth-child(-n + 2) {
+  background: var(--color-warning);
+}
+.strength[data-level='3'] .strength-bars span:nth-child(-n + 3) {
+  background: var(--silo-green);
+}
+.strength[data-level='4'] .strength-bars span {
+  background: var(--color-success);
+}
+
+.strength-label {
+  min-width: 56px;
+  color: var(--color-text-subtitle);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-align: right;
+}
+
+.submit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 48px;
+  margin-top: 4px;
+  border: none;
+  border-radius: var(--radius-lg);
+  background: var(--color-accent);
+  color: var(--color-text-on-accent);
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    box-shadow var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.submit-btn:hover:not(:disabled) {
+  background: var(--color-accent-hover);
+  box-shadow: 0 10px 24px var(--color-accent-bg-deep);
+}
+
+.submit-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.submit-btn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+.submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  border-top-color: var(--color-text-on-accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.switch-auth {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--color-border-subtle);
+  color: var(--color-text-subtitle);
+  font-size: 14px;
+  text-align: center;
+}
+
+.switch-auth a {
+  color: var(--color-accent-text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.switch-auth a:hover {
+  text-decoration: underline;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 2s;
+  }
+  .submit-btn,
+  .strength-bars span {
+    transition: none;
+  }
+}

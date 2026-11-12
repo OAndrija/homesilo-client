@@ -1,0 +1,95 @@
+/* Same proportions as the file table: name, size (20%), date (22%). */
+.skeleton-card {
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+}
+
+.head,
+.row {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) 20% 22%;
+  align-items: center;
+  column-gap: 20px;
+  padding: 0 20px 0 58px;
+}
+
+.head {
+  grid-template-columns: minmax(0, 1fr) 20% 22%;
+  height: 46px;
+  padding-left: 106px;
+  background: var(--color-surface-header);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.row {
+  height: 60px;
+  border-bottom: 1px solid var(--color-border-faint);
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.bone {
+  display: block;
+  height: 10px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-hover) 0%,
+    var(--color-border) 40%,
+    var(--color-surface-hover) 80%
+  );
+  background-size: 300% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+.head .bone {
+  height: 8px;
+  opacity: 0.7;
+}
+
+.bone.icon {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+}
+
+.bone.name {
+  height: 12px;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -50% 0;
+  }
+}
+
+@media (max-width: 700px) {
+  .head,
+  .row {
+    grid-template-columns: 28px minmax(0, 1fr);
+    padding-left: 54px;
+  }
+
+  .head {
+    grid-template-columns: minmax(0, 1fr);
+    padding-left: 96px;
+  }
+
+  .col-size,
+  .col-date {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bone {
+    animation: none;
+  }
+}

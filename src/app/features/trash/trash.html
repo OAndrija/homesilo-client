@@ -1,19 +1,18 @@
-<div class="page">
-  <header class="page-header">
+<div class="files-page">
+  <div class="page-header">
     <div>
-      <h1 class="page-title">Trash</h1>
-      <p class="page-subtitle">
+      <h2>Trash</h2>
+      <p class="subtitle">
+        {{ totalCount() }} item{{ totalCount() !== 1 ? 's' : '' }} in trash
         @if (retentionDays() > 0) {
-          Items in trash are deleted forever after {{ retentionDays() }} days.
-        } @else {
-          Items stay here until you delete them.
+          · deleted automatically after {{ retentionDays() }} days
         }
       </p>
     </div>
-    <div class="page-actions">
+
+    <div class="header-actions">
       <button
-        type="button"
-        class="btn btn-danger-quiet empty-trash-btn"
+        class="header-btn danger empty-trash-btn"
         (click)="emptyTrash()"
         [disabled]="totalCount() === 0"
       >
@@ -21,57 +20,68 @@
         Empty trash
       </button>
     </div>
-  </header>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="server-error" role="alert">{{ errorMessage() }}</div>
+  }
 
   @if (loading() | loadingDelay) {
-    <div class="state" aria-busy="true"><span class="spinner"></span></div>
+    <app-table-skeleton />
   } @else if (!loading() && files().length === 0 && folders().length === 0) {
-    <div class="state">
+    <div class="empty-state">
       @if (isSearching()) {
-        <span class="material-symbols-rounded" aria-hidden="true">search_off</span>
-        <h3>No matches</h3>
-        <p>Nothing in trash matches that search.</p>
+        <span class="empty-icon" aria-hidden="true">
+          <span class="material-symbols-rounded" aria-hidden="true">search_off</span>
+        </span>
+        <h3>No matches for “{{ searchText() }}”</h3>
+        <p>Check the spelling, or try a shorter search.</p>
+        <div class="empty-actions">
+          <button type="button" class="header-btn secondary" (click)="clearSearch()">
+            Clear search
+          </button>
+        </div>
       } @else {
-        <span class="material-symbols-rounded" aria-hidden="true">delete</span>
+        <span class="empty-icon" aria-hidden="true">
+          <span class="material-symbols-rounded" aria-hidden="true">delete</span>
+        </span>
         <h3>Trash is empty</h3>
-        <p>Files and folders you delete stay here for a while, so you can restore them.</p>
+        <p>
+          Files and folders you delete land here first
+          @if (retentionDays() > 0) {
+            and are removed for good after {{ retentionDays() }} days.
+          } @else {
+            until you empty the trash.
+          }
+        </p>
       }
     </div>
   } @else if (!loading()) {
     <app-file-table
       [files]="files()"
-      [folders]="isSearching() ? [] : folders()"
+      [folders]="isSearching() ? [] : sortedFolders()"
       [actions]="['restore', 'deleteForever']"
       dateColumnLabel="Deleted"
+      [sort]="sort()"
+      (sortChange)="onSortChange($event)"
       (restore)="restoreFile($event)"
       (deleteForever)="deleteFile($event)"
       (folderRestore)="restoreFolder($event)"
       (folderDeleteForever)="deleteFolderForever($event)"
     />
+
     @if (hasMore()) {
-      <div class="show-more">
-        <button
-          type="button"
-          class="btn btn-secondary"
-          (click)="loadMore()"
-          [disabled]="loadingMore()"
-        >
+      <div class="show-more-wrap">
+        <button class="show-more-btn" (click)="loadMore()" [disabled]="loadingMore()">
           @if (loadingMore()) {
-            <span class="spinner" aria-hidden="true"></span>
+            <span class="spinner"></span> Loading...
+          } @else {
+            Show more
           }
-          Show more
         </button>
       </div>
     }
   }
-
-  <app-selection-bar
-    [selectedCount]="selectedCount()"
-    [actions]="['restore', 'deleteForever']"
-    (restoreAll)="onRestoreAll()"
-    (deleteForeverAll)="onDeleteForeverAll()"
-    (clearSelection)="fileTable()?.clearSelection()"
-  />
 
   @if (pendingDelete()) {
     <app-confirm-delete-dialog
@@ -80,4 +90,15 @@
       (cancel)="onDeleteCancelled()"
     />
   }
+
+  <app-selection-bar
+    [selectedCount]="
+      (fileTable()?.selectedIds()?.size ?? 0) + (fileTable()?.selectedFolderIds()?.size ?? 0)
+    "
+    [actions]="['restore', 'deleteForever']"
+    (restoreAll)="onRestoreAll()"
+    (deleteForeverAll)="onDeleteForeverAll()"
+    (clearSelection)="fileTable()?.clearSelection()"
+  >
+  </app-selection-bar>
 </div>

@@ -5,41 +5,80 @@
   (keydown)="onKeydown($event)"
 >
   <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="name-dialog-title">
-    <div class="dialog-header">
-      <h2 class="dialog-title" id="name-dialog-title">{{ title }}</h2>
-      <button class="icon-btn" type="button" aria-label="Close" (click)="cancel.emit()">
-        <span class="material-symbols-rounded">close</span>
+    <header class="dialog-head">
+      <span class="dialog-icon" aria-hidden="true">
+        <span class="material-symbols-rounded" aria-hidden="true">{{ icon() }}</span>
+      </span>
+      <div class="dialog-titles">
+        <h3 id="name-dialog-title">{{ title() }}</h3>
+        @if (mode() === 'rename') {
+          <p class="dialog-sub" [title]="initialName()">Currently “{{ initialName() }}”</p>
+        }
+      </div>
+      <button
+        class="dialog-close"
+        type="button"
+        (click)="cancel.emit()"
+        [disabled]="busy()"
+        aria-label="Close"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">close</span>
       </button>
-    </div>
+    </header>
 
-    <form class="dialog-body" (submit)="$event.preventDefault(); onConfirm()">
-      <label class="field">
-        <span class="field-label">Name</span>
+    <div class="dialog-body">
+      <label class="dlg-label" for="folderNameInput">Name</label>
+      <div class="dlg-input">
+        <span class="material-symbols-rounded" aria-hidden="true">{{ inputIcon() }}</span>
         <input
           #nameInput
           id="folderNameInput"
-          class="input"
           type="text"
-          [placeholder]="placeholder"
+          [placeholder]="mode() === 'rename' ? 'New name' : 'Untitled folder'"
           [value]="value()"
           (input)="value.set($any($event.target).value)"
-          maxlength="255"
+          [class.invalid]="!!problem() || !!error()"
+          [attr.aria-invalid]="!!problem() || !!error()"
+          aria-describedby="name-dialog-hint name-dialog-error"
+          [style.padding-right.px]="extension() ? suffixSpace() : null"
+          [disabled]="busy()"
+          [attr.maxlength]="maxBaseLength()"
           autocomplete="off"
           spellcheck="false"
         />
-      </label>
-    </form>
+        @if (extension()) {
+          <span #extensionTag class="dlg-suffix" aria-hidden="true">.{{ extension() }}</span>
+        }
+      </div>
+      @if (problem() || error(); as message) {
+        <div class="dlg-error" id="name-dialog-error" role="alert">
+          <span class="material-symbols-rounded" aria-hidden="true">error</span>
+          <span>{{ message }}</span>
+        </div>
+      } @else if (extension()) {
+        <p class="dlg-hint" id="name-dialog-hint">
+          The .{{ extension() }} extension stays, so the file still opens the same way.
+        </p>
+      }
+    </div>
 
-    <div class="dialog-footer">
-      <button class="btn btn-ghost" type="button" (click)="cancel.emit()">Cancel</button>
+    <footer class="dialog-foot">
+      <button class="dlg-btn secondary" type="button" (click)="cancel.emit()" [disabled]="busy()">
+        Cancel
+      </button>
       <button
-        class="btn btn-primary btn-confirm"
+        class="dlg-btn primary btn-confirm"
         type="button"
-        [disabled]="!value().trim()"
+        [disabled]="!canSave()"
         (click)="onConfirm()"
       >
-        {{ confirmLabel }}
+        @if (busy()) {
+          <span class="dlg-spinner" aria-hidden="true"></span>
+          Saving…
+        } @else {
+          {{ confirmLabel() }}
+        }
       </button>
-    </div>
+    </footer>
   </div>
 </div>

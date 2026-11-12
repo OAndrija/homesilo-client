@@ -1,50 +1,95 @@
-.storage {
-  padding: 0 8px;
-}
-
-.storage-head {
+:host {
   display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 8px;
-  font-size: var(--text-sm);
+  flex-direction: column;
+  margin-top: auto;
 }
 
-.storage-title {
-  color: var(--frost-soft);
-  font-weight: 550;
+.storage-indicator {
+  padding: 30px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.storage-percent {
-  color: var(--haze);
+.storage-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-left: 23px;
+  transition: padding-left var(--transition-sidebar);
 }
 
-.storage-track {
+:host(.open) .storage-header {
+  padding-left: 16px;
+}
+
+.storage-icon {
+  width: 22px;
+  font-size: 22px;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.storage-label {
+  white-space: nowrap;
+  overflow: hidden;
+  opacity: 0;
+  max-width: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  transition:
+    opacity var(--transition-fast),
+    max-width var(--transition-base);
+}
+
+.storage-bar-track {
+  width: 100%;
   height: 6px;
   border-radius: var(--radius-pill);
-  background: var(--steel-raised);
+  background: var(--color-surface-input);
   overflow: hidden;
+  opacity: 0;
+  max-height: 0;
+  transition:
+    opacity var(--transition-fast),
+    max-height var(--transition-base);
 }
 
-.storage-fill {
+.storage-bar-fill {
   height: 100%;
-  min-width: 2px;
-  border-radius: inherit;
-  background: var(--grain);
-  transition: width 0.4s ease;
-}
-
-[data-level='warn'] .storage-fill {
-  background: #f08c3a;
-}
-
-[data-level='critical'] .storage-fill {
-  background: var(--danger);
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  transition: width 0.3s ease;
 }
 
 .storage-text {
-  margin-top: 8px;
-  color: var(--haze);
-  font-size: var(--text-xs);
-  min-height: 1.2em;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  opacity: 0;
+  max-height: 0;
+  font-size: 12px;
+  color: var(--color-text-dim);
+  padding-left: 23px;
+  transition:
+    opacity var(--transition-fast),
+    max-height var(--transition-base),
+    padding-left var(--transition-sidebar);
+}
+
+:host(.open) .storage-text {
+  padding-left: 16px;
+}
+
+:host(.open) .storage-label,
+:host(.open) .storage-text {
+  opacity: 1;
+  max-width: 160px;
+  max-height: 20px;
+}
+
+:host(.open) .storage-bar-track {
+  opacity: 1;
+  max-height: 6px;
 }

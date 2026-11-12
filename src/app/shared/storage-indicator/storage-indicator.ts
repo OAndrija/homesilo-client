@@ -1,30 +1,33 @@
-import { DecimalPipe } from '@angular/common';
-import { Component, computed, inject, OnInit } from '@angular/core';
+import { Component, inject, computed, input } from '@angular/core';
 import { DashboardStore } from '../../core/services/dashboard-store';
-import { formatBytes } from '../../core/utils/format';
 
 @Component({
   selector: 'app-storage-indicator',
-  imports: [DecimalPipe],
+  imports: [],
   templateUrl: './storage-indicator.html',
   styleUrl: './storage-indicator.css',
+  host: {
+    '[class.open]': 'sidebarOpen()',
+  },
 })
-export class StorageIndicator implements OnInit {
+export class StorageIndicator {
   private store = inject(DashboardStore);
+  sidebarOpen = input.required<boolean>();
 
-  private used = computed(() => this.store.stats()?.storageUsedBytes ?? 0);
-  private quota = computed(() => this.store.stats()?.storageQuotaBytes ?? 0);
+  usedBytes = computed(() => this.store.stats()?.storageUsedBytes ?? 0);
+  maxBytes = computed(() => this.store.stats()?.storageQuotaBytes ?? 1);
 
-  loaded = computed(() => this.store.stats() !== null);
-  percent = computed(() =>
-    this.quota() > 0 ? Math.min((this.used() / this.quota()) * 100, 100) : 0,
-  );
-  level = computed(() =>
-    this.percent() >= 90 ? 'critical' : this.percent() >= 75 ? 'warn' : 'ok',
-  );
-  label = computed(() => `${formatBytes(this.used())} of ${formatBytes(this.quota())}`);
+  percentUsed = computed(() => {
+    const pct = (this.usedBytes() / this.maxBytes()) * 100;
+    return Math.min(pct, 100);
+  });
 
   ngOnInit(): void {
     this.store.ensureLoaded();
+  }
+
+  /** One decimal, without a trailing ".0" (1.5, 100), matching the dashboard. */
+  formatGB(bytes: number): string {
+    return String(Number((bytes / (1024 * 1024 * 1024)).toFixed(1)));
   }
 }

@@ -1,14 +1,12 @@
-import { Injectable, signal } from '@angular/core';
-import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
+import { Service, signal } from '@angular/core';
+import { debounceTime, distinctUntilChanged, Subject, take } from 'rxjs';
 
-/**
- * The global search box. `text` mirrors the input immediately; `query` is the
- * debounced value pages search with.
- */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class Search {
-  readonly text = signal('');
-  readonly query = signal('');
+  /** What is typed in the search box, updated on every keystroke. */
+  text = signal('');
+  /** The debounced query that pages search with. */
+  query = signal('');
 
   private inputSubject = new Subject<string>();
 
@@ -23,6 +21,7 @@ export class Search {
     this.inputSubject.next(value);
   }
 
+  /** Empties the search box and the query; pages can call this too ("Clear search"). */
   clear(): void {
     this.text.set('');
     this.inputSubject.next('');

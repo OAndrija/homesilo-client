@@ -1,0 +1,350 @@
+/* Shared by every dialog component (styleUrls), so they look and behave alike. */
+
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(6, 8, 14, 0.6);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  animation: backdrop-in 0.15s ease-out;
+}
+
+@keyframes backdrop-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.dialog {
+  display: flex;
+  flex-direction: column;
+  width: min(460px, 100%);
+  max-height: min(640px, calc(100dvh - 32px));
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2xl);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-floating);
+  animation: dialog-in 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+}
+
+.dialog-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 22px 18px 4px 22px;
+}
+
+.dialog-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-lg);
+  color: var(--color-accent-text);
+  background: var(--color-accent-bg);
+}
+
+.dialog-icon.danger {
+  color: var(--color-danger);
+  background: var(--color-danger-bg-strong);
+}
+
+.dialog-icon .material-symbols-rounded {
+  font-size: 22px;
+}
+
+.dialog-titles {
+  flex: 1;
+  min-width: 0;
+  padding-top: 1px;
+}
+
+.dialog-titles h3 {
+  margin: 0;
+  color: var(--color-text-heading);
+  font-family: var(--font-heading);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.dialog-sub {
+  margin: 3px 0 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text-subtitle);
+  font-size: 13.5px;
+}
+
+.dialog-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  margin-top: -2px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-text-faint);
+  cursor: pointer;
+}
+
+.dialog-close:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text-heading);
+}
+
+.dialog-close .material-symbols-rounded {
+  font-size: 20px;
+}
+
+.dialog-body {
+  min-height: 0;
+  padding: 18px 22px 22px;
+  overflow-y: auto;
+}
+
+.dialog-message {
+  margin: 0;
+  color: var(--color-text-body);
+  font-size: 14.5px;
+  line-height: 1.55;
+}
+
+.dialog-foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 18px;
+  border-top: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-alt);
+}
+
+.dialog-foot .foot-hint {
+  margin-right: auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text-faint);
+  font-size: 13px;
+}
+
+/* ── Buttons ──────────────────────────────────────────────────── */
+
+.dlg-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 16px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    opacity var(--transition-fast);
+}
+
+.dlg-btn.secondary {
+  border-color: var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-heading-alt);
+}
+
+.dlg-btn.secondary:hover:not(:disabled) {
+  background: var(--color-surface-hover);
+}
+
+.dlg-btn.primary {
+  background: var(--color-accent);
+  color: var(--color-text-on-accent);
+}
+
+.dlg-btn.primary:hover:not(:disabled) {
+  background: var(--color-accent-hover);
+}
+
+.dlg-btn.danger {
+  background: var(--color-danger);
+  color: #fff;
+}
+
+.dlg-btn.danger:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.dlg-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* A greyed-out amber reads as brown; disabled main actions go neutral instead. */
+.dlg-btn.primary:disabled,
+.dlg-btn.danger:disabled {
+  opacity: 1;
+  background: var(--color-surface-hover);
+  color: var(--color-text-faint);
+}
+
+.dlg-btn:focus-visible,
+.dialog-close:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.dlg-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: dlg-spin 0.7s linear infinite;
+}
+
+@keyframes dlg-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── Fields ───────────────────────────────────────────────────── */
+
+.dlg-label {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--color-text-heading-alt);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.dlg-input {
+  position: relative;
+}
+
+.dlg-input > .material-symbols-rounded {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  transform: translateY(-50%);
+  color: var(--color-text-faint);
+  font-size: 20px;
+  pointer-events: none;
+}
+
+.dlg-input input {
+  width: 100%;
+  height: 46px;
+  padding: 0 14px 0 44px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-input);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-size: 15px;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.dlg-input input::placeholder {
+  color: var(--color-text-placeholder);
+}
+
+.dlg-input input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-bg);
+}
+
+.dlg-input input.invalid {
+  border-color: var(--color-danger);
+}
+
+.dlg-input input:disabled {
+  opacity: 0.7;
+}
+
+/* A fixed part of the value, e.g. a file's extension while renaming it. */
+.dlg-suffix {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  max-width: 40%;
+  padding: 4px 9px;
+  overflow: hidden;
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-surface-hover);
+  color: var(--color-text-muted);
+  font-size: 13.5px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.dlg-hint {
+  margin: 10px 0 0;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.dlg-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 10px;
+  color: var(--color-danger-text);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.dlg-error .material-symbols-rounded {
+  flex-shrink: 0;
+  font-size: 17px;
+}
+
+@media (max-width: 600px) {
+  .dialog-backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .dialog {
+    width: 100%;
+    max-height: 90dvh;
+    border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dialog-backdrop,
+  .dialog {
+    animation: none;
+  }
+}

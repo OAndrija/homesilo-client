@@ -1,0 +1,201 @@
+.panel {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 70;
+  width: 380px;
+  max-width: calc(100vw - 32px);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-floating);
+  animation: panel-in 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 6px 8px 6px 16px;
+  background: var(--color-surface-alt);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.panel.collapsed .head {
+  border-bottom: none;
+}
+
+.head h2 {
+  flex: 1;
+  margin: 0;
+  color: var(--color-text-heading);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.head-icon {
+  font-size: 22px;
+}
+
+.head-icon.done {
+  color: var(--color-success);
+}
+
+.head-icon.error {
+  color: var(--color-danger);
+}
+
+/* Overall progress as a small ring. */
+.ring {
+  --p: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: conic-gradient(var(--color-accent) calc(var(--p) * 1%), var(--color-border) 0);
+  mask: radial-gradient(circle, transparent 6px, #000 6.5px);
+  -webkit-mask: radial-gradient(circle, transparent 6px, #000 6.5px);
+}
+
+.head-btn,
+.item-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.head-btn:hover,
+.item-btn:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text-heading);
+}
+
+.head-btn:focus-visible,
+.item-btn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+.head-btn .material-symbols-rounded,
+.item-btn .material-symbols-rounded {
+  font-size: 20px;
+}
+
+.list {
+  max-height: 300px;
+  margin: 0;
+  padding: 6px 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px 8px 16px;
+}
+
+.file-icon {
+  flex-shrink: 0;
+  font-size: 22px;
+}
+
+.info {
+  flex: 1;
+  min-width: 0;
+}
+
+.name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text-heading-alt);
+  font-size: 13.5px;
+  font-weight: 500;
+}
+
+.detail {
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text-faint);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.item[data-status='error'] .detail {
+  color: var(--color-danger-text);
+}
+
+.item[data-status='cancelled'] .name {
+  color: var(--color-text-faint);
+}
+
+.bar {
+  height: 4px;
+  margin-top: 6px;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--color-border);
+}
+
+.bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-accent);
+  transition: width 0.2s linear;
+}
+
+.state {
+  width: 34px;
+  text-align: center;
+  font-size: 22px;
+}
+
+.state.done {
+  color: var(--color-success);
+}
+
+.state.muted {
+  color: var(--color-text-faint);
+  font-size: 18px;
+}
+
+@media (max-width: 700px) {
+  .panel {
+    right: 12px;
+    left: 12px;
+    bottom: 12px;
+    width: auto;
+    max-width: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    animation: none;
+  }
+  .bar span {
+    transition: none;
+  }
+}

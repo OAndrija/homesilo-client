@@ -1,242 +1,324 @@
-<div class="page home">
-  <header class="page-header">
-    <div>
-      <h1 class="page-title">Welcome back, {{ username() }}</h1>
-      <p class="page-subtitle">{{ summary() }}</p>
-    </div>
-  </header>
-
-  <div class="overview">
-    <section
-      class="panel silo"
-      [attr.data-level]="storageLevel()"
-      aria-labelledby="storage-heading"
-    >
-      <div class="silo-visual">
-        <svg
-          class="tank"
-          viewBox="0 0 230 316"
-          role="img"
-          [attr.aria-label]="
-            storageUsedGB() +
-            ' of ' +
-            storageLimitGB() +
-            ' GB used, ' +
-            storageFreeLabel() +
-            ' free'
-          "
-        >
-          <defs>
-            <clipPath id="tank-clip">
-              <path d="M20 70 H140 V280 Q140 290 80 290 Q20 290 20 280 Z" />
-            </clipPath>
-            <linearGradient id="tank-glass" x1="0" x2="1" y1="0" y2="0">
-              <stop offset="0" stop-color="#fff" stop-opacity="0.20" />
-              <stop offset="0.18" stop-color="#fff" stop-opacity="0.04" />
-              <stop offset="0.75" stop-color="#000" stop-opacity="0" />
-              <stop offset="1" stop-color="#000" stop-opacity="0.32" />
-            </linearGradient>
-            <linearGradient id="tank-depth" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0" stop-color="#fff" stop-opacity="0.14" />
-              <stop offset="1" stop-color="#000" stop-opacity="0.22" />
-            </linearGradient>
-          </defs>
-
-          <ellipse class="tank-floor" cx="80" cy="308" rx="76" ry="5" />
-
-          <!-- finial + dome -->
-          <rect class="tank-steel" x="72" y="26" width="16" height="12" rx="2" />
-          <path class="tank-steel" d="M20 70 C20 22 140 22 140 70 Z" />
-          <path class="tank-dome-shine" d="M34 66 C38 40 62 30 80 30" />
-
-          <!-- glass interior -->
-          <path class="tank-interior" d="M20 70 H140 V280 Q140 290 80 290 Q20 290 20 280 Z" />
-
-          <!-- contents: one layer per file type (drawn in place, no entrance animation) -->
-          <g clip-path="url(#tank-clip)">
-            @for (layer of tankLayers(); track layer.label) {
-              <rect
-                x="20"
-                width="120"
-                [attr.y]="layer.y"
-                [attr.height]="layer.height"
-                [style.fill]="layer.color"
-              />
-              <line class="tank-seam" x1="20" x2="140" [attr.y1]="layer.y" [attr.y2]="layer.y" />
-            }
-            @if (tankLayers().length > 0) {
-              <!-- depth shading only covers the liquid, so an empty tank stays clean -->
-              <rect
-                x="20"
-                width="120"
-                [attr.y]="tankSurfaceY()"
-                [attr.height]="tankBottom - tankSurfaceY()"
-                fill="url(#tank-depth)"
-              />
-              <g [attr.transform]="'translate(20 ' + tankSurfaceY() + ')'">
-                <path
-                  class="tank-wave"
-                  [style.fill]="tankWaveColor()"
-                  d="M0 0 Q15 -5 30 0 T60 0 T90 0 T120 0 T150 0 T180 0 V12 H0 Z"
-                />
-              </g>
-            }
-          </g>
-
-          <!-- glass + steel rings -->
-          <path d="M20 70 H140 V280 Q140 290 80 290 Q20 290 20 280 Z" fill="url(#tank-glass)" />
-          <rect class="tank-shine" x="30" y="84" width="7" height="190" rx="3.5" />
-          <rect class="tank-ring" x="17" y="66" width="126" height="9" rx="2" />
-          <rect class="tank-ring thin" x="19" y="123" width="122" height="4" />
-          <rect class="tank-ring thin" x="19" y="178" width="122" height="4" />
-          <rect class="tank-ring thin" x="19" y="233" width="122" height="4" />
-          <path class="tank-outline" d="M20 70 V280 Q20 290 80 290 Q140 290 140 280 V70" />
-          <rect class="tank-steel" x="8" y="290" width="144" height="12" rx="3" />
-
-          <!-- capacity scale -->
-          @for (tick of tankTicks(); track $index) {
-            <g class="tank-tick">
-              <line x1="150" x2="160" [attr.y1]="tick.y" [attr.y2]="tick.y" />
-              <text x="166" [attr.y]="tick.y + 3.5">{{ tick.label }}</text>
-            </g>
-          }
-        </svg>
+<div
+  class="home-page"
+  (dragenter)="onDragEnter($event)"
+  (dragover)="onDragOver($event)"
+  (dragleave)="onDragLeave($event)"
+  (drop)="onDrop($event)"
+>
+  @if (dragging()) {
+    <div class="drop-overlay" aria-hidden="true">
+      <div class="drop-box">
+        <span class="material-symbols-rounded" aria-hidden="true">cloud_upload</span>
+        <p>Drop to upload to My Files</p>
       </div>
+    </div>
+  }
 
-      <div class="silo-body">
-        <div class="silo-head">
-          <h2 class="section-title" id="storage-heading">Storage</h2>
-          <span
-            class="badge"
-            [class.is-success]="storageLevel() === 'ok'"
-            [class.is-accent]="storageLevel() === 'warn'"
-            [class.is-danger]="storageLevel() === 'critical'"
+  <div class="page-header">
+    <div>
+      <h2>Dashboard</h2>
+      <p class="subtitle">Welcome back, {{ username() }}</p>
+    </div>
+    <div class="header-actions">
+      <button class="header-btn secondary" routerLink="/my-files">
+        <span class="material-symbols-rounded" aria-hidden="true">folder_open</span>
+        Open my files
+      </button>
+      <button class="header-btn" (click)="fileInput.click()">
+        <span class="material-symbols-rounded" aria-hidden="true">upload</span>
+        Upload files
+      </button>
+      <input #fileInput hidden type="file" multiple (change)="onFileSelected($event)" />
+    </div>
+  </div>
+
+  <!-- ── Top row: silo (left) + four cards (right) ──────────── -->
+  <div class="top-wrap">
+    <div class="dash-top">
+      <!-- ── Storage silo ─────────────────────────────────────── -->
+      <section class="hero" [attr.data-level]="storageLevel()">
+        <div class="hero-visual">
+          <!-- The silo from the HomeSilo logo: greyed out when empty, its colour rising as storage fills. -->
+          <div
+            class="silo"
+            role="img"
+            [attr.aria-label]="
+              storageUsedGB() +
+              ' of ' +
+              storageLimitGB() +
+              ' GB used, ' +
+              storageFreeLabel() +
+              ' free'
+            "
           >
-            @switch (storageLevel()) {
-              @case ('critical') {
-                Almost full
-              }
-              @case ('warn') {
-                Filling up
-              }
-              @default {
-                Plenty of room
-              }
-            }
-          </span>
-        </div>
-
-        <p class="free">
-          <span class="free-num tabular">{{ storageFree().value }}</span>
-          <span class="free-unit">{{ storageFree().unit }} free</span>
-        </p>
-        <p class="silo-sub">{{ storageUsedLabel() }} of {{ storageLimitLabel() }} used</p>
-
-        @if (breakdownWithPercent().length === 0) {
-          <p class="silo-empty">Nothing stored yet. Every upload adds a layer to the silo.</p>
-        } @else {
-          <div class="meter" role="img" [attr.aria-label]="storagePercent() + '% of storage used'">
-            @for (type of breakdownWithPercent(); track type.label) {
-              <span
-                class="meter-seg"
-                [style.width.%]="type.capacityPct"
-                [style.background]="type.color"
-              ></span>
+            <img class="silo-empty" src="homesilo-silo.png" alt="" width="340" height="638" />
+            <img
+              class="silo-full"
+              src="homesilo-silo.png"
+              alt=""
+              width="340"
+              height="638"
+              [style.clip-path]="'inset(' + siloFillTop() + '% 0 0 0)'"
+            />
+            @if (storageUsedBytes() > 0) {
+              <span class="silo-level" [style.top.%]="siloFillTop()"></span>
             }
           </div>
-          <ul class="breakdown">
-            @for (type of breakdownWithPercent(); track type.label) {
-              <li>
-                <span class="dot" [style.background]="type.color" aria-hidden="true"></span>
-                <span class="bd-name">{{ type.label }}</span>
-                <span class="bd-size tabular">{{ type.sizeLabel }}</span>
-              </li>
+        </div>
+
+        <div class="hero-body">
+          <div class="hero-cols">
+            <div class="hero-summary">
+              <div class="hero-head">
+                <h3>Storage</h3>
+                <span class="level-pill">
+                  @switch (storageLevel()) {
+                    @case ('critical') {
+                      Almost full
+                    }
+                    @case ('warn') {
+                      Filling up
+                    }
+                    @default {
+                      Plenty of room
+                    }
+                  }
+                </span>
+              </div>
+
+              <div class="free">
+                <span class="free-num">{{ storageFree().value }}</span>
+                <span class="free-unit">{{ storageFree().unit }}</span>
+                <span class="free-word">free</span>
+              </div>
+              <p class="hero-sub">
+                You've used {{ storageUsedGB() }} GB of {{ storageLimitGB() }} GB ({{
+                  storagePercent()
+                }}%).
+              </p>
+
+              @if (breakdownWithPercent().length === 0) {
+                <p class="hero-empty">
+                  Nothing stored yet. Upload files and watch the silo fill up.
+                </p>
+              } @else {
+                <div
+                  class="meter"
+                  role="img"
+                  [attr.aria-label]="storagePercent() + '% of storage used'"
+                >
+                  @for (type of breakdownWithPercent(); track type.label) {
+                    <span
+                      class="meter-seg"
+                      [style.width.%]="type.capacityPct"
+                      [style.background]="type.color"
+                    ></span>
+                  }
+                </div>
+              }
+            </div>
+
+            @if (breakdownWithPercent().length > 0) {
+              <ul class="breakdown">
+                @for (type of breakdownWithPercent(); track type.label) {
+                  <li>
+                    <span class="dot" [style.background]="type.color"></span>
+                    @if (type.label === 'Trash') {
+                      <a class="bd-name bd-link" routerLink="/trash">Trash</a>
+                    } @else {
+                      <span class="bd-name">{{ type.label }}</span>
+                    }
+                    <span class="bd-size">{{ type.sizeLabel }}</span>
+                    <span class="bd-pct">{{ type.capacityLabel }}</span>
+                  </li>
+                }
+                <li class="bd-free">
+                  <span class="dot dot-free"></span>
+                  <span class="bd-name">Free</span>
+                  <span class="bd-size">{{ storageFreeLabel() }}</span>
+                  <span class="bd-pct">{{ storageFreePercent() }}%</span>
+                </li>
+              </ul>
             }
-          </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Four cards, one hue each ─────────────────────────── -->
+      <section class="stat-grid" aria-label="Your library at a glance">
+        <div class="stat-card tone-accent">
+          <span class="material-symbols-rounded stat-watermark" aria-hidden="true"
+            >folder_copy</span
+          >
+          <div class="stat-top">
+            <span class="stat-icon"
+              ><span class="material-symbols-rounded" aria-hidden="true">folder_copy</span></span
+            >
+            <span class="stat-tag">All time</span>
+          </div>
+          <div class="stat-bottom">
+            <div class="stat-value">{{ totalFiles() }}</div>
+            <div class="stat-label">Total files</div>
+          </div>
+        </div>
+
+        <div class="stat-card tone-success">
+          <span class="material-symbols-rounded stat-watermark" aria-hidden="true"
+            >trending_up</span
+          >
+          <div class="stat-top">
+            <span class="stat-icon"
+              ><span class="material-symbols-rounded" aria-hidden="true">trending_up</span></span
+            >
+            <span class="stat-tag">7 days</span>
+          </div>
+          <div class="stat-bottom">
+            <div class="stat-value">{{ filesThisWeek() }}</div>
+            <div class="stat-label">Added this week</div>
+          </div>
+        </div>
+
+        <a class="stat-card tone-star is-link" routerLink="/starred">
+          <span class="material-symbols-rounded stat-watermark is-filled" aria-hidden="true"
+            >star</span
+          >
+          <div class="stat-top">
+            <span class="stat-icon"
+              ><span class="material-symbols-rounded is-filled">star</span></span
+            >
+            <span class="stat-go" aria-hidden="true"
+              ><span class="material-symbols-rounded" aria-hidden="true">north_east</span></span
+            >
+          </div>
+          <div class="stat-bottom">
+            <div class="stat-value">{{ starredCount() }}</div>
+            <div class="stat-label">Starred files</div>
+          </div>
+        </a>
+
+        <!-- takes the colour of whichever file type is biggest -->
+        <div class="stat-card" [style.--hue]="topCategory()?.color ?? 'var(--cat-other)'">
+          <span class="material-symbols-rounded stat-watermark" aria-hidden="true">{{
+            topCategory()?.icon ?? 'inventory_2'
+          }}</span>
+          <div class="stat-top">
+            <span class="stat-icon"
+              ><span class="material-symbols-rounded" aria-hidden="true">{{
+                topCategory()?.icon ?? 'inventory_2'
+              }}</span></span
+            >
+            @if (topCategory(); as top) {
+              <span class="stat-tag">{{ top.sizeLabel }}</span>
+            }
+          </div>
+          <div class="stat-bottom">
+            <div class="stat-value stat-value-text">{{ topCategory()?.label ?? '—' }}</div>
+            <div class="stat-label">
+              {{ topCategory() ? 'Largest file type' : 'Nothing stored yet' }}
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- ── Getting started (empty account) ───────────────────── -->
+  @if (isEmpty()) {
+    <section class="get-started">
+      <span class="material-symbols-rounded get-started-icon" aria-hidden="true">cloud_upload</span>
+      <div>
+        <h3>Fill your silo</h3>
+        <p>Upload files or drag them anywhere on this page. They'll land in My Files.</p>
+      </div>
+      <div class="get-started-actions">
+        <button class="header-btn" (click)="fileInput.click()">
+          <span class="material-symbols-rounded" aria-hidden="true">upload</span>
+          Upload files
+        </button>
+        <a class="header-btn secondary" routerLink="/my-files">
+          <span class="material-symbols-rounded" aria-hidden="true">create_new_folder</span>
+          Create a folder
+        </a>
+      </div>
+    </section>
+  }
+
+  <!-- ── Starred: quick access ──────────────────────────────── -->
+  @if (starredFiles().length > 0) {
+    <section class="home-section" aria-labelledby="starred-heading">
+      <div class="section-header">
+        <h3 id="starred-heading">Starred</h3>
+        <a class="see-all-btn" routerLink="/starred">See all</a>
+      </div>
+      <div class="tile-grid">
+        @for (file of starredFiles(); track file.id) {
+          <button
+            type="button"
+            class="tile"
+            (click)="openStarred(file)"
+            [title]="file.originalFileName"
+          >
+            <span class="tile-icon" [style.--tint]="getFileIcon(file.originalFileName).color">
+              <span class="material-symbols-rounded" aria-hidden="true">{{
+                getFileIcon(file.originalFileName).icon
+              }}</span>
+            </span>
+            <span class="tile-text">
+              <span class="tile-name">{{ file.originalFileName }}</span>
+              <span class="tile-meta"
+                >{{ formatSize(file.size) }} · {{ file.lastModified | friendlyDate }}</span
+              >
+            </span>
+            <span class="material-symbols-rounded tile-star" aria-hidden="true">star</span>
+          </button>
         }
       </div>
     </section>
-
-    <section class="panel stats" aria-label="Your library">
-      <a class="stat" routerLink="/my-files">
-        <span class="stat-label">Files</span>
-        <span class="stat-value tabular">{{ totalFiles() }}</span>
-      </a>
-      <a class="stat" routerLink="/my-files">
-        <span class="stat-label">Folders</span>
-        <span class="stat-value tabular">{{ totalFolders() }}</span>
-      </a>
-      <div class="stat">
-        <span class="stat-label">Added this week</span>
-        <span class="stat-value tabular">{{ filesThisWeek() }}</span>
-      </div>
-      <a class="stat" routerLink="/starred">
-        <span class="stat-label">Starred</span>
-        <span class="stat-value tabular">{{ starredCount() }}</span>
-      </a>
-      <a class="stat" routerLink="/trash">
-        <span class="stat-label">In trash</span>
-        <span class="stat-value tabular">{{ trashedLabel() }}</span>
-      </a>
-    </section>
-  </div>
-
-  <div class="section-header">
-    <h2 class="section-title">Recent uploads</h2>
-    @if (recentFiles().length > 0) {
-      <a routerLink="/my-files">View all files</a>
-    }
-  </div>
-  @if (loadingRecent() | loadingDelay) {
-    <div class="panel inline-state"><span class="spinner"></span></div>
-  } @else if (!loadingRecent() && recentFiles().length === 0) {
-    <div class="panel inline-state">
-      <p>Files you upload will show up here.</p>
-      <a class="btn btn-primary" routerLink="/my-files">
-        <span class="material-symbols-rounded" aria-hidden="true">upload</span>
-        Upload files
-      </a>
-    </div>
-  } @else if (!loadingRecent()) {
-    <app-file-table
-      [files]="recentFiles()"
-      [selectable]="false"
-      [actions]="['download']"
-      dateColumnLabel="Uploaded"
-      (download)="downloadFile($event)"
-      (openFile)="openFile($event)"
-    />
   }
 
-  <div class="section-header">
-    <h2 class="section-title">Recently deleted</h2>
-    @if (trashedFiles().length > 0) {
-      <a routerLink="/trash">Open trash</a>
-    }
-  </div>
-  @if (loadingTrashed() | loadingDelay) {
-    <div class="panel inline-state"><span class="spinner"></span></div>
-  } @else if (!loadingTrashed() && trashedFiles().length === 0) {
-    <div class="panel inline-state"><p>Nothing deleted recently.</p></div>
-  } @else if (!loadingTrashed()) {
-    <ul class="panel trashed">
-      @for (file of trashedFiles(); track file.id) {
-        <li class="trashed-row">
-          <span
-            class="material-symbols-rounded trashed-icon"
-            aria-hidden="true"
-            [style.color]="iconFor(file).color"
-            >{{ iconFor(file).icon }}</span
+  <!-- ── Folders ────────────────────────────────────────────── -->
+  @if (folders().length > 0) {
+    <section class="home-section" aria-labelledby="folders-heading">
+      <div class="section-header">
+        <h3 id="folders-heading">Folders</h3>
+        <a class="see-all-btn" routerLink="/my-files">See all</a>
+      </div>
+      <div class="tile-grid">
+        @for (folder of folders(); track folder.id) {
+          <a
+            class="tile"
+            routerLink="/my-files"
+            [queryParams]="{ folderId: folder.id }"
+            [title]="folder.name"
           >
-          <span class="trashed-text">
-            <span class="trashed-name" [title]="file.originalFileName">{{
-              file.originalFileName
-            }}</span>
-            <span class="trashed-date">Deleted {{ file.trashedAt | friendlyDate }}</span>
-          </span>
-          <button type="button" class="btn btn-ghost" (click)="restoreFile(file)">Restore</button>
-        </li>
-      }
-    </ul>
+            <span class="tile-icon folder" aria-hidden="true">
+              <span class="material-symbols-rounded" aria-hidden="true">folder</span>
+            </span>
+            <span class="tile-text">
+              <span class="tile-name">{{ folder.name }}</span>
+              <span class="tile-meta">Edited {{ folder.lastModified | friendlyDate }}</span>
+            </span>
+          </a>
+        }
+      </div>
+    </section>
+  }
+
+  <!-- ── Recent files ───────────────────────────────────────── -->
+  @if (!loadingRecent() && recentFiles().length > 0) {
+    <section class="home-section" aria-labelledby="recent-heading">
+      <div class="section-header">
+        <h3 id="recent-heading">Recent uploads</h3>
+        <a class="see-all-btn" routerLink="/my-files">See all</a>
+      </div>
+      <app-file-table
+        [files]="recentFiles()"
+        [selectable]="false"
+        [actions]="['download']"
+        dateColumnLabel="Uploaded"
+        (download)="downloadFile($event)"
+        (openFile)="openRecent($event)"
+      />
+    </section>
   }
 </div>

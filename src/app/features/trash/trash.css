@@ -1,0 +1,70 @@
+.files-page {
+  width: 100%;
+  padding: 0 var(--space-page-x) var(--space-page-x);
+  box-sizing: border-box;
+  position: relative;
+}
+
+/* ── Spinner ─────────────────────────────────────────────────── */
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 0, 0, 0.25);
+  border-top-color: var(--color-bg);
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── Empty state ─────────────────────────────────────────────── */
+
+/* ── Error ───────────────────────────────────────────────────── */
+
+.server-error {
+  margin-bottom: 20px;
+  padding: 16px;
+  border-radius: var(--radius-xl);
+  color: var(--color-danger-text);
+  border: 1px solid var(--color-danger-bg-deep);
+  background: var(--color-danger-bg-subtle);
+}
+
+/* ── Show more ───────────────────────────────────────────────── */
+
+.show-more-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.show-more-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 24px;
+  height: 42px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  color: var(--color-text-body);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-base);
+}
+
+.show-more-btn:hover:not(:disabled) {
+  border-color: var(--color-accent);
+  color: var(--color-accent-text);
+}
+
+.show-more-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

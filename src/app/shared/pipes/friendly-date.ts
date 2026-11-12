@@ -1,48 +1,48 @@
-import { Pipe, PipeTransform } from '@angular/core';
+import { formatDate } from '@angular/common';
+import { inject, LOCALE_ID, Pipe, PipeTransform } from '@angular/core';
 
-const time = new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit' });
-const dayMonth = new Intl.DateTimeFormat(undefined, { day: 'numeric', month: 'short' });
-const full = new Intl.DateTimeFormat(undefined, {
-  day: 'numeric',
-  month: 'short',
-  year: 'numeric',
-});
-const exact = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+type DateInput = string | number | Date | null | undefined;
 
-/** "Today, 14:05", "Yesterday", "Nov 4" (this year) or "Apr 18, 2025". */
-export function friendlyDate(value: string | Date | null | undefined, now = new Date()): string {
-  const date = toDate(value);
-  if (!date) return '—';
-  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-  const dayMs = 86_400_000;
-  if (date.getTime() >= startOfToday) return `Today, ${time.format(date)}`;
-  if (date.getTime() >= startOfToday - dayMs) return 'Yesterday';
-  if (date.getFullYear() === now.getFullYear()) return dayMonth.format(date);
-  return full.format(date);
-}
-
-/** Full date and time, for tooltips. */
-export function exactDate(value: string | Date | null | undefined): string {
-  const date = toDate(value);
-  return date ? exact.format(date) : '';
-}
-
-function toDate(value: string | Date | null | undefined): Date | null {
-  if (!value) return null;
+function toDate(value: DateInput): Date | null {
+  if (value === null || value === undefined || value === '') return null;
   const date = value instanceof Date ? value : new Date(value);
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
+function startOfDay(date: Date): number {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+}
+
+/**
+ * Short, human date for tables: "Today, 9:41 PM", "Yesterday, 8:02 AM",
+ * "Oct 26" (this year) or "Oct 26, 2025".
+ */
+export function friendlyDate(value: DateInput, locale = 'en-US', now = new Date()): string {
+  const date = toDate(value);
+  if (!date) return '—';
+  const days = Math.round((startOfDay(now) - startOfDay(date)) / 86_400_000);
+  if (days === 0) return `Today, ${formatDate(date, 'shortTime', locale)}`;
+  if (days === 1) return `Yesterday, ${formatDate(date, 'shortTime', locale)}`;
+  return formatDate(date, date.getFullYear() === now.getFullYear() ? 'MMM d' : 'MMM d, y', locale);
+}
+
+/** "Friendly" date for display; pair with `exactDate` in a tooltip. */
 @Pipe({ name: 'friendlyDate' })
 export class FriendlyDatePipe implements PipeTransform {
-  transform(value: string | Date | null | undefined): string {
-    return friendlyDate(value);
+  private locale = inject(LOCALE_ID);
+
+  transform(value: DateInput): string {
+    return friendlyDate(value, this.locale);
   }
 }
 
+/** Full date and time, e.g. for a title tooltip. */
 @Pipe({ name: 'exactDate' })
 export class ExactDatePipe implements PipeTransform {
-  transform(value: string | Date | null | undefined): string {
-    return exactDate(value);
+  private locale = inject(LOCALE_ID);
+
+  transform(value: DateInput): string {
+    const date = toDate(value);
+    return date ? formatDate(date, 'medium', this.locale) : '';
   }
 }

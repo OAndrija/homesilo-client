@@ -1,0 +1,59 @@
+<div class="auth">
+  <aside class="brand" aria-label="About HomeSilo">
+    <div class="brand-top">
+      <a class="wordmark" href="/" aria-label="HomeSilo">
+        <img src="homesilo-logo.png" alt="" width="44" height="44" />
+        <span>homesilo</span>
+      </a>
+    </div>
+
+    <div class="brand-copy">
+      <h1>
+        @for (line of headline(); track $index) {
+          <span>{{ line }}</span>
+        }
+      </h1>
+      <p class="lead">{{ lead() }}</p>
+      <ul class="points">
+        @for (point of points; track point.icon) {
+          <li>
+            <span class="material-symbols-rounded" aria-hidden="true">{{ point.icon }}</span>
+            {{ point.text }}
+          </li>
+        }
+      </ul>
+    </div>
+
+    <div class="scene" aria-hidden="true">
+      <img src="homesilo-illustration.png" alt="" width="640" height="495" />
+    </div>
+  </aside>
+
+  <main class="form-side">
+    <div class="form-top">
+      <a class="wordmark compact" href="/" aria-label="HomeSilo">
+        <img src="homesilo-logo.png" alt="" width="36" height="36" />
+        <span>homesilo</span>
+      </a>
+      <button
+        type="button"
+        class="theme-btn"
+        (click)="themeService.toggle()"
+        [attr.aria-label]="
+          themeService.theme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'
+        "
+        [title]="themeService.theme() === 'dark' ? 'Light theme' : 'Dark theme'"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">{{
+          themeService.theme() === 'dark' ? 'light_mode' : 'dark_mode'
+        }}</span>
+      </button>
+    </div>
+
+    <div class="form-wrap">
+      <ng-content />
+    </div>
+
+    <p class="form-foot">Self-hosted file storage for your home</p>
+  </main>
+</div>

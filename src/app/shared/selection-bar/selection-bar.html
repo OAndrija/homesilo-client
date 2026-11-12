@@ -1,62 +1,58 @@
 @if (selectedCount() > 0) {
+  <!-- Keeps the last rows scrollable out from under the floating bar. -->
+  <div class="sel-spacer" aria-hidden="true"></div>
   <div class="selection-bar" data-selection-bar role="toolbar" aria-label="Selected items">
-    <button
-      type="button"
-      class="icon-btn clear"
-      aria-label="Clear selection"
-      (click)="clearSelection.emit()"
-    >
-      <span class="material-symbols-rounded">close</span>
-    </button>
-    <span class="count tabular">{{ selectedCount() }} selected</span>
+    <span class="sel-count" aria-live="polite">
+      <span class="sel-badge">{{ selectedCount() }}</span>
+      <span class="sel-label">selected</span>
+    </span>
 
-    <div class="actions">
+    <div class="sel-actions">
       @if (hasAction('download')) {
-        <button type="button" class="bar-btn" (click)="downloadAll.emit()" title="Download">
+        <button class="sel-btn" (click)="downloadAll.emit()" title="Download selected">
           <span class="material-symbols-rounded" aria-hidden="true">download</span>
-          <span class="bar-label">Download</span>
-        </button>
-      }
-      @if (hasAction('move')) {
-        <button type="button" class="bar-btn" (click)="moveAll.emit()" title="Move to…">
-          <span class="material-symbols-rounded" aria-hidden="true">drive_file_move</span>
-          <span class="bar-label">Move</span>
+          <span class="sel-label">Download</span>
         </button>
       }
       @if (hasAction('star')) {
-        <button type="button" class="bar-btn" (click)="starAll.emit()" title="Toggle star">
+        <button class="sel-btn" (click)="starAll.emit()" title="Star selected">
           <span class="material-symbols-rounded" aria-hidden="true">star</span>
-          <span class="bar-label">Star</span>
+          <span class="sel-label">Star</span>
+        </button>
+      }
+      @if (hasAction('move')) {
+        <button class="sel-btn" (click)="moveAll.emit()" title="Move to folder">
+          <span class="material-symbols-rounded" aria-hidden="true">drive_file_move</span>
+          <span class="sel-label">Move</span>
         </button>
       }
       @if (hasAction('restore')) {
-        <button type="button" class="bar-btn" (click)="restoreAll.emit()" title="Restore">
+        <button class="sel-btn restore" (click)="restoreAll.emit()" title="Restore selected">
           <span class="material-symbols-rounded" aria-hidden="true">restore_from_trash</span>
-          <span class="bar-label">Restore</span>
+          <span class="sel-label">Restore</span>
         </button>
       }
       @if (hasAction('trash')) {
-        <button
-          type="button"
-          class="bar-btn is-danger"
-          (click)="trashAll.emit()"
-          title="Move to trash"
-        >
+        <button class="sel-btn danger" (click)="trashAll.emit()" title="Move to trash">
           <span class="material-symbols-rounded" aria-hidden="true">delete</span>
-          <span class="bar-label">Trash</span>
+          <span class="sel-label">Move to trash</span>
         </button>
       }
       @if (hasAction('deleteForever')) {
-        <button
-          type="button"
-          class="bar-btn is-danger"
-          (click)="deleteForeverAll.emit()"
-          title="Delete forever"
-        >
+        <button class="sel-btn danger" (click)="deleteForeverAll.emit()" title="Delete forever">
           <span class="material-symbols-rounded" aria-hidden="true">delete_forever</span>
-          <span class="bar-label">Delete forever</span>
+          <span class="sel-label">Delete forever</span>
         </button>
       }
     </div>
+
+    <button
+      class="sel-clear"
+      (click)="clearSelection.emit()"
+      title="Clear selection (Esc)"
+      aria-label="Clear selection"
+    >
+      <span class="material-symbols-rounded" aria-hidden="true">close</span>
+    </button>
   </div>
 }

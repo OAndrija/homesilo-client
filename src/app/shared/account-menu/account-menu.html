@@ -1,0 +1,74 @@
+@if (auth.user(); as user) {
+  <button
+    #trigger
+    type="button"
+    class="account-trigger"
+    [class.open]="open()"
+    aria-haspopup="menu"
+    [attr.aria-expanded]="open()"
+    aria-controls="account-menu"
+    [attr.aria-label]="'Account menu for ' + user.username"
+    (click)="toggle()"
+    (keydown)="onTriggerKeydown($event)"
+  >
+    <span class="avatar" aria-hidden="true">{{ initial() }}</span>
+    <span class="trigger-name">{{ user.username }}</span>
+    <span class="material-symbols-rounded chevron" aria-hidden="true">expand_more</span>
+  </button>
+
+  @if (open()) {
+    <div
+      #panel
+      id="account-menu"
+      class="menu"
+      role="menu"
+      aria-label="Account"
+      (keydown)="onPanelKeydown($event)"
+    >
+      <div class="menu-header">
+        <span class="avatar avatar-lg" aria-hidden="true">{{ initial() }}</span>
+        <div class="who">
+          <div class="who-name">
+            {{ user.username }}
+            @if (user.role === 'ADMIN') {
+              <span class="role-badge">Admin</span>
+            }
+          </div>
+          <div class="who-email" [title]="user.email">{{ user.email }}</div>
+        </div>
+      </div>
+
+      <div class="menu-section">
+        <a class="menu-item" role="menuitem" routerLink="/settings" (click)="close()">
+          <span class="material-symbols-rounded" aria-hidden="true">settings</span>
+          Settings
+        </a>
+      </div>
+
+      <div class="menu-section">
+        <div class="menu-label" id="theme-label">Appearance</div>
+        <div class="theme-switch" role="group" aria-labelledby="theme-label">
+          @for (option of themeOptions; track option.value) {
+            <button
+              type="button"
+              role="menuitemradio"
+              [attr.aria-checked]="themeService.preference() === option.value"
+              [class.active]="themeService.preference() === option.value"
+              (click)="setTheme(option.value)"
+            >
+              <span class="material-symbols-rounded" aria-hidden="true">{{ option.icon }}</span>
+              {{ option.label }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="menu-section">
+        <button type="button" class="menu-item danger" role="menuitem" (click)="signOut()">
+          <span class="material-symbols-rounded" aria-hidden="true">logout</span>
+          Sign out
+        </button>
+      </div>
+    </div>
+  }
+}

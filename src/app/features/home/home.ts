@@ -1,17 +1,18 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { finalize } from 'rxjs';
+import { debounceTime, finalize } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Files } from '../../core/services/files';
+import { Folders } from '../../core/services/folders';
 import { DashboardStore } from '../../core/services/dashboard-store';
 import { FileMetadata } from '../../core/models/file-metadata';
+import { Folder } from '../../core/models/folder';
 import { FileTable } from '../../shared/file-table/file-table';
 import { Auth } from '../../core/services/auth';
-import { LoadingDelayPipe } from '../../shared/pipes/loading-delay';
 import { FileActions } from '../../core/services/file-actions';
+import { UploadService } from '../../core/services/uploads';
 import { formatBytes } from '../../core/utils/format';
 import { getFileIcon } from '../../core/utils/file-icon.util';
-import { ToastService } from '../../core/services/toast';
-import { errorMessage } from '../../core/http/http-error';
 import { FriendlyDatePipe } from '../../shared/pipes/friendly-date';
 
 // Colours live in styles.css (--cat-*) so they adapt to light/dark themes.
@@ -27,44 +28,45 @@ const CATEGORY_META: Record<string, { color: string; icon: string }> = {
 
 @Component({
   selector: 'app-home',
-  imports: [FileTable, RouterLink, LoadingDelayPipe, FriendlyDatePipe],
+  imports: [FileTable, RouterLink, FriendlyDatePipe],
   templateUrl: './home.html',
   styleUrl: './home.css',
 })
 export class Home {
   private fileService = inject(Files);
+  private folderService = inject(Folders);
+  private uploads = inject(UploadService);
   private store = inject(DashboardStore);
   private authService = inject(Auth);
   private fileActions = inject(FileActions);
-  private toast = inject(ToastService);
 
   username = computed(() => this.authService.user()?.username ?? '');
 
   recentFiles = signal<FileMetadata[]>([]);
   loadingRecent = signal(true);
+  starredFiles = signal<FileMetadata[]>([]);
+  folders = signal<Folder[]>([]);
+  loadingFolders = signal(true);
+
+  // Uploads (button or drag-and-drop) go to the root of My Files, via the upload panel.
+  dragging = signal(false);
+  private dragCounter = 0;
 
   // Derived straight from the store — no local copies that can drift out of sync.
   totalFiles = computed(() => this.store.stats()?.totalFiles ?? 0);
   filesThisWeek = computed(() => this.store.stats()?.filesThisWeek ?? 0);
   storageUsedBytes = computed(() => this.store.stats()?.storageUsedBytes ?? 0);
   storageLimitBytes = computed(() => this.store.stats()?.storageQuotaBytes ?? 1);
-  trashedFiles = computed(() => this.store.stats()?.recentlyTrashed ?? []);
-  loadingTrashed = computed(() => this.store.loading());
+  /** A brand-new account: nothing uploaded, no folders yet. */
+  isEmpty = computed(
+    () =>
+      !!this.store.stats() &&
+      !this.loadingFolders() &&
+      this.totalFiles() === 0 &&
+      this.folders().length === 0,
+  );
 
   starredCount = computed(() => this.store.stats()?.starredCount ?? 0);
-  totalFolders = computed(() => this.store.stats()?.totalFolders ?? 0);
-  trashedLabel = computed(() => this.formatSize(this.store.stats()?.trashedBytes ?? 0));
-  storageUsedLabel = computed(() => this.formatSize(this.storageUsedBytes()));
-  storageLimitLabel = computed(() => this.formatSize(this.storageLimitBytes()));
-
-  summary = computed(() => {
-    if (!this.store.stats()) return ' ';
-    const files = this.totalFiles();
-    const folders = this.totalFolders();
-    if (files === 0 && folders === 0) return 'Your silo is empty. Upload something to get started.';
-    const f = `${files} file${files !== 1 ? 's' : ''}`;
-    return folders > 0 ? `${f} in ${folders} folder${folders !== 1 ? 's' : ''}` : f;
-  });
 
   storageUsedGB = computed(() => (this.storageUsedBytes() / 1024 ** 3).toFixed(1));
   storageLimitGB = computed(() => Math.round(this.storageLimitBytes() / 1024 ** 3));
@@ -79,7 +81,7 @@ export class Home {
   });
   storageFreeLabel = computed(() => this.formatSize(this.storageFreeBytes()));
 
-  // Clamped so an over-quota account can't push the tank or percentages out of range.
+  // Clamped so an over-quota account can't push the silo or percentages out of range.
   storagePercent = computed(() =>
     Math.min(
       100,
@@ -94,9 +96,9 @@ export class Home {
     return p >= 90 ? 'critical' : p >= 75 ? 'warn' : 'ok';
   });
 
-  // ── Tank geometry (must match the SVG in home.html) ──
-  readonly tankBottom = 290;
-  readonly tankHeight = 220;
+  // ── Silo (homesilo-silo.png): the body spans 26% → 99% of the image height ──
+  private readonly siloBodyTop = 26;
+  private readonly siloBodyBottom = 99;
 
   breakdownWithPercent = computed(() => {
     const used = this.storageUsedBytes();
@@ -124,49 +126,26 @@ export class Home {
   /** Biggest file type (the breakdown is already sorted by size); null while empty. */
   topCategory = computed(() => this.breakdownWithPercent().at(0) ?? null);
 
-  /**
-   * One stacked layer per file type, biggest at the bottom of the tank. Trash stays
-   * in the breakdown list but not in the tank: it's on its way out, and as the top
-   * layer it would tint the whole surface red.
-   */
-  tankLayers = computed(() => {
-    const raw = this.breakdownWithPercent()
-      .filter((t) => t.label !== 'Trash')
-      .map((t) => ({
-        ...t,
-        h: Math.max(t.ofCapacity * this.tankHeight, 2),
-      }));
-    const total = raw.reduce((sum, l) => sum + l.h, 0);
-    const scale = total > this.tankHeight ? this.tankHeight / total : 1;
-    let cursor = this.tankBottom;
-    return raw.map((l) => {
-      const height = l.h * scale;
-      cursor -= height;
-      return { label: l.label, color: l.color, y: cursor, height };
-    });
-  });
-
-  /** Y of the liquid surface; the wave rides here. */
-  tankSurfaceY = computed(() => {
-    const layers = this.tankLayers();
-    return layers.length ? layers[layers.length - 1].y : this.tankBottom;
-  });
-  tankWaveColor = computed(() => {
-    const layers = this.tankLayers();
-    return layers.length ? layers[layers.length - 1].color : 'transparent';
-  });
-
-  tankTicks = computed(() => {
-    const gb = this.storageLimitGB();
-    return [0, 25, 50, 75, 100].map((pct) => ({
-      y: this.tankBottom - (this.tankHeight * pct) / 100,
-      label: `${Math.round((gb * pct) / 100)}${pct === 100 ? ' GB' : ''}`,
-    }));
+  /** Where the colour starts, as a % from the top of the image; any usage shows a sliver. */
+  siloFillTop = computed(() => {
+    const used = this.storageUsedBytes();
+    const limit = this.storageLimitBytes();
+    const body = this.siloBodyBottom - this.siloBodyTop;
+    if (used <= 0 || limit <= 0) return 100;
+    const filled = Math.max(Math.min(used / limit, 1) * body, 1.5);
+    return Math.round((this.siloBodyBottom - filled) * 10) / 10;
   });
 
   constructor() {
     this.store.ensureLoaded();
     this.loadRecentFiles();
+    this.loadStarred();
+    this.loadFolders();
+
+    // New uploads show up in "Recent uploads" (batched, so one reload per burst).
+    this.uploads.uploaded
+      .pipe(debounceTime(400), takeUntilDestroyed())
+      .subscribe(() => this.loadRecentFiles());
   }
 
   private loadRecentFiles(): void {
@@ -174,9 +153,22 @@ export class Home {
       .listRecentlyUploadedActive(0)
       .pipe(finalize(() => this.loadingRecent.set(false)))
       .subscribe({
-        next: (response) => {
-          this.recentFiles.set(response.content.slice(0, 10));
-        },
+        next: (response) => this.recentFiles.set(response.content.slice(0, 8)),
+      });
+  }
+
+  private loadStarred(): void {
+    this.fileService.listStarred(0).subscribe({
+      next: (response) => this.starredFiles.set(response.content.slice(0, 6)),
+    });
+  }
+
+  private loadFolders(): void {
+    this.folderService
+      .getRootContents(0)
+      .pipe(finalize(() => this.loadingFolders.set(false)))
+      .subscribe({
+        next: (contents) => this.folders.set(contents.subfolders.slice(0, 8)),
       });
   }
 
@@ -184,27 +176,58 @@ export class Home {
     this.fileActions.download(file);
   }
 
-  openFile(file: FileMetadata): void {
-    this.fileActions.open(file);
+  /** Opens the viewer, stepping through the section the file was clicked in. */
+  openStarred(file: FileMetadata): void {
+    this.fileActions.open(file, this.starredFiles());
   }
 
-  iconFor(file: FileMetadata) {
-    return getFileIcon(file.originalFileName);
+  openRecent(file: FileMetadata): void {
+    this.fileActions.open(file, this.recentFiles());
   }
 
-  restoreFile(file: FileMetadata): void {
-    this.fileService.restore(file.id).subscribe({
-      error: (err) => this.toast.error(errorMessage(err, 'Couldn’t restore the file.')),
-      next: () => {
-        this.toast.success(`Restored “${file.originalFileName}”`);
-        // Restoring moves the file back into the active/non-trashed count,
-        // which changes storageUsedBytes, totalFiles, and recentlyTrashed —
-        // refresh the store so every subscriber (sidebar included) updates.
-        this.store.silentRefresh();
-        this.loadRecentFiles();
-      },
-    });
+  // ── Upload ────────────────────────────────────────────────────
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) this.upload(Array.from(input.files));
+    input.value = '';
   }
+
+  private upload(files: File[]): void {
+    this.uploads.enqueue(files, null);
+  }
+
+  // ── Drag and drop anywhere on the page ────────────────────────
+
+  onDragEnter(event: DragEvent): void {
+    if (!hasFiles(event)) return;
+    event.preventDefault();
+    this.dragCounter++;
+    this.dragging.set(true);
+  }
+
+  onDragOver(event: DragEvent): void {
+    if (!hasFiles(event)) return;
+    event.preventDefault();
+    event.dataTransfer!.dropEffect = 'copy';
+  }
+
+  onDragLeave(event: DragEvent): void {
+    if (!hasFiles(event)) return;
+    this.dragCounter = Math.max(0, this.dragCounter - 1);
+    if (this.dragCounter === 0) this.dragging.set(false);
+  }
+
+  onDrop(event: DragEvent): void {
+    if (!hasFiles(event)) return;
+    event.preventDefault();
+    this.dragCounter = 0;
+    this.dragging.set(false);
+    const dropped = event.dataTransfer?.files;
+    if (dropped && dropped.length > 0) this.upload(Array.from(dropped));
+  }
+
+  readonly getFileIcon = getFileIcon;
 
   /** "<1%" for tiny shares so a real file type never reads as 0%. */
   formatPercent(pct: number): string {
@@ -213,4 +236,8 @@ export class Home {
   }
 
   formatSize = formatBytes;
+}
+
+function hasFiles(event: DragEvent): boolean {
+  return Array.from(event.dataTransfer?.types ?? []).includes('Files');
 }

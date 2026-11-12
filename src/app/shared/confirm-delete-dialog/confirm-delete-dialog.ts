@@ -17,19 +17,20 @@ export interface DeleteTarget {
 @Component({
   selector: 'app-confirm-delete-dialog',
   templateUrl: './confirm-delete-dialog.html',
+  styleUrl: '../dialog/dialog.css',
 })
 export class ConfirmDeleteDialog implements AfterViewInit {
-  private cancelButton = viewChild<ElementRef<HTMLButtonElement>>('cancelButton');
-
-  /** Focus the safe choice, so Enter never deletes by accident. */
-  ngAfterViewInit(): void {
-    this.cancelButton()?.nativeElement.focus();
-  }
-
   target = input.required<DeleteTarget>();
 
   confirm = output<void>();
   cancel = output<void>();
+
+  private cancelButton = viewChild<ElementRef<HTMLButtonElement>>('cancelButton');
+
+  /** Focus starts on Cancel, so an accidental Enter never deletes anything. */
+  ngAfterViewInit(): void {
+    this.cancelButton()?.nativeElement.focus();
+  }
 
   title = computed(() => {
     switch (this.target().type) {
@@ -46,13 +47,13 @@ export class ConfirmDeleteDialog implements AfterViewInit {
     const t = this.target();
     switch (t.type) {
       case 'file':
-        return `"${t.name}" will be permanently deleted and cannot be recovered.`;
+        return `“${t.name}” will be deleted permanently.`;
       case 'folder':
-        return `"${t.name}" and all its contents will be permanently deleted and cannot be recovered.`;
+        return `“${t.name}” and everything in it will be deleted permanently.`;
       case 'bulk':
-        return `${t.count} item${t.count !== 1 ? 's' : ''} will be permanently deleted and cannot be recovered.`;
+        return `${t.count} item${t.count !== 1 ? 's' : ''} will be deleted permanently.`;
       case 'emptyTrash':
-        return `All ${t.count} item${t.count !== 1 ? 's' : ''} in trash will be permanently deleted and cannot be recovered.`;
+        return `All ${t.count} item${t.count !== 1 ? 's' : ''} in the trash will be deleted permanently.`;
     }
   });
 

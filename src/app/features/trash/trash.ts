@@ -1,7 +1,6 @@
 import { Component, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { concatMap, finalize, from, forkJoin } from 'rxjs';
 import { errorMessage } from '../../core/http/http-error';
-import { ToastService } from '../../core/services/toast';
 import { TrashApi } from '../../core/services/trash';
 import { Files } from '../../core/services/files';
 import { Folders } from '../../core/services/folders';
@@ -12,6 +11,9 @@ import { SelectionBar } from '../../shared/selection-bar/selection-bar';
 import { Search } from '../../core/services/search';
 import { DashboardStore } from '../../core/services/dashboard-store';
 import { LoadingDelayPipe } from '../../shared/pipes/loading-delay';
+import { fileSortParam, loadSort, saveSort, SortState, sortFolders } from '../../core/models/sort';
+import { ToastService } from '../../core/services/toast';
+import { TableSkeleton } from '../../shared/table-skeleton/table-skeleton';
 import {
   ConfirmDeleteDialog,
   DeleteTarget,
@@ -19,16 +21,17 @@ import {
 
 @Component({
   selector: 'app-trash',
-  imports: [FileTable, SelectionBar, LoadingDelayPipe, ConfirmDeleteDialog],
+  imports: [FileTable, SelectionBar, LoadingDelayPipe, ConfirmDeleteDialog, TableSkeleton],
   templateUrl: './trash.html',
+  styleUrl: './trash.css',
 })
 export class Trash {
   private fileService = inject(Files);
   private folderService = inject(Folders);
   private trashApi = inject(TrashApi);
   private searchService = inject(Search);
-  private dashboardStore = inject(DashboardStore);
   private toast = inject(ToastService);
+  private dashboardStore = inject(DashboardStore);
 
   fileTable = viewChild(FileTable);
 
@@ -36,10 +39,19 @@ export class Trash {
   folders = signal<Folder[]>([]);
   loading = signal(true);
   loadingMore = signal(false);
+  errorMessage = signal('');
   currentPage = signal(0);
   hasMore = signal(false);
+  sort = signal<SortState>(loadSort('trash'));
+  /** Folders aren't paged here, so they're sorted in the browser (by deletion time for "date"). */
+  sortedFolders = computed(() => sortFolders(this.folders(), this.sort(), 'trashedAt'));
 
   isSearching = computed(() => this.searchService.query().trim().length > 0);
+  searchText = computed(() => this.searchService.query().trim());
+
+  clearSearch(): void {
+    this.searchService.clear();
+  }
 
   totalCount = computed(() => this.files().length + this.folders().length);
   retentionDays = computed(() => this.dashboardStore.stats()?.trashRetentionDays ?? 0);
@@ -51,6 +63,7 @@ export class Trash {
     this.dashboardStore.ensureLoaded();
     effect(() => {
       const query = this.searchService.query().trim();
+      this.sort(); // reload when the sort changes
       this.currentPage.set(0);
       if (query === '') {
         this.loadTrashedItems();
@@ -65,7 +78,7 @@ export class Trash {
   private loadTrashedItems(): void {
     this.loading.set(true);
     forkJoin({
-      files: this.fileService.listTrashed(0),
+      files: this.fileService.listTrashed(0, 50, this.sortParam),
       folders: this.folderService.listTrashed(0),
     })
       .pipe(finalize(() => this.loading.set(false)))
@@ -75,22 +88,31 @@ export class Trash {
           this.folders.set(folders.content);
           this.hasMore.set(!files.last);
         },
-        error: (err) => this.toast.error(errorMessage(err, 'Couldn’t load the trash.')),
+        error: (err) => this.errorMessage.set(errorMessage(err, 'Failed to load trash.')),
       });
+  }
+
+  onSortChange(sort: SortState): void {
+    this.sort.set(sort);
+    saveSort('trash', sort);
+  }
+
+  private get sortParam(): string {
+    return fileSortParam(this.sort(), 'trashedAt');
   }
 
   runSearch(query: string): void {
     this.loading.set(true);
     this.folders.set([]); // search only covers files for now
     this.fileService
-      .searchTrashed(query, 0)
+      .searchTrashed(query, 0, 50, this.sortParam)
       .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
         next: (response) => {
           this.files.set(response.content);
           this.hasMore.set(!response.last);
         },
-        error: (err) => this.toast.error(errorMessage(err, 'Search failed.')),
+        error: (err) => this.errorMessage.set(errorMessage(err, 'Search failed.')),
       });
   }
 
@@ -100,15 +122,15 @@ export class Trash {
     this.loadingMore.set(true);
     const request$ =
       query === ''
-        ? this.fileService.listTrashed(nextPage)
-        : this.fileService.searchTrashed(query, nextPage);
+        ? this.fileService.listTrashed(nextPage, 50, this.sortParam)
+        : this.fileService.searchTrashed(query, nextPage, 50, this.sortParam);
     request$.pipe(finalize(() => this.loadingMore.set(false))).subscribe({
       next: (response) => {
         this.files.update((files) => [...files, ...response.content]);
         this.currentPage.set(nextPage);
         this.hasMore.set(!response.last);
       },
-      error: (err) => this.toast.error(errorMessage(err, 'Couldn’t load more items.')),
+      error: (err) => this.errorMessage.set(errorMessage(err, 'Failed to load more.')),
     });
   }
 
@@ -122,7 +144,7 @@ export class Trash {
           this.dashboardStore.refresh();
           this.toast.success(`Deleted “${file.originalFileName}” forever`);
         },
-        error: (err) => this.toast.error(errorMessage(err, 'Couldn’t delete the file.')),
+        error: (err) => this.errorMessage.set(errorMessage(err, 'Failed to delete file.')),
       });
     });
   }
@@ -138,7 +160,7 @@ export class Trash {
             : `Restored “${file.originalFileName}”`,
         );
       },
-      error: (err) => this.toast.error(errorMessage(err, 'Couldn’t restore the file.')),
+      error: (err) => this.errorMessage.set(errorMessage(err, 'Failed to restore file.')),
     });
   }
 
@@ -146,12 +168,12 @@ export class Trash {
 
   restoreFolder(folder: Folder): void {
     this.folderService.restoreFolder(folder.id).subscribe({
-      next: (restored) => {
+      next: () => {
         this.folders.update((folders) => folders.filter((f) => f.id !== folder.id));
         this.dashboardStore.refresh();
-        this.toast.success(`Restored “${restored.name}”`);
+        this.toast.success(`Restored “${folder.name}”`);
       },
-      error: (err) => this.toast.error(errorMessage(err, 'Couldn’t restore the folder.')),
+      error: (err) => this.errorMessage.set(errorMessage(err, 'Failed to restore folder.')),
     });
   }
 
@@ -163,7 +185,7 @@ export class Trash {
           this.dashboardStore.refresh();
           this.toast.success(`Deleted “${folder.name}” forever`);
         },
-        error: (err) => this.toast.error(errorMessage(err, 'Couldn’t delete the folder.')),
+        error: (err) => this.errorMessage.set(errorMessage(err, 'Failed to delete folder.')),
       });
     });
   }
@@ -187,7 +209,12 @@ export class Trash {
         }),
       )
       .subscribe({
-        error: (err) => this.toast.error(errorMessage(err, 'Some items couldn’t be restored.')),
+        error: (err) =>
+          this.errorMessage.set(errorMessage(err, 'Some items could not be restored.')),
+        complete: () => {
+          const n = selectedFiles.length + selectedFolders.length;
+          this.toast.success(`Restored ${n} item${n === 1 ? '' : 's'}`);
+        },
       });
   }
 
@@ -210,7 +237,10 @@ export class Trash {
           }),
         )
         .subscribe({
-          error: (err) => this.toast.error(errorMessage(err, 'Some items couldn’t be deleted.')),
+          error: (err) =>
+            this.errorMessage.set(errorMessage(err, 'Some items could not be deleted.')),
+          complete: () =>
+            this.toast.success(`Deleted ${total} item${total === 1 ? '' : 's'} forever`),
         });
     });
   }
@@ -223,14 +253,13 @@ export class Trash {
         .empty()
         .pipe(finalize(() => this.dashboardStore.refresh()))
         .subscribe({
-          next: (result) => {
+          next: () => {
             this.files.set([]);
             this.folders.set([]);
             this.hasMore.set(false);
-            const count = result.files + result.folders;
-            this.toast.success(`Deleted ${count} item${count !== 1 ? 's' : ''} forever`);
+            this.toast.success('Trash emptied');
           },
-          error: (err) => this.toast.error(errorMessage(err, 'Couldn’t empty the trash.')),
+          error: (err) => this.errorMessage.set(errorMessage(err, 'Failed to empty trash.')),
         });
     });
   }
@@ -259,12 +288,5 @@ export class Trash {
   onDeleteCancelled(): void {
     this.pendingDelete.set(null);
     this.pendingDeleteCallback.set(null);
-  }
-
-  selectedCount(): number {
-    return (
-      (this.fileTable()?.selectedIds().size ?? 0) +
-      (this.fileTable()?.selectedFolderIds().size ?? 0)
-    );
   }
 }

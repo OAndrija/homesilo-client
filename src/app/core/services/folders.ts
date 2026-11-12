@@ -11,15 +11,20 @@ const FOLDERS_URL = `${API_BASE}/folders`;
 export class Folders {
   private http = inject(HttpClient);
 
-  getRootContents(page = 0, size = 50): Observable<FolderContentsResponse> {
+  getRootContents(page = 0, size = 50, sort?: string): Observable<FolderContentsResponse> {
     return this.http.get<FolderContentsResponse>(`${FOLDERS_URL}/root`, {
-      params: pageParams(page, size),
+      params: pageParams(page, size, sort),
     });
   }
 
-  getFolderContents(folderId: string, page = 0, size = 50): Observable<FolderContentsResponse> {
+  getFolderContents(
+    folderId: string,
+    page = 0,
+    size = 50,
+    sort?: string,
+  ): Observable<FolderContentsResponse> {
     return this.http.get<FolderContentsResponse>(`${FOLDERS_URL}/${folderId}/contents`, {
-      params: pageParams(page, size),
+      params: pageParams(page, size, sort),
     });
   }
 
@@ -58,6 +63,7 @@ export class Folders {
   }
 }
 
-function pageParams(page: number, size: number): HttpParams {
-  return new HttpParams().set('page', page).set('size', size);
+function pageParams(page: number, size: number, sort?: string): HttpParams {
+  const params = new HttpParams().set('page', page).set('size', size);
+  return sort ? params.set('sort', sort) : params;
 }

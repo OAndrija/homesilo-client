@@ -1,0 +1,93 @@
+@if (uploads.items().length > 0) {
+  <section class="panel" [class.collapsed]="collapsed()" aria-label="Uploads">
+    <header class="head">
+      @if (uploads.active()) {
+        <span class="ring" [style.--p]="overall()" aria-hidden="true"></span>
+      } @else if (uploads.failedCount() > 0) {
+        <span class="material-symbols-rounded head-icon error" aria-hidden="true">error</span>
+      } @else {
+        <span class="material-symbols-rounded head-icon done" aria-hidden="true">check_circle</span>
+      }
+      <h2 aria-live="polite">{{ title() }}</h2>
+      <button
+        type="button"
+        class="head-btn"
+        (click)="collapsed.set(!collapsed())"
+        [attr.aria-expanded]="!collapsed()"
+        [attr.aria-label]="collapsed() ? 'Show uploads' : 'Hide uploads'"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">{{
+          collapsed() ? 'expand_less' : 'expand_more'
+        }}</span>
+      </button>
+      @if (!uploads.active()) {
+        <button type="button" class="head-btn" (click)="uploads.dismiss()" aria-label="Close">
+          <span class="material-symbols-rounded" aria-hidden="true">close</span>
+        </button>
+      }
+    </header>
+
+    @if (!collapsed()) {
+      <ul class="list">
+        @for (item of uploads.items(); track item.id) {
+          <li class="item" [attr.data-status]="item.status">
+            <span
+              class="material-symbols-rounded file-icon"
+              [style.color]="getFileIcon(item.name).color"
+              aria-hidden="true"
+              >{{ getFileIcon(item.name).icon }}</span
+            >
+            <div class="info">
+              <div class="name" [title]="item.name">{{ item.name }}</div>
+              <div class="detail" [title]="detail(item)">{{ detail(item) }}</div>
+              @if (item.status === 'uploading') {
+                <div
+                  class="bar"
+                  role="progressbar"
+                  [attr.aria-label]="'Uploading ' + item.name"
+                  [attr.aria-valuenow]="item.progress"
+                  aria-valuemin="0"
+                  aria-valuemax="100"
+                >
+                  <span [style.width.%]="item.progress"></span>
+                </div>
+              }
+            </div>
+            @switch (item.status) {
+              @case ('done') {
+                <span class="material-symbols-rounded state done" aria-label="Uploaded"
+                  >check_circle</span
+                >
+              }
+              @case ('error') {
+                <button
+                  type="button"
+                  class="item-btn"
+                  (click)="uploads.retry(item.id)"
+                  [attr.aria-label]="'Retry ' + item.name"
+                  title="Retry"
+                >
+                  <span class="material-symbols-rounded" aria-hidden="true">refresh</span>
+                </button>
+              }
+              @case ('cancelled') {
+                <span class="material-symbols-rounded state muted" aria-hidden="true">block</span>
+              }
+              @default {
+                <button
+                  type="button"
+                  class="item-btn"
+                  (click)="uploads.cancel(item.id)"
+                  [attr.aria-label]="'Cancel ' + item.name"
+                  title="Cancel"
+                >
+                  <span class="material-symbols-rounded" aria-hidden="true">close</span>
+                </button>
+              }
+            }
+          </li>
+        }
+      </ul>
+    }
+  </section>
+}

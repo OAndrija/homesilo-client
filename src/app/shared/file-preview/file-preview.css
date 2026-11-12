@@ -1,0 +1,359 @@
+/* The viewer is dark in both themes, like most photo and document viewers,
+   so content reads against a neutral backdrop. */
+
+.viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  display: flex;
+  flex-direction: column;
+  background: rgba(8, 10, 18, 0.94);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: #eef0f8;
+  animation: viewer-in 0.16s ease-out;
+}
+
+@keyframes viewer-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* ── Top bar ──────────────────────────────────────────────────── */
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(14, 16, 26, 0.85);
+}
+
+.bar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: #c9cde0;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.bar-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.bar-btn .material-symbols-rounded {
+  font-size: 22px;
+}
+
+.file-icon {
+  --tint: #9aa0b8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  color: var(--tint);
+  background: color-mix(in srgb, var(--tint) 18%, transparent);
+}
+
+.file-icon .material-symbols-rounded {
+  font-size: 20px;
+}
+
+.title {
+  flex: 1;
+  min-width: 0;
+}
+
+.name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.meta {
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #9aa0b8;
+  font-size: 12.5px;
+}
+
+.counter {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.08);
+  color: #c9cde0;
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.download-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 16px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: #f8b84e;
+  color: #22190a;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.download-btn:hover {
+  background: #fcc96f;
+}
+
+.download-btn .material-symbols-rounded {
+  font-size: 20px;
+}
+
+.bar-btn:focus-visible,
+.download-btn:focus-visible,
+.nav-btn:focus-visible {
+  outline: 2px solid #f8b84e;
+  outline-offset: 2px;
+}
+
+/* ── Stage ────────────────────────────────────────────────────── */
+
+.stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 80px;
+}
+
+.media {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: var(--radius-md);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.image {
+  object-fit: contain;
+}
+
+.image.hidden {
+  visibility: hidden;
+  position: absolute;
+}
+
+.video {
+  background: #000;
+}
+
+.pdf {
+  width: min(1000px, 100%);
+  height: 100%;
+  border: none;
+  background: #fff;
+}
+
+.text-sheet {
+  width: min(960px, 100%);
+  max-height: 100%;
+  overflow: auto;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-lg);
+  background: #12141f;
+}
+
+.text-sheet pre {
+  margin: 0;
+  padding: 20px 24px;
+  color: #dfe3f2;
+  font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  tab-size: 4;
+}
+
+.truncated {
+  margin: 0;
+  padding: 12px 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  color: #9aa0b8;
+  font-size: 13px;
+}
+
+/* Audio, unsupported types and errors share one card. */
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: min(420px, 100%);
+  padding: 36px 28px 32px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-2xl);
+  background: #141725;
+  text-align: center;
+}
+
+.card-icon {
+  --tint: #f8b84e;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 6px;
+  border-radius: var(--radius-xl);
+  color: var(--tint);
+  background: color-mix(in srgb, var(--tint) 16%, transparent);
+}
+
+.card-icon .material-symbols-rounded {
+  font-size: 32px;
+}
+
+.card-title {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  color: #fff;
+  font-family: var(--font-heading);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.card-text {
+  margin: 0 0 8px;
+  color: #9aa0b8;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.audio-card audio {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(255, 255, 255, 0.15);
+  border-top-color: #f8b84e;
+  border-radius: 50%;
+  animation: viewer-spin 0.8s linear infinite;
+}
+
+@keyframes viewer-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Previous / next */
+.nav-btn {
+  position: absolute;
+  top: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 50%;
+  background: rgba(20, 23, 37, 0.85);
+  color: #fff;
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: background var(--transition-fast);
+}
+
+.nav-btn:hover {
+  background: rgba(40, 45, 68, 0.95);
+}
+
+.nav-btn .material-symbols-rounded {
+  font-size: 28px;
+}
+
+.prev {
+  left: 16px;
+}
+
+.next {
+  right: 16px;
+}
+
+/* ── Phones ───────────────────────────────────────────────────── */
+
+@media (max-width: 700px) {
+  .bar {
+    gap: 8px;
+    padding: 8px 10px;
+  }
+
+  .file-icon,
+  .counter,
+  .download-label {
+    display: none;
+  }
+
+  .download-btn {
+    width: 40px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .stage {
+    padding: 12px 12px 72px;
+  }
+
+  .nav-btn {
+    top: auto;
+    bottom: 12px;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .viewer {
+    animation: none;
+  }
+  .spinner {
+    animation-duration: 2.4s;
+  }
+}

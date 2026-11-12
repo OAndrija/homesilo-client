@@ -1,0 +1,244 @@
+.auth {
+  display: grid;
+  grid-template-columns: minmax(440px, 44%) minmax(0, 1fr);
+  min-height: 100dvh;
+  background: var(--color-bg);
+}
+
+/* ── Brand panel ──────────────────────────────────────────────── */
+
+.brand {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 36px 48px 0;
+  border-right: 1px solid var(--color-border);
+  background:
+    radial-gradient(
+      90% 55% at 15% 100%,
+      color-mix(in srgb, var(--silo-green) 22%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      70% 50% at 100% 0%,
+      color-mix(in srgb, var(--color-accent) 12%, transparent),
+      transparent 65%
+    ),
+    var(--color-bg-elevated);
+}
+
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--color-brand-alt);
+  font-family: var(--font-heading);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  text-decoration: none;
+}
+
+.wordmark img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35));
+}
+
+.wordmark span {
+  margin-top: 8px; /* the logo's art sits low in its square */
+}
+
+.brand-copy {
+  margin-top: clamp(32px, 8vh, 88px);
+  max-width: 460px;
+}
+
+.brand-copy h1 {
+  margin: 0;
+  color: var(--color-text-heading);
+  font-family: var(--font-heading);
+  font-size: clamp(34px, 3.4vw, 46px);
+  font-weight: 700;
+  line-height: 1.06;
+  letter-spacing: -0.03em;
+}
+
+.brand-copy h1 span {
+  display: block;
+}
+
+.lead {
+  margin-top: 16px;
+  max-width: 40ch;
+  color: var(--color-text-subtitle);
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.points {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 28px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.points li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--color-text-body);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.points .material-symbols-rounded {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  font-size: 18px;
+  color: var(--silo-green);
+  background: color-mix(in srgb, var(--silo-green) 14%, transparent);
+}
+
+/* The silo and barn from the logo, standing on a horizon line. */
+.scene {
+  position: relative;
+  margin-top: auto;
+  padding-top: 32px;
+  display: flex;
+  justify-content: center;
+}
+
+.scene::after {
+  content: '';
+  position: absolute;
+  left: -48px;
+  right: -48px;
+  bottom: 0;
+  height: 18px;
+  border-top: 1px solid color-mix(in srgb, var(--silo-green) 45%, var(--color-border));
+  background: color-mix(in srgb, var(--silo-green) 10%, transparent);
+}
+
+.scene img {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: min(82%, 46vh, 420px);
+  height: auto;
+  margin-bottom: 14px;
+  filter: drop-shadow(0 18px 24px rgba(0, 0, 0, 0.3));
+}
+
+:host-context([data-theme='light']) .scene img {
+  filter: drop-shadow(0 14px 18px rgba(30, 28, 20, 0.14));
+}
+
+/* ── Form side ────────────────────────────────────────────────── */
+
+.form-side {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 28px 32px 24px;
+}
+
+.form-top {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.wordmark.compact {
+  display: none;
+  font-size: 19px;
+}
+
+.wordmark.compact img {
+  width: 36px;
+  height: 36px;
+}
+
+.theme-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.theme-btn .material-symbols-rounded {
+  font-size: 20px;
+}
+
+.theme-btn:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text-heading);
+}
+
+.theme-btn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.form-wrap {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 0;
+}
+
+.form-foot {
+  margin: 0;
+  color: var(--color-text-faint);
+  font-size: 12.5px;
+  text-align: center;
+}
+
+/* ── Small screens: the form alone, with a compact header ──────── */
+
+@media (max-width: 900px) {
+  .auth {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .brand {
+    display: none;
+  }
+
+  .form-top {
+    justify-content: space-between;
+  }
+
+  .wordmark.compact {
+    display: inline-flex;
+  }
+
+  .form-side {
+    padding: 20px 20px 20px;
+  }
+
+  .form-wrap {
+    align-items: flex-start;
+    padding-top: 40px;
+  }
+}

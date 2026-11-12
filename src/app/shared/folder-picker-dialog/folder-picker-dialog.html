@@ -1,55 +1,63 @@
 <div
   class="dialog-backdrop"
   (click)="onBackdropClick($event)"
-  (keydown.escape)="cancel.emit()"
+  (keydown)="onKeydown($event)"
   data-dialog-backdrop
 >
-  <div class="dialog picker" role="dialog" aria-modal="true" aria-labelledby="move-title">
-    <div class="dialog-header">
-      <h2 class="dialog-title" id="move-title">Move to</h2>
-      <button class="icon-btn" type="button" aria-label="Close" (click)="cancel.emit()">
-        <span class="material-symbols-rounded">close</span>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="move-dialog-title">
+    <header class="dialog-head">
+      <span class="dialog-icon" aria-hidden="true">
+        <span class="material-symbols-rounded" aria-hidden="true">drive_file_move</span>
+      </span>
+      <div class="dialog-titles">
+        <h3 id="move-dialog-title">{{ title() }}</h3>
+        <p class="dialog-sub">Choose a destination folder.</p>
+      </div>
+      <button class="dialog-close" type="button" (click)="cancel.emit()" aria-label="Close">
+        <span class="material-symbols-rounded" aria-hidden="true">close</span>
       </button>
-    </div>
+    </header>
 
-    <nav class="breadcrumb picker-crumbs" aria-label="Location">
-      <button
-        type="button"
-        class="crumb"
-        [class.is-current]="!currentFolder()"
-        (click)="navigateToBreadcrumb(null)"
-      >
+    <nav class="picker-crumbs" aria-label="Folder path">
+      <button type="button" class="pcrumb" (click)="navigateToBreadcrumb(null)">
         <span class="material-symbols-rounded" aria-hidden="true">home</span>
         My Files
       </button>
-      @for (crumb of breadcrumb(); track crumb.id; let last = $last) {
-        <span class="material-symbols-rounded crumb-sep" aria-hidden="true">chevron_right</span>
-        <button
-          type="button"
-          class="crumb"
-          [class.is-current]="last"
-          (click)="navigateToBreadcrumb(crumb)"
-        >
+      @for (crumb of breadcrumb(); track crumb.id) {
+        <span class="material-symbols-rounded pcrumb-sep" aria-hidden="true">chevron_right</span>
+        <button type="button" class="pcrumb" (click)="navigateToBreadcrumb(crumb)">
           {{ crumb.name }}
         </button>
       }
     </nav>
 
-    <div class="picker-list">
+    <div class="dialog-body picker-body">
       @if (loading()) {
-        <div class="picker-state"><span class="spinner"></span></div>
+        <div class="picker-state">
+          <span class="dlg-spinner" aria-hidden="true"></span>
+          Loading folders…
+        </div>
+      } @else if (failed()) {
+        <div class="picker-state">
+          <span class="material-symbols-rounded" aria-hidden="true">error</span>
+          Couldn’t load folders.
+          <button type="button" class="link-btn" (click)="loadLevel(currentFolder()?.id ?? null)">
+            Try again
+          </button>
+        </div>
       } @else if (subfolders().length === 0) {
-        <div class="picker-state">No folders in here</div>
+        <div class="picker-state">
+          <span class="material-symbols-rounded" aria-hidden="true">folder_open</span>
+          No folders inside {{ destinationName() }}
+        </div>
       } @else {
-        <ul>
+        <ul class="folder-list">
           @for (folder of subfolders(); track folder.id) {
             <li>
-              <button type="button" class="picker-item" (click)="navigateTo(folder)">
-                <span class="material-symbols-rounded is-filled picker-icon" aria-hidden="true"
-                  >folder</span
-                >
-                <span class="picker-name">{{ folder.name }}</span>
-                <span class="material-symbols-rounded picker-chevron" aria-hidden="true"
+              <button type="button" class="folder-item" (click)="navigateTo(folder)">
+                <span class="material-symbols-rounded folder-icon" aria-hidden="true">folder</span>
+                <span class="folder-name">{{ folder.name }}</span>
+                <span class="material-symbols-rounded folder-chevron" aria-hidden="true"
                   >chevron_right</span
                 >
               </button>
@@ -59,19 +67,19 @@
       }
     </div>
 
-    <div class="dialog-footer picker-footer">
-      <button class="btn btn-ghost" type="button" (click)="cancel.emit()">Cancel</button>
+    <footer class="dialog-foot">
       @if (isSource()) {
-        <span class="picker-hint">Already in this folder</span>
+        <span class="foot-hint">Already in this folder</span>
       }
+      <button class="dlg-btn secondary" type="button" (click)="cancel.emit()">Cancel</button>
       <button
-        class="btn btn-primary"
+        class="dlg-btn primary"
         type="button"
         [disabled]="isSource() || loading()"
         (click)="moveHere()"
       >
-        Move to {{ currentFolder()?.name ?? 'My Files' }}
+        Move to {{ destinationName() }}
       </button>
-    </div>
+    </footer>
   </div>
 </div>

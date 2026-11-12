@@ -1,129 +1,139 @@
-<div class="auth">
-  <aside class="brand-side">
-    <div class="brand">
-      <img src="homesilo-logo.png" alt="" width="40" height="40" />
-      <span class="wordmark">HomeSilo</span>
-    </div>
-    <div class="pitch">
-      <h1>A private cloud<br />under your roof.</h1>
-      <p>Create an account on this HomeSilo server. Your files never leave it.</p>
-    </div>
-    <p class="footnote">
-      <span class="material-symbols-rounded" aria-hidden="true">lock</span>
-      Self-hosted. Nothing is sent to anyone else’s cloud.
-    </p>
-    <svg class="silo-art" viewBox="0 0 200 300" aria-hidden="true">
-      <defs>
-        <clipPath id="silo-body">
-          <path d="M40 90 H160 V270 H40 Z" />
-        </clipPath>
-      </defs>
-      <g clip-path="url(#silo-body)">
-        <rect class="grain" x="40" y="218" width="120" height="52" />
-        <rect class="grain g2" x="40" y="184" width="120" height="34" />
-        <rect class="grain g3" x="40" y="160" width="120" height="24" />
-      </g>
-      <g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round">
-        <path d="M40 90 C40 40 160 40 160 90" />
-        <path d="M40 90 V270 M160 90 V270" />
-        <path d="M30 270 H170" />
-        <path d="M40 90 H160 M40 130 H160 M40 175 H160 M40 220 H160" stroke-opacity="0.5" />
-        <rect x="92" y="34" width="16" height="12" rx="2" />
-      </g>
-    </svg>
-  </aside>
-
-  <main class="form-side">
-    <div class="form-card">
+<app-auth-shell
+  [headline]="['Your home.', 'Your files.', 'Your rules.']"
+  lead="A private cloud that lives under your own roof, not on someone else's servers."
+>
+  <div class="auth-card">
+    <div class="form-head">
       <h2>Create your account</h2>
-      <p class="form-lead">The first account on a new server becomes its administrator.</p>
+      <p>It only takes a minute. You'll go straight to your dashboard.</p>
+    </div>
 
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
       @if (!registrationOpen()) {
-        <div class="form-alert is-error" role="status">
-          Sign-ups are closed on this server. Ask its administrator to create an account for you.
+        <div class="alert alert-info" role="status">
+          <span class="material-symbols-rounded" aria-hidden="true">info</span>
+          <span
+            >Registration is closed on this server. Ask the person who runs it for an account.</span
+          >
         </div>
       }
-      @if (errorMessage()) {
-        <div class="form-alert is-error" role="alert">{{ errorMessage() }}</div>
-      }
 
-      <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
-        <label class="field">
-          <span class="field-label">Username</span>
+      <div class="field">
+        <label for="username">Username</label>
+        <div class="input">
+          <span class="material-symbols-rounded" aria-hidden="true">person</span>
           <input
             id="username"
-            class="input"
             type="text"
             formControlName="username"
             autocomplete="username"
             autocapitalize="none"
             spellcheck="false"
-            [class.is-invalid]="submitted && username.errors"
+            placeholder="Choose a username"
+            aria-describedby="username-hint"
+            [class.input-error]="submitted && username.errors"
+            [attr.aria-invalid]="submitted && !!username.errors"
           />
-          @if (submitted && username.errors?.['required']) {
-            <span class="field-error">Choose a username</span>
-          } @else if (
-            submitted && (username.errors?.['minlength'] || username.errors?.['maxlength'])
-          ) {
-            <span class="field-error">Use 3 to 64 characters</span>
-          } @else if (submitted && username.errors?.['pattern']) {
-            <span class="field-error">Use only letters, numbers, dots, dashes and underscores</span>
-          } @else {
-            <span class="field-hint">Letters, numbers, dots, dashes and underscores</span>
-          }
-        </label>
+        </div>
+        @if (submitted && username.errors?.['required']) {
+          <span class="error">Choose a username</span>
+        } @else if (
+          submitted && (username.errors?.['minlength'] || username.errors?.['maxlength'])
+        ) {
+          <span class="error">Username must be 3–64 characters</span>
+        } @else if (submitted && username.errors?.['pattern']) {
+          <span class="error">Use only letters, numbers, dots, dashes and underscores</span>
+        } @else {
+          <span class="hint" id="username-hint"
+            >Letters, numbers, dots, dashes and underscores</span
+          >
+        }
+      </div>
 
-        <label class="field">
-          <span class="field-label">Email</span>
+      <div class="field">
+        <label for="email">Email</label>
+        <div class="input">
+          <span class="material-symbols-rounded" aria-hidden="true">mail</span>
           <input
             id="email"
-            class="input"
             type="email"
             formControlName="email"
             autocomplete="email"
-            [class.is-invalid]="submitted && email.errors"
+            placeholder="you@example.com"
+            [class.input-error]="submitted && email.errors"
+            [attr.aria-invalid]="submitted && !!email.errors"
           />
-          @if (submitted && email.errors?.['required']) {
-            <span class="field-error">Enter your email</span>
-          } @else if (submitted && email.errors?.['email']) {
-            <span class="field-error">Enter a valid email address</span>
-          }
-        </label>
+        </div>
+        @if (submitted && email.errors?.['required']) {
+          <span class="error">Enter your email</span>
+        } @else if (submitted && email.errors?.['email']) {
+          <span class="error">Enter a valid email address</span>
+        }
+      </div>
 
-        <label class="field">
-          <span class="field-label">Password</span>
+      <div class="field">
+        <label for="password">Password</label>
+        <div class="input">
+          <span class="material-symbols-rounded" aria-hidden="true">lock</span>
           <input
             id="password"
-            class="input"
-            type="password"
+            class="has-toggle"
+            [type]="showPassword() ? 'text' : 'password'"
             formControlName="password"
             autocomplete="new-password"
-            [class.is-invalid]="submitted && password.errors"
+            placeholder="At least 8 characters"
+            aria-describedby="password-strength"
+            [class.input-error]="submitted && password.errors"
+            [attr.aria-invalid]="submitted && !!password.errors"
           />
-          @if (submitted && password.errors?.['required']) {
-            <span class="field-error">Choose a password</span>
-          } @else if (submitted && password.errors?.['minlength']) {
-            <span class="field-error">Use at least 8 characters</span>
-          } @else {
-            <span class="field-hint">At least 8 characters</span>
-          }
-        </label>
+          <button
+            type="button"
+            class="toggle-visibility"
+            (click)="showPassword.set(!showPassword())"
+            [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+            [attr.aria-pressed]="showPassword()"
+          >
+            <span class="material-symbols-rounded" aria-hidden="true">{{
+              showPassword() ? 'visibility_off' : 'visibility'
+            }}</span>
+          </button>
+        </div>
+        @if (submitted && password.errors?.['required']) {
+          <span class="error">Choose a password</span>
+        } @else if (submitted && password.errors?.['minlength']) {
+          <span class="error">Password must be at least 8 characters</span>
+        } @else if (strength().level > 0) {
+          <div
+            class="strength"
+            id="password-strength"
+            [attr.data-level]="strength().level"
+            aria-live="polite"
+          >
+            <span class="strength-bars" aria-hidden="true">
+              <span></span><span></span><span></span><span></span>
+            </span>
+            <span class="strength-label">{{ strength().label }}</span>
+          </div>
+        }
+      </div>
 
-        <button
-          type="submit"
-          class="btn btn-primary btn-block"
-          [disabled]="loading() || !registrationOpen()"
-        >
-          @if (loading()) {
-            <span class="spinner" aria-hidden="true"></span>
-            Creating account…
-          } @else {
-            Create account
-          }
-        </button>
-      </form>
+      @if (errorMessage()) {
+        <div class="alert alert-error" role="alert">
+          <span class="material-symbols-rounded" aria-hidden="true">error</span>
+          <span>{{ errorMessage() }}</span>
+        </div>
+      }
 
-      <p class="switch">Already have an account? <a routerLink="/login">Sign in</a></p>
-    </div>
-  </main>
-</div>
+      <button type="submit" class="submit-btn" [disabled]="loading() || !registrationOpen()">
+        @if (loading()) {
+          <span class="spinner" aria-hidden="true"></span>
+          Creating account…
+        } @else {
+          Create account
+        }
+      </button>
+    </form>
+
+    <p class="switch-auth">Already have an account? <a routerLink="/login">Sign in</a></p>
+  </div>
+</app-auth-shell>

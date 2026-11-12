@@ -1,33 +1,169 @@
 .files-page {
+  width: 100%;
+  padding: 0 var(--space-page-x) var(--space-page-x);
+  box-sizing: border-box;
   position: relative;
-  min-height: 100%;
 }
 
+/* ── Breadcrumb ──────────────────────────────────────────────── */
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.crumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border: none;
+  border-radius: var(--radius-lg);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.crumb:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text-primary);
+}
+
+.crumb:last-child {
+  color: var(--color-text-heading);
+  pointer-events: none; /* current location — not clickable */
+}
+
+.crumb-root .material-symbols-rounded {
+  font-size: 16px;
+}
+
+.crumb-sep {
+  font-size: 16px;
+  color: var(--color-text-faint);
+  user-select: none;
+}
+
+/* ── Spinner ─────────────────────────────────────────────────── */
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 0, 0, 0.25);
+  border-top-color: var(--color-bg);
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── Empty state ─────────────────────────────────────────────── */
+
+/* ── Error ───────────────────────────────────────────────────── */
+
+.server-error {
+  margin-bottom: 20px;
+  padding: 16px;
+  border-radius: var(--radius-xl);
+  color: var(--color-danger-text);
+  border: 1px solid var(--color-danger-bg-deep);
+  background: var(--color-danger-bg-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.error-dismiss-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--color-danger-text);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background var(--transition-fast);
+}
+
+.error-dismiss-btn:hover {
+  background: var(--color-danger-bg-strong);
+}
+
+.error-dismiss-btn .material-symbols-rounded {
+  font-size: 18px;
+}
+
+/* ── Show more ───────────────────────────────────────────────── */
+
+.show-more-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.show-more-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 24px;
+  height: 42px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  color: var(--color-text-body);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-base);
+}
+
+.show-more-btn:hover:not(:disabled) {
+  border-color: var(--color-accent);
+  color: var(--color-accent-text);
+}
+
+.show-more-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ── Drop overlay ────────────────────────────────────────────── */
+
 .drop-overlay {
-  position: fixed;
-  inset: 64px 0 0 240px;
+  position: absolute;
+  inset: 0;
   z-index: 50;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  margin: 12px;
-  border: 2px dashed var(--grain);
-  border-radius: var(--radius-panel);
-  background: color-mix(in srgb, var(--night) 85%, transparent);
-  color: var(--frost);
-  font-size: var(--text-lg);
+  gap: 12px;
+  background: rgba(13, 15, 26, 0.92);
+  border: 2px dashed var(--color-accent);
+  border-radius: var(--radius-2xl);
+  color: var(--color-accent-text);
+  font-size: 18px;
+  font-weight: 600;
   pointer-events: none;
 }
 
-.drop-overlay .material-symbols-rounded {
-  font-size: 40px;
-  color: var(--grain);
-}
-
-@media (max-width: 900px) {
-  .drop-overlay {
-    inset: 56px 0 0 0;
-  }
+.drop-icon {
+  font-size: 56px;
 }

@@ -1,34 +1,30 @@
-import { exactDate, friendlyDate } from './friendly-date';
+import { friendlyDate } from './friendly-date';
+
+// Angular's locale data puts a narrow no-break space before AM/PM, which \s matches.
 
 describe('friendlyDate', () => {
-  const now = new Date(2026, 10, 5, 15, 30); // Nov 5, 2026, 15:30 local
+  const now = new Date(2026, 10, 8, 15, 30); // Nov 8, 2026, 3:30 PM local
 
-  it('shows the time for today', () => {
-    expect(friendlyDate(new Date(2026, 10, 5, 9, 4), now)).toMatch(/^Today, /);
-  });
-
-  it('says yesterday for the previous calendar day', () => {
-    expect(friendlyDate(new Date(2026, 10, 4, 23, 59), now)).toBe('Yesterday');
-    expect(friendlyDate(new Date(2026, 10, 4, 0, 0), now)).toBe('Yesterday');
+  it('shows the time for today and yesterday', () => {
+    expect(friendlyDate(new Date(2026, 10, 8, 9, 5), 'en-US', now)).toMatch(/^Today, 9:05\sAM$/);
+    expect(friendlyDate(new Date(2026, 10, 7, 23, 59), 'en-US', now)).toMatch(
+      /^Yesterday, 11:59\sPM$/,
+    );
   });
 
   it('drops the year within the current year', () => {
-    const label = friendlyDate(new Date(2026, 3, 18), now);
-    expect(label).toContain('18');
-    expect(label).not.toContain('2026');
+    expect(friendlyDate(new Date(2026, 3, 18), 'en-US', now)).toBe('Apr 18');
   });
 
   it('keeps the year for older dates', () => {
-    expect(friendlyDate(new Date(2025, 3, 18), now)).toContain('2025');
+    expect(friendlyDate(new Date(2025, 3, 18), 'en-US', now)).toBe('Apr 18, 2025');
   });
 
-  it('handles missing and invalid values', () => {
-    expect(friendlyDate(null, now)).toBe('—');
-    expect(friendlyDate('not a date', now)).toBe('—');
-    expect(exactDate(undefined)).toBe('');
-  });
-
-  it('accepts ISO strings', () => {
-    expect(friendlyDate(new Date(2026, 10, 5, 8, 0).toISOString(), now)).toMatch(/^Today, /);
+  it('accepts ISO strings and handles missing or invalid values', () => {
+    expect(friendlyDate(new Date(2026, 10, 8, 8, 0).toISOString(), 'en-US', now)).toMatch(
+      /^Today, 8:00\sAM$/,
+    );
+    expect(friendlyDate(null, 'en-US', now)).toBe('—');
+    expect(friendlyDate('not a date', 'en-US', now)).toBe('—');
   });
 });
