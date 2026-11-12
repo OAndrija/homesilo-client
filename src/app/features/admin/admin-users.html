@@ -1,0 +1,429 @@
+<div class="admin-page">
+  <header class="page-header">
+    <div>
+      <h2>Users</h2>
+      <p class="subtitle">
+        @if (overview(); as o) {
+          {{ o.users }} account{{ o.users === 1 ? '' : 's' }} on this server, sign-ups
+          {{ o.registrationEnabled ? 'open' : 'closed' }}
+        } @else {
+          Accounts on this server
+        }
+      </p>
+    </div>
+    <div class="header-actions">
+      <button type="button" class="header-btn" (click)="openAdd()">
+        <span class="material-symbols-rounded" aria-hidden="true">person_add</span>
+        Add user
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Overview ─────────────────────────────────────────────── -->
+  @if (overview(); as o) {
+    <section class="overview" aria-label="Server overview">
+      <div class="panel storage-panel">
+        <div class="panel-title">Storage across the server</div>
+        <div class="storage-headline">
+          <span class="big">{{ formatBytes(o.storageUsedBytes) }}</span>
+          <span class="muted"
+            >stored in {{ o.files | number }} file{{ o.files === 1 ? '' : 's' }}</span
+          >
+        </div>
+
+        @if (segments().length > 0) {
+          <div class="share-bar" aria-hidden="true">
+            @for (seg of segments(); track seg.label) {
+              <span
+                class="share-seg"
+                [style.width.%]="seg.percent"
+                [style.background]="seg.color"
+                [title]="seg.label + ': ' + formatBytes(seg.bytes)"
+              ></span>
+            }
+          </div>
+          <ul class="share-legend">
+            @for (seg of segments(); track seg.label) {
+              <li>
+                <span class="dot" [style.background]="seg.color" aria-hidden="true"></span>
+                <span class="legend-name">
+                  {{ seg.label }}
+                  @if (seg.isMe) {
+                    <span class="you">you</span>
+                  }
+                </span>
+                <span class="legend-size">{{ formatBytes(seg.bytes) }}</span>
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="empty-note">Nobody has uploaded anything yet.</p>
+        }
+
+        <p class="panel-foot">
+          Storage limits add up to {{ formatLimit(o.storageAllocatedBytes) }}. New accounts get
+          {{ formatLimit(o.defaultQuotaBytes) }}.
+        </p>
+      </div>
+
+      <div class="panel counts-panel">
+        <div class="count-row">
+          <span class="count-icon" aria-hidden="true">
+            <span class="material-symbols-rounded" aria-hidden="true">group</span>
+          </span>
+          <div>
+            <div class="count-value">{{ o.activeUsers }}</div>
+            <div class="count-label">Active accounts</div>
+          </div>
+        </div>
+        <div class="count-row">
+          <span class="count-icon admin" aria-hidden="true">
+            <span class="material-symbols-rounded" aria-hidden="true">shield_person</span>
+          </span>
+          <div>
+            <div class="count-value">{{ o.admins }}</div>
+            <div class="count-label">Admin{{ o.admins === 1 ? '' : 's' }}</div>
+          </div>
+        </div>
+        <div class="count-row">
+          <span class="count-icon off" aria-hidden="true">
+            <span class="material-symbols-rounded" aria-hidden="true">block</span>
+          </span>
+          <div>
+            <div class="count-value">{{ disabledCount() }}</div>
+            <div class="count-label">Disabled</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  }
+
+  <!-- ── Toolbar ──────────────────────────────────────────────── -->
+  <div class="toolbar" role="search">
+    <label class="search">
+      <span class="material-symbols-rounded" aria-hidden="true">search</span>
+      <input
+        type="search"
+        placeholder="Search by name or email"
+        aria-label="Search users by name or email"
+        [value]="queryInput()"
+        (input)="onQueryInput($any($event.target).value)"
+        autocomplete="off"
+        spellcheck="false"
+      />
+    </label>
+    <label class="filter">
+      <span class="visually-hidden">Role</span>
+      <select (change)="setRole($any($event.target).value)" [value]="role() ?? ''">
+        <option value="">All roles</option>
+        <option value="ADMIN">Admins</option>
+        <option value="USER">Members</option>
+      </select>
+      <span class="material-symbols-rounded chevron" aria-hidden="true">expand_more</span>
+    </label>
+    <label class="filter">
+      <span class="visually-hidden">Status</span>
+      <select (change)="setStatus($any($event.target).value)" [value]="status() ?? ''">
+        <option value="">Any status</option>
+        <option value="ACTIVE">Active</option>
+        <option value="DISABLED">Disabled</option>
+      </select>
+      <span class="material-symbols-rounded chevron" aria-hidden="true">expand_more</span>
+    </label>
+    @if (hasFilters()) {
+      <button type="button" class="clear-btn" (click)="clearFilters()">Clear filters</button>
+    }
+  </div>
+
+  @if (listError()) {
+    <div class="server-error" role="alert">{{ listError() }}</div>
+  }
+
+  <!-- ── Users ────────────────────────────────────────────────── -->
+  <div class="users-card" [class.is-loading]="loading() | loadingDelay">
+    <table class="users-table">
+      <thead>
+        <tr>
+          <th [attr.aria-sort]="ariaSort('username')">
+            <button
+              type="button"
+              class="sort-btn"
+              [class.active]="sort().key === 'username'"
+              (click)="onSort('username')"
+            >
+              User
+              <span class="material-symbols-rounded sort-arrow" aria-hidden="true">{{
+                sortArrow('username')
+              }}</span>
+            </button>
+          </th>
+          <th class="col-role" [attr.aria-sort]="ariaSort('role')">
+            <button
+              type="button"
+              class="sort-btn"
+              [class.active]="sort().key === 'role'"
+              (click)="onSort('role')"
+            >
+              Role
+              <span class="material-symbols-rounded sort-arrow" aria-hidden="true">{{
+                sortArrow('role')
+              }}</span>
+            </button>
+          </th>
+          <th class="col-status" [attr.aria-sort]="ariaSort('enabled')">
+            <button
+              type="button"
+              class="sort-btn"
+              [class.active]="sort().key === 'enabled'"
+              (click)="onSort('enabled')"
+            >
+              Status
+              <span class="material-symbols-rounded sort-arrow" aria-hidden="true">{{
+                sortArrow('enabled')
+              }}</span>
+            </button>
+          </th>
+          <th class="col-storage">Storage</th>
+          <th class="col-seen" [attr.aria-sort]="ariaSort('lastLoginAt')">
+            <button
+              type="button"
+              class="sort-btn"
+              [class.active]="sort().key === 'lastLoginAt'"
+              (click)="onSort('lastLoginAt')"
+            >
+              Last sign-in
+              <span class="material-symbols-rounded sort-arrow" aria-hidden="true">{{
+                sortArrow('lastLoginAt')
+              }}</span>
+            </button>
+          </th>
+          <th class="col-joined" [attr.aria-sort]="ariaSort('createdAt')">
+            <button
+              type="button"
+              class="sort-btn"
+              [class.active]="sort().key === 'createdAt'"
+              (click)="onSort('createdAt')"
+            >
+              Joined
+              <span class="material-symbols-rounded sort-arrow" aria-hidden="true">{{
+                sortArrow('createdAt')
+              }}</span>
+            </button>
+          </th>
+          <th class="col-actions"><span class="visually-hidden">Actions</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (user of users(); track user.id) {
+          <tr [class.disabled]="!user.enabled">
+            <td class="cell-user">
+              <span class="avatar" [class.admin]="user.role === 'ADMIN'" aria-hidden="true">{{
+                initial(user)
+              }}</span>
+              <div class="who">
+                <div class="who-name">
+                  <span class="name-text">{{ user.username }}</span>
+                  @if (isMe(user)) {
+                    <span class="you">you</span>
+                  }
+                </div>
+                <div class="who-email" [title]="user.email">{{ user.email }}</div>
+              </div>
+            </td>
+            <td class="col-role">
+              <span class="role-pill" [class.admin]="user.role === 'ADMIN'">{{
+                user.role === 'ADMIN' ? 'Admin' : 'Member'
+              }}</span>
+            </td>
+            <td class="col-status">
+              <span class="status" [class.off]="!user.enabled">
+                <span class="status-dot" aria-hidden="true"></span>
+                {{ user.enabled ? 'Active' : 'Disabled' }}
+              </span>
+            </td>
+            <td class="col-storage">
+              <div class="usage" [attr.data-level]="usageLevel(user)">
+                <div
+                  class="usage-bar"
+                  role="progressbar"
+                  [attr.aria-label]="'Storage used by ' + user.username"
+                  [attr.aria-valuenow]="usedPercent(user) | number: '1.0-0'"
+                  aria-valuemin="0"
+                  aria-valuemax="100"
+                >
+                  <span [style.width.%]="usedPercent(user)"></span>
+                </div>
+                <div class="usage-text">
+                  {{ formatBytes(user.storageUsedBytes) }}
+                  <span class="muted">of {{ formatLimit(user.storageQuotaBytes) }}</span>
+                </div>
+              </div>
+            </td>
+            <td class="col-seen" [title]="user.lastLoginAt ? (user.lastLoginAt | exactDate) : ''">
+              @if (user.lastLoginAt) {
+                {{ user.lastLoginAt | friendlyDate }}
+              } @else {
+                <span class="muted">Never</span>
+              }
+            </td>
+            <td class="col-joined" [title]="user.createdAt | exactDate">
+              {{ user.createdAt | date: 'mediumDate' }}
+            </td>
+            <td class="col-actions">
+              <div class="row-menu">
+                <button
+                  type="button"
+                  class="menu-btn"
+                  [attr.data-menu-trigger]="user.id"
+                  aria-haspopup="menu"
+                  [attr.aria-expanded]="openMenuId() === user.id"
+                  [attr.aria-label]="'Actions for ' + user.username"
+                  (click)="toggleMenu(user, $event)"
+                >
+                  <span class="material-symbols-rounded" aria-hidden="true">more_horiz</span>
+                </button>
+                @if (openMenuId() === user.id) {
+                  <div
+                    class="menu"
+                    role="menu"
+                    [attr.data-menu]="user.id"
+                    [attr.aria-label]="'Actions for ' + user.username"
+                    (keydown)="onMenuKeydown($event, user)"
+                  >
+                    <button
+                      type="button"
+                      role="menuitem"
+                      class="menu-item"
+                      (click)="openEdit(user)"
+                    >
+                      <span class="material-symbols-rounded" aria-hidden="true">edit</span>
+                      Edit role and storage
+                    </button>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      class="menu-item"
+                      [disabled]="isMe(user)"
+                      [title]="isMe(user) ? 'Change your own password in Settings' : ''"
+                      (click)="openPassword(user)"
+                    >
+                      <span class="material-symbols-rounded" aria-hidden="true">key</span>
+                      Set a new password
+                    </button>
+                    @if (user.enabled) {
+                      <button
+                        type="button"
+                        role="menuitem"
+                        class="menu-item"
+                        [disabled]="isMe(user)"
+                        [title]="isMe(user) ? 'You can’t disable your own account' : ''"
+                        (click)="setEnabled(user, false)"
+                      >
+                        <span class="material-symbols-rounded" aria-hidden="true">block</span>
+                        Disable account
+                      </button>
+                    } @else {
+                      <button
+                        type="button"
+                        role="menuitem"
+                        class="menu-item"
+                        (click)="setEnabled(user, true)"
+                      >
+                        <span class="material-symbols-rounded" aria-hidden="true"
+                          >check_circle</span
+                        >
+                        Enable account
+                      </button>
+                    }
+                    <div class="menu-sep" role="separator"></div>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      class="menu-item danger"
+                      [disabled]="isMe(user)"
+                      [title]="isMe(user) ? 'You can’t delete your own account' : ''"
+                      (click)="openDelete(user)"
+                    >
+                      <span class="material-symbols-rounded" aria-hidden="true">person_remove</span>
+                      Delete account
+                    </button>
+                  </div>
+                }
+              </div>
+            </td>
+          </tr>
+        } @empty {
+          @if (!loading()) {
+            <tr class="empty-row">
+              <td colspan="7">
+                <span class="material-symbols-rounded" aria-hidden="true">person_search</span>
+                <div class="empty-title">No users match these filters</div>
+                <button type="button" class="clear-btn" (click)="clearFilters()">
+                  Clear filters
+                </button>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+
+    @if (total() > pageSize) {
+      <footer class="pager">
+        <span class="pager-range">{{ firstShown() }}–{{ lastShown() }} of {{ total() }}</span>
+        <button
+          type="button"
+          class="pager-btn"
+          (click)="previousPage()"
+          [disabled]="!hasPrevious()"
+          aria-label="Previous page"
+        >
+          <span class="material-symbols-rounded" aria-hidden="true">chevron_left</span>
+        </button>
+        <button
+          type="button"
+          class="pager-btn"
+          (click)="nextPage()"
+          [disabled]="!hasNext()"
+          aria-label="Next page"
+        >
+          <span class="material-symbols-rounded" aria-hidden="true">chevron_right</span>
+        </button>
+      </footer>
+    }
+  </div>
+</div>
+
+@if (formDialog(); as dialog) {
+  <app-user-form-dialog
+    [mode]="dialog.mode"
+    [user]="dialog.mode === 'edit' ? dialog.user : null"
+    [isSelf]="dialog.mode === 'edit' && isMe(dialog.user)"
+    [defaultQuotaBytes]="overview()?.defaultQuotaBytes ?? 0"
+    [busy]="dialogBusy()"
+    [error]="dialogError()"
+    (create)="createUser($event)"
+    (save)="saveUser($event.id, $event.changes)"
+    (cancel)="closeDialogs()"
+  />
+}
+
+@if (passwordTarget(); as user) {
+  <app-password-dialog
+    [user]="user"
+    [busy]="dialogBusy()"
+    [error]="dialogError()"
+    (confirm)="setPassword(user, $event)"
+    (cancel)="closeDialogs()"
+  />
+}
+
+@if (deleteTarget(); as user) {
+  <app-delete-user-dialog
+    [user]="user"
+    [busy]="dialogBusy()"
+    [error]="dialogError()"
+    (confirm)="deleteUser(user)"
+    (cancel)="closeDialogs()"
+  />
+}

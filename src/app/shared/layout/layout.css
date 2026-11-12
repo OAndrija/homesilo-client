@@ -91,6 +91,13 @@
   gap: 4px;
 }
 
+/* Separates the admin-only links from everyone's. */
+.nav-divider {
+  height: 1px;
+  margin: 10px 12px;
+  background: var(--color-border-subtle);
+}
+
 .nav-link {
   display: flex;
   align-items: center;
