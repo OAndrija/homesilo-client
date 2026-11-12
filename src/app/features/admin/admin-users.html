@@ -303,6 +303,15 @@
                       type="button"
                       role="menuitem"
                       class="menu-item"
+                      (click)="viewActivity(user)"
+                    >
+                      <span class="material-symbols-rounded" aria-hidden="true">history</span>
+                      View activity
+                    </button>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      class="menu-item"
                       [disabled]="isMe(user)"
                       [title]="isMe(user) ? 'Change your own password in Settings' : ''"
                       (click)="openPassword(user)"

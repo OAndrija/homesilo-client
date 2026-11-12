@@ -563,3 +563,32 @@
     transition: none;
   }
 }
+
+/* ── Recent activity ─────────────────────────────────────────── */
+
+.activity-body {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+.activity-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.activity-list li + li {
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.activity-empty {
+  padding: 14px 0;
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+.warn-message {
+  margin: 8px 0 4px;
+  background: var(--color-accent-bg);
+  color: var(--color-accent-text);
+}

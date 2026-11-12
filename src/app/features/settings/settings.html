@@ -197,6 +197,57 @@
         </form>
       </section>
 
+      <!-- ── Recent activity ─────────────────────────────────── -->
+      <section id="activity" class="panel" aria-labelledby="activity-heading">
+        <div class="panel-head">
+          <h3 id="activity-heading">Recent activity</h3>
+          <p>Sign-ins and changes to your account, newest first.</p>
+        </div>
+
+        <div class="panel-body activity-body">
+          @if (failedSignIns() > 0) {
+            <div class="message warn-message" role="status">
+              <span class="material-symbols-rounded" aria-hidden="true">gpp_maybe</span>
+              <span>
+                {{ failedSignIns() }} failed sign-in{{ failedSignIns() === 1 ? '' : 's' }} below. If
+                that wasn’t you, change your password.
+              </span>
+            </div>
+          }
+          @if (activityError()) {
+            <div class="message error-message" role="alert">
+              <span class="material-symbols-rounded" aria-hidden="true">error</span>
+              {{ activityError() }}
+            </div>
+          }
+          <ul class="activity-list">
+            @for (entry of activity(); track entry.id) {
+              <li>
+                <app-activity-item [entry]="entry" [meId]="user()?.id ?? null" [withDate]="true" />
+              </li>
+            } @empty {
+              @if (!activityLoading() && !activityError()) {
+                <li class="activity-empty">Nothing yet.</li>
+              }
+            }
+          </ul>
+        </div>
+
+        <div class="panel-foot">
+          <span>The address shown is where the request came from.</span>
+          @if (activityHasMore()) {
+            <button
+              type="button"
+              class="header-btn secondary compact"
+              (click)="loadActivity(activityPage() + 1)"
+              [disabled]="activityLoading()"
+            >
+              {{ activityLoading() ? 'Loading…' : 'Show more' }}
+            </button>
+          }
+        </div>
+      </section>
+
       <!-- ── Storage ─────────────────────────────────────────── -->
       <section id="storage" class="panel" aria-labelledby="storage-heading">
         <div class="panel-head">

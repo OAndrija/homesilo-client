@@ -48,6 +48,13 @@ export const routes: Routes = [
         loadComponent: () => import('./features/admin/admin-users').then((m) => m.AdminUsers),
       },
       {
+        path: 'admin/activity',
+        canActivate: [adminGuard],
+        title: 'Activity · HomeSilo',
+        loadComponent: () =>
+          import('./features/admin/activity/admin-activity').then((m) => m.AdminActivity),
+      },
+      {
         path: 'settings',
         title: 'Settings · HomeSilo',
         loadComponent: () => import('./features/settings/settings').then((m) => m.Settings),
