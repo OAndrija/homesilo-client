@@ -18,3 +18,10 @@ export interface FolderContentsResponse {
   subfolders: Folder[];
   files: PageResponse<FileMetadata>;
 }
+
+/** What a folder holds at any depth (GET /folders/{id}/summary). */
+export interface FolderSummary {
+  folders: number;
+  files: number;
+  bytes: number;
+}

@@ -37,6 +37,15 @@
       }
 
       <div class="bar-actions">
+        <button
+          type="button"
+          class="bar-btn"
+          (click)="showProperties()"
+          aria-label="Properties"
+          title="Properties"
+        >
+          <span class="material-symbols-rounded" aria-hidden="true">info</span>
+        </button>
         @if (kind() !== 'none') {
           <a
             class="bar-btn"

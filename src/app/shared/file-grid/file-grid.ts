@@ -1,3 +1,4 @@
+import { PropertiesService } from '../../core/services/properties';
 import {
   Component,
   computed,
@@ -33,6 +34,7 @@ export type MenuTarget = { kind: 'file'; item: FileMetadata } | { kind: 'folder'
   host: { '[class.has-selection]': 'selectedCount() > 0' },
 })
 export class FileGrid {
+  protected properties = inject(PropertiesService);
   private elementRef: ElementRef<HTMLElement> = inject(ElementRef);
   private filesApi = inject(Files);
 
@@ -166,7 +168,11 @@ export class FileGrid {
   /** Enter opens, Space selects: the usual keys for a list of items. */
   onFileKeydown(file: FileMetadata, index: number, event: KeyboardEvent): void {
     if (event.target !== event.currentTarget) return;
-    if (event.key === 'Enter') {
+    if (event.key === 'Enter' && event.altKey) {
+      // Alt+Enter: properties, as on the desktop.
+      event.preventDefault();
+      this.properties.showFile(file);
+    } else if (event.key === 'Enter') {
       event.preventDefault();
       this.openFile.emit(file);
     } else if (event.key === ' ' && this.selectable()) {
@@ -177,7 +183,10 @@ export class FileGrid {
 
   onFolderKeydown(folder: Folder, index: number, event: KeyboardEvent): void {
     if (event.target !== event.currentTarget) return;
-    if (event.key === 'Enter') {
+    if (event.key === 'Enter' && event.altKey) {
+      event.preventDefault();
+      this.properties.showFolder(folder);
+    } else if (event.key === 'Enter') {
       event.preventDefault();
       this.folderOpen.emit(folder);
     } else if (event.key === ' ' && this.selectable()) {

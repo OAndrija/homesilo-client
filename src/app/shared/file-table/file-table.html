@@ -122,6 +122,14 @@
               <span class="material-symbols-rounded" aria-hidden="true">more_horiz</span>
             </button>
             <div class="actions-wrap" (pointerup)="closeActionsSoon()">
+              <button
+                class="icon-btn"
+                (click)="properties.showFolder(folder); $event.stopPropagation()"
+                title="Properties"
+                aria-label="Properties"
+              >
+                <span class="material-symbols-rounded" aria-hidden="true">info</span>
+              </button>
               @if (hasAction('download')) {
                 <button
                   class="icon-btn download"
@@ -246,6 +254,14 @@
               <span class="material-symbols-rounded" aria-hidden="true">more_horiz</span>
             </button>
             <div class="actions-wrap" (pointerup)="closeActionsSoon()">
+              <button
+                class="icon-btn"
+                (click)="properties.showFile(file); $event.stopPropagation()"
+                title="Properties"
+                aria-label="Properties"
+              >
+                <span class="material-symbols-rounded" aria-hidden="true">info</span>
+              </button>
               @if (hasAction('download')) {
                 <button
                   class="icon-btn download"

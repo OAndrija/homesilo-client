@@ -87,6 +87,10 @@ export class Files {
     });
   }
 
+  getMetadata(fileId: string): Observable<FileMetadata> {
+    return this.http.get<FileMetadata>(`${FILES_URL}/${fileId}/metadata`);
+  }
+
   rename(fileId: string, name: string): Observable<FileMetadata> {
     return this.http.patch<FileMetadata>(`${FILES_URL}/${fileId}/rename`, { name });
   }

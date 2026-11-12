@@ -204,6 +204,14 @@
               {{ target.item.starred ? 'Remove from Starred' : 'Add to Starred' }}
             </button>
           }
+          <button
+            type="button"
+            role="menuitem"
+            class="menu-item"
+            (click)="closeMenu(); properties.showFolder(target.item)"
+          >
+            <span class="material-symbols-rounded" aria-hidden="true">info</span>Properties
+          </button>
           @if (hasAction('restore')) {
             <button
               type="button"
@@ -266,6 +274,14 @@
               {{ target.item.starred ? 'Remove from Starred' : 'Add to Starred' }}
             </button>
           }
+          <button
+            type="button"
+            role="menuitem"
+            class="menu-item"
+            (click)="closeMenu(); properties.showFile(target.item)"
+          >
+            <span class="material-symbols-rounded" aria-hidden="true">info</span>Properties
+          </button>
           @if (hasAction('restore')) {
             <button
               type="button"

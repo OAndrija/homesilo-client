@@ -1,3 +1,4 @@
+import { PropertiesService } from '../../core/services/properties';
 import {
   Component,
   computed,
@@ -31,6 +32,7 @@ export interface MovePayload {
   styleUrl: './file-table.css',
 })
 export class FileTable {
+  protected properties = inject(PropertiesService);
   private elementRef = inject(ElementRef);
 
   files = input.required<FileMetadata[]>();

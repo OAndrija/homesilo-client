@@ -800,45 +800,46 @@
   --silo-green: #a7c080;
 }
 
-/* ── Gruvbox Material, hard: the darkest of its three backgrounds */
+/* ── Gruvbox Material, hard: the darkest of its three backgrounds, with its brighter
+   "original" foreground for more contrast */
 
 [data-palette='gruvbox-material-dark-hard'] {
   --color-bg: #1d2021;
-  --color-bg-elevated: #141617;
+  --color-bg-elevated: #0e1011;
   --color-surface: #282828;
   --color-surface-alt: #2c2a29;
   --color-surface-input: #32302f;
   --color-surface-hover: #3c3836;
   --color-surface-header: #2c2a29;
-  --color-border-faint: #232526;
+  --color-border-faint: #1a1c1d;
   --color-border-subtle: #2c2a29;
   --color-border: #3c3836;
   --color-border-alt: #423e3b;
   --color-border-strong: #504945;
   --color-border-stronger: #7c6f64;
-  --color-text-primary: #ddc7a1;
-  --color-text-heading: #ddc7a1;
-  --color-text-heading-alt: #d4be98;
-  --color-text-body: #d4be98;
-  --color-text-muted: #a89984;
+  --color-text-primary: #e2cca9;
+  --color-text-heading: #ebdbb2;
+  --color-text-heading-alt: #e2cca9;
+  --color-text-body: #ddc7a1;
+  --color-text-muted: #bdae93;
   --color-text-subtitle: #a89984;
   --color-text-icon-muted: #a89984;
-  --color-text-empty: #928374;
+  --color-text-empty: #968a7a;
   --color-text-faint: #928374;
   --color-text-dim: #7c6f64;
   --color-text-placeholder: #5a524c;
-  --color-accent: #a9b665;
-  --color-accent-text: #a9b665;
-  --color-accent-hover: #b8c477;
+  --color-accent: #f28534;
+  --color-accent-text: #f28534;
+  --color-accent-hover: #f59a55;
   --color-text-on-accent: #1d2021;
-  --color-danger: #ea6962;
-  --color-danger-text: #ea6962;
-  --color-success: #a9b665;
-  --color-star: #d8a657;
-  --color-warning: #e78a4e;
-  --color-info: #7daea3;
+  --color-danger: #f2594b;
+  --color-danger-text: #f2594b;
+  --color-success: #b0b846;
+  --color-star: #e9b143;
+  --color-warning: #e9b143;
+  --color-info: #80aa9e;
   --color-highlight: #d3869b;
-  --silo-green: #a9b665;
+  --silo-green: #b0b846;
 }
 
 /* ── Gruvbox Material, medium: softer contrast than Gruvbox, warm and muted */
@@ -868,15 +869,15 @@
   --color-text-faint: #928374;
   --color-text-dim: #7c6f64;
   --color-text-placeholder: #5a524c;
-  --color-accent: #a9b665;
-  --color-accent-text: #a9b665;
-  --color-accent-hover: #b8c477;
+  --color-accent: #e78a4e;
+  --color-accent-text: #e78a4e;
+  --color-accent-hover: #ec9d6a;
   --color-text-on-accent: #1d2021;
   --color-danger: #ea6962;
   --color-danger-text: #ea6962;
   --color-success: #a9b665;
   --color-star: #d8a657;
-  --color-warning: #e78a4e;
+  --color-warning: #d8a657;
   --color-info: #7daea3;
   --color-highlight: #d3869b;
   --silo-green: #a9b665;
@@ -909,15 +910,15 @@
   --color-text-faint: #928374;
   --color-text-dim: #7c6f64;
   --color-text-placeholder: #665c54;
-  --color-accent: #a9b665;
-  --color-accent-text: #a9b665;
-  --color-accent-hover: #b8c477;
+  --color-accent: #e78a4e;
+  --color-accent-text: #e78a4e;
+  --color-accent-hover: #ec9d6a;
   --color-text-on-accent: #1d2021;
   --color-danger: #ea6962;
   --color-danger-text: #ea6962;
   --color-success: #a9b665;
   --color-star: #d8a657;
-  --color-warning: #e78a4e;
+  --color-warning: #d8a657;
   --color-info: #7daea3;
   --color-highlight: #d3869b;
   --silo-green: #a9b665;
