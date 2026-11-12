@@ -3,7 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_BASE } from '../api';
 import { PageResponse } from '../models/file-metadata';
-import { Folder, FolderContentsResponse } from '../models/folder';
+import { Folder, FolderSummary, FolderContentsResponse } from '../models/folder';
 
 const FOLDERS_URL = `${API_BASE}/folders`;
 
@@ -26,6 +26,11 @@ export class Folders {
     return this.http.get<FolderContentsResponse>(`${FOLDERS_URL}/${folderId}/contents`, {
       params: pageParams(page, size, sort),
     });
+  }
+
+  /** Folders, files and bytes inside a folder, at any depth. */
+  summary(folderId: string): Observable<FolderSummary> {
+    return this.http.get<FolderSummary>(`${FOLDERS_URL}/${folderId}/summary`);
   }
 
   search(query: string): Observable<Folder[]> {

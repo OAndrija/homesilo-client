@@ -6,6 +6,7 @@ import { Search } from '../../core/services/search';
 import { filter } from 'rxjs';
 import { AccountMenu } from '../account-menu/account-menu';
 import { FilePreview } from '../file-preview/file-preview';
+import { PropertiesDialog } from '../properties-dialog/properties-dialog';
 import { ToastHost } from '../toast-host/toast-host';
 import { UploadPanel } from '../upload-panel/upload-panel';
 import { UploadService } from '../../core/services/uploads';
@@ -14,6 +15,7 @@ import { Auth } from '../../core/services/auth';
 @Component({
   selector: 'app-layout',
   imports: [
+    PropertiesDialog,
     RouterOutlet,
     RouterLink,
     RouterLinkActive,

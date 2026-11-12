@@ -1,3 +1,4 @@
+import { PropertiesService } from '../../core/services/properties';
 import { HttpClient } from '@angular/common/http';
 import {
   Component,
@@ -32,6 +33,7 @@ const MAX_TEXT_CHARS = 200_000;
 })
 export class FilePreview {
   protected preview = inject(FilePreviewService);
+  private properties = inject(PropertiesService);
   private files = inject(Files);
   private fileActions = inject(FileActions);
   private http = inject(HttpClient);
@@ -107,6 +109,11 @@ export class FilePreview {
     });
   }
 
+  showProperties(): void {
+    const file = this.file();
+    if (file) this.properties.showFile(file);
+  }
+
   close(): void {
     this.preview.close();
   }
@@ -123,7 +130,8 @@ export class FilePreview {
 
   @HostListener('document:keydown', ['$event'])
   onKeydown(event: KeyboardEvent): void {
-    if (!this.preview.isOpen()) return;
+    // While properties are open on top, the keys are theirs.
+    if (!this.preview.isOpen() || this.properties.target()) return;
     const target = event.target as HTMLElement;
     const inMediaControls = target.tagName === 'VIDEO' || target.tagName === 'AUDIO';
     switch (event.key) {
