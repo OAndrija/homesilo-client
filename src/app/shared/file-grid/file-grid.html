@@ -84,7 +84,12 @@
           (dblclick)="openFile.emit(file)"
           (keydown)="onFileKeydown(file, i, $event)"
         >
-          <div class="preview" [class.has-thumb]="!!thumb" [style.--tint]="icon.color">
+          <div
+            class="preview"
+            [class.has-thumb]="!!thumb"
+            [class.doc]="!file.contentType.startsWith('image/')"
+            [style.--tint]="icon.color"
+          >
             @if (thumb) {
               <img
                 [src]="thumb"

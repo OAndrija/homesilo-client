@@ -124,16 +124,18 @@
   margin: 6px 6px 0;
   overflow: hidden;
   border-radius: calc(var(--radius-xl) - 4px);
-  /* Tinted with the file type's colour when there is no picture. */
-  background: color-mix(
-    in srgb,
-    var(--tint, var(--color-text-faint)) 12%,
-    var(--color-surface-alt)
-  );
+  /* A dark well behind the file-type icon; pictures and pages cover it. */
+  background: var(--color-bg);
+  border: 1px solid var(--color-border-subtle);
 }
 
 .preview.has-thumb {
   background: var(--color-surface-alt);
+}
+
+/* Documents show the top of their first page, like a sheet of paper. */
+.preview.doc img {
+  object-position: top;
 }
 
 .preview img {
@@ -161,8 +163,8 @@
   padding: 2px 8px;
   overflow: hidden;
   border-radius: var(--radius-pill);
-  background: color-mix(in srgb, var(--tint) 18%, transparent);
-  color: var(--tint);
+  background: var(--color-surface-hover);
+  color: var(--color-text-muted);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.04em;
