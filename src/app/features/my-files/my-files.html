@@ -121,6 +121,7 @@
       (openFile)="openFile($event)"
       (folderOpen)="navigateToFolder($event)"
       (folderTrash)="trashFolder($event)"
+      (folderStar)="toggleFolderStar($event)"
       (itemsMoved)="onItemsMoved($event)"
     />
 
@@ -173,6 +174,7 @@
   <app-selection-bar
     [selectedCount]="selectedCount()"
     [actions]="['download', 'move', 'star', 'trash']"
+    [starred]="selectionStarred()"
     (downloadAll)="onDownloadAll()"
     (moveAll)="onMoveAll()"
     (trashAll)="onTrashAll()"

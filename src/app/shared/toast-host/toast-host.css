@@ -1,15 +1,25 @@
-/* Bottom-left of the content area; the selection bar owns the centre and the
-   upload panel the right. */
+/* Bottom centre of the content area, like the selection bar; while that bar is
+   showing, toasts sit just above it. */
 .toasts {
   position: fixed;
-  left: calc(var(--sidebar-width, 0px) + 24px);
+  left: calc(50% + var(--sidebar-width, 0px) / 2);
   bottom: 24px;
   z-index: 70;
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 8px;
-  max-width: min(440px, calc(100vw - var(--sidebar-width, 0px) - 48px));
+  width: max-content;
+  max-width: min(480px, calc(100vw - var(--sidebar-width, 0px) - 48px));
+  transform: translateX(-50%);
   pointer-events: none;
+  transition:
+    bottom 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
+    left var(--transition-sidebar);
+}
+
+.toasts.above-bar {
+  bottom: 96px; /* 24px gap + 60px bar + 12px */
 }
 
 .toast {
@@ -109,13 +119,23 @@
   .toasts {
     left: 12px;
     right: 12px;
-    bottom: 84px; /* above the selection bar */
+    width: auto;
     max-width: none;
+    transform: none;
+    align-items: stretch;
+  }
+
+  .toasts.above-bar {
+    bottom: 84px; /* 16px gap + 56px bar + 12px */
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .toast {
     animation: none;
+  }
+
+  .toasts {
+    transition: none;
   }
 }

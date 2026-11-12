@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, guestGuard } from './core/guards/auth-guard';
+import { adminGuard, authGuard, guestGuard } from './core/guards/auth-guard';
 import { Layout } from './shared/layout/layout';
 
 export const routes: Routes = [
@@ -40,6 +40,19 @@ export const routes: Routes = [
         path: 'trash',
         title: 'Trash · HomeSilo',
         loadComponent: () => import('./features/trash/trash').then((m) => m.Trash),
+      },
+      {
+        path: 'admin/users',
+        canActivate: [adminGuard],
+        title: 'Users · HomeSilo',
+        loadComponent: () => import('./features/admin/admin-users').then((m) => m.AdminUsers),
+      },
+      {
+        path: 'admin/activity',
+        canActivate: [adminGuard],
+        title: 'Activity · HomeSilo',
+        loadComponent: () =>
+          import('./features/admin/activity/admin-activity').then((m) => m.AdminActivity),
       },
       {
         path: 'settings',

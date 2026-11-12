@@ -2,7 +2,7 @@
   <div class="page-header">
     <div>
       <h2>Starred</h2>
-      <p class="subtitle">{{ files().length }} starred file{{ files().length !== 1 ? 's' : '' }}</p>
+      <p class="subtitle">{{ summary() }}</p>
     </div>
   </div>
   @if (errorMessage()) {
@@ -10,7 +10,7 @@
   }
   @if (loading() | loadingDelay) {
     <app-table-skeleton />
-  } @else if (!loading() && files().length === 0) {
+  } @else if (!loading() && isEmpty()) {
     <div class="empty-state">
       @if (isSearching()) {
         <span class="empty-icon" aria-hidden="true">
@@ -28,7 +28,7 @@
           <span class="material-symbols-rounded" aria-hidden="true">star</span>
         </span>
         <h3>Nothing starred yet</h3>
-        <p>Star the files you use most and they'll wait for you here.</p>
+        <p>Star the files and folders you use most and they'll wait for you here.</p>
         <div class="empty-actions">
           <a class="header-btn secondary" routerLink="/my-files">
             <span class="material-symbols-rounded" aria-hidden="true">folder_open</span>
@@ -41,6 +41,7 @@
     <app-file-table
       #fileTableRef
       [files]="files()"
+      [folders]="sortedFolders()"
       [actions]="['download', 'trash', 'star']"
       dateColumnLabel="Modified"
       [sort]="sort()"
@@ -49,6 +50,10 @@
       (trash)="trashFile($event)"
       (star)="toggleStar($event)"
       (openFile)="openFile($event)"
+      (folderOpen)="openFolder($event)"
+      (folderDownload)="downloadFolder($event)"
+      (folderTrash)="trashFolder($event)"
+      (folderStar)="toggleFolderStar($event)"
     />
     @if (hasMore()) {
       <div class="show-more-wrap">
@@ -64,8 +69,9 @@
   }
 
   <app-selection-bar
-    [selectedCount]="fileTable()?.selectedIds()?.size ?? 0"
+    [selectedCount]="selectedCount()"
     [actions]="['download', 'trash', 'star']"
+    [starred]="selectionStarred()"
     (downloadAll)="onDownloadAll()"
     (trashAll)="onTrashAll()"
     (starAll)="onStarAll()"

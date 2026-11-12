@@ -49,6 +49,29 @@
         <span class="material-symbols-rounded" aria-hidden="true">delete</span>
         <span class="nav-label">Trash</span>
       </a>
+      @if (auth.isAdmin()) {
+        <div class="nav-divider" role="presentation"></div>
+        <a
+          routerLink="/admin/users"
+          routerLinkActive="active"
+          class="nav-link"
+          title="Users"
+          (click)="closeOnMobile()"
+        >
+          <span class="material-symbols-rounded" aria-hidden="true">manage_accounts</span>
+          <span class="nav-label">Users</span>
+        </a>
+        <a
+          routerLink="/admin/activity"
+          routerLinkActive="active"
+          class="nav-link"
+          title="Activity"
+          (click)="closeOnMobile()"
+        >
+          <span class="material-symbols-rounded" aria-hidden="true">history</span>
+          <span class="nav-label">Activity</span>
+        </a>
+      }
     </nav>
 
     <app-storage-indicator [sidebarOpen]="sidebarOpen()" />

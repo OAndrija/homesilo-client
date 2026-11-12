@@ -1,0 +1,29 @@
+@let t = text();
+<div class="item" [attr.data-tone]="t.tone">
+  <span class="icon" aria-hidden="true">
+    <span class="material-symbols-rounded" aria-hidden="true">{{ t.icon }}</span>
+  </span>
+  <p class="sentence">
+    <strong>{{ t.actor }}</strong> {{ t.verb }}
+    @if (t.subject) {
+      <strong class="name" [title]="t.subject">{{ t.subject }}</strong>
+    }
+    @if (t.connector) {
+      {{ t.connector }}
+    }
+    @if (t.object) {
+      <strong class="name" [title]="t.object">{{ t.object }}</strong>
+    }
+    @if (t.detail) {
+      <span class="detail">{{ t.detail }}</span>
+    }
+  </p>
+  <div class="when" [title]="entry().occurredAt | exactDate">
+    <time [attr.datetime]="entry().occurredAt">{{
+      entry().occurredAt | date: (withDate() ? 'MMM d, h:mm a' : 'h:mm a')
+    }}</time>
+    @if (entry().ipAddress) {
+      <span class="ip">{{ entry().ipAddress }}</span>
+    }
+  </div>
+</div>

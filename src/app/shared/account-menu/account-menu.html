@@ -43,6 +43,12 @@
           <span class="material-symbols-rounded" aria-hidden="true">settings</span>
           Settings
         </a>
+        @if (user.role === 'ADMIN') {
+          <a class="menu-item" role="menuitem" routerLink="/admin/users" (click)="close()">
+            <span class="material-symbols-rounded" aria-hidden="true">manage_accounts</span>
+            Manage users
+          </a>
+        }
       </div>
 
       <div class="menu-section">

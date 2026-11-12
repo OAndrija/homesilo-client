@@ -22,6 +22,7 @@ import { FileActions } from '../../core/services/file-actions';
 import { Files } from '../../core/services/files';
 import { Folders } from '../../core/services/folders';
 import { Search } from '../../core/services/search';
+import { allStarred, StarChange, Stars } from '../../core/services/stars';
 import { ToastService } from '../../core/services/toast';
 import { UploadService } from '../../core/services/uploads';
 import { FileTable, MovePayload } from '../../shared/file-table/file-table';
@@ -57,6 +58,7 @@ export class MyFiles {
   private toast = inject(ToastService);
   private uploads = inject(UploadService);
   private title = inject(Title);
+  private stars = inject(Stars);
 
   fileTable = viewChild(FileTable);
   fileInput = viewChild<ElementRef<HTMLInputElement>>('fileInput');
@@ -105,6 +107,9 @@ export class MyFiles {
       (this.fileTable()?.selectedIds().size ?? 0) +
       (this.fileTable()?.selectedFolderIds().size ?? 0),
   );
+
+  /** Everything selected is starred, so the bar's star button reads as "on". */
+  selectionStarred = computed(() => allStarred(this.getSelectedFiles(), this.getSelectedFolders()));
 
   contentSummary = computed(() => {
     if (this.loading() && this.files().length === 0 && this.folders().length === 0) {
@@ -396,6 +401,16 @@ export class MyFiles {
     });
   }
 
+  toggleFolderStar(folder: Folder): void {
+    this.folderService.toggleStar(folder.id).subscribe({
+      next: (updated) => {
+        this.folders.update((list) => list.map((f) => (f.id === updated.id ? updated : f)));
+        this.dashboardStore.silentRefresh();
+      },
+      error: (err) => this.errorMessage.set(errorMessage(err, 'Failed to update star.')),
+    });
+  }
+
   // ── Bulk actions ─────────────────────────────────────────────
 
   onDownloadAll(): void {
@@ -443,18 +458,25 @@ export class MyFiles {
     );
   }
 
+  /** Stars the whole selection, or unstars it when everything is already starred. */
   onStarAll(): void {
-    const files = this.getSelectedFiles();
-    from(files)
-      .pipe(
-        concatMap((file) => this.fileService.toggleStar(file.id)),
-        finalize(() => this.dashboardStore.silentRefresh()),
-      )
+    this.stars
+      .toggleAll(this.getSelectedFiles(), this.getSelectedFolders())
+      .pipe(finalize(() => this.dashboardStore.silentRefresh()))
       .subscribe({
-        next: (updated) =>
-          this.files.update((list) => list.map((f) => (f.id === updated.id ? updated : f))),
-        error: (err) => this.errorMessage.set(errorMessage(err, 'Failed to update stars.')),
+        next: (change) => this.applyStars(change),
+        error: (err) => {
+          this.toast.error(errorMessage(err, 'Couldn’t update every star.'));
+          this.reload();
+        },
       });
+  }
+
+  private applyStars(change: StarChange): void {
+    const files = new Map(change.files.map((f) => [f.id, f]));
+    const folders = new Map(change.folders.map((f) => [f.id, f]));
+    this.files.update((list) => list.map((f) => files.get(f.id) ?? f));
+    this.folders.update((list) => list.map((f) => folders.get(f.id) ?? f));
   }
 
   onMoveAll(): void {

@@ -1,0 +1,261 @@
+<div
+  class="dialog-backdrop"
+  data-dialog-backdrop
+  (click)="onBackdropClick($event)"
+  (keydown)="onKeydown($event)"
+>
+  <form
+    class="dialog wide"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="user-form-title"
+    (submit)="$event.preventDefault(); submit()"
+    novalidate
+  >
+    <header class="dialog-head">
+      <span class="dialog-icon" aria-hidden="true">
+        <span class="material-symbols-rounded" aria-hidden="true">{{
+          mode() === 'add' ? 'person_add' : 'manage_accounts'
+        }}</span>
+      </span>
+      <div class="dialog-titles">
+        <h3 id="user-form-title">
+          {{ mode() === 'add' ? 'Add a user' : 'Edit ' + user()?.username }}
+        </h3>
+        <p class="dialog-sub">
+          @if (mode() === 'add') {
+            They can sign in straight away with the password you set.
+          } @else {
+            {{ user()?.email }}
+          }
+        </p>
+      </div>
+      <button
+        class="dialog-close"
+        type="button"
+        (click)="cancel.emit()"
+        [disabled]="busy()"
+        aria-label="Close"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">close</span>
+      </button>
+    </header>
+
+    <div class="dialog-body form">
+      @if (mode() === 'add') {
+        <div class="field">
+          <label class="dlg-label" for="new-username">Username</label>
+          <div class="dlg-input">
+            <span class="material-symbols-rounded" aria-hidden="true">person</span>
+            <input
+              #usernameField
+              id="new-username"
+              type="text"
+              autocomplete="off"
+              spellcheck="false"
+              maxlength="64"
+              [value]="username()"
+              (input)="username.set($any($event.target).value)"
+              [class.invalid]="submitted() && !!usernameError()"
+              [attr.aria-invalid]="submitted() && !!usernameError()"
+              aria-describedby="new-username-error"
+              [disabled]="busy()"
+            />
+          </div>
+          @if (submitted() && usernameError()) {
+            <div class="field-error" id="new-username-error">{{ usernameError() }}</div>
+          }
+        </div>
+
+        <div class="field">
+          <label class="dlg-label" for="new-email">Email</label>
+          <div class="dlg-input">
+            <span class="material-symbols-rounded" aria-hidden="true">mail</span>
+            <input
+              id="new-email"
+              type="email"
+              autocomplete="off"
+              spellcheck="false"
+              maxlength="255"
+              [value]="email()"
+              (input)="email.set($any($event.target).value)"
+              [class.invalid]="submitted() && !!emailError()"
+              [attr.aria-invalid]="submitted() && !!emailError()"
+              aria-describedby="new-email-error"
+              [disabled]="busy()"
+            />
+          </div>
+          @if (submitted() && emailError()) {
+            <div class="field-error" id="new-email-error">{{ emailError() }}</div>
+          }
+        </div>
+
+        <div class="field">
+          <label class="dlg-label" for="new-password">
+            Temporary password
+            <span class="label-note">{{ copied() ? 'Copied' : 'Share it with them' }}</span>
+          </label>
+          <div class="dlg-input with-actions">
+            <span class="material-symbols-rounded" aria-hidden="true">key</span>
+            <input
+              id="new-password"
+              class="mono"
+              [type]="showPassword() ? 'text' : 'password'"
+              autocomplete="new-password"
+              spellcheck="false"
+              maxlength="128"
+              [value]="password()"
+              (input)="password.set($any($event.target).value)"
+              [class.invalid]="submitted() && !!passwordError()"
+              [attr.aria-invalid]="submitted() && !!passwordError()"
+              aria-describedby="new-password-hint"
+              [disabled]="busy()"
+            />
+            <div class="input-actions">
+              <button
+                type="button"
+                class="input-action"
+                (click)="showPassword.set(!showPassword())"
+                [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+                [title]="showPassword() ? 'Hide' : 'Show'"
+              >
+                <span class="material-symbols-rounded" aria-hidden="true">{{
+                  showPassword() ? 'visibility_off' : 'visibility'
+                }}</span>
+              </button>
+              <button
+                type="button"
+                class="input-action"
+                (click)="copyPassword()"
+                aria-label="Copy password"
+                title="Copy"
+              >
+                <span class="material-symbols-rounded" aria-hidden="true">{{
+                  copied() ? 'check' : 'content_copy'
+                }}</span>
+              </button>
+              <button
+                type="button"
+                class="input-action"
+                (click)="regenerate()"
+                aria-label="Generate a new password"
+                title="Generate another"
+              >
+                <span class="material-symbols-rounded" aria-hidden="true">autorenew</span>
+              </button>
+            </div>
+          </div>
+          @if (submitted() && passwordError()) {
+            <div class="field-error" id="new-password-hint">{{ passwordError() }}</div>
+          } @else {
+            <div class="field-hint" id="new-password-hint">
+              They can change it in Settings after signing in.
+            </div>
+          }
+        </div>
+      }
+
+      <div class="field">
+        <span class="dlg-label" id="role-label">Role</span>
+        <div class="segmented" role="radiogroup" aria-labelledby="role-label">
+          <button
+            type="button"
+            role="radio"
+            [attr.aria-checked]="role() === 'USER'"
+            (click)="role.set('USER')"
+            [disabled]="busy() || isSelf()"
+          >
+            <span class="seg-title"
+              ><span class="material-symbols-rounded" aria-hidden="true">person</span>Member</span
+            >
+            <span class="seg-note">Their own files only</span>
+          </button>
+          <button
+            type="button"
+            role="radio"
+            [attr.aria-checked]="role() === 'ADMIN'"
+            (click)="role.set('ADMIN')"
+            [disabled]="busy() || isSelf()"
+          >
+            <span class="seg-title"
+              ><span class="material-symbols-rounded" aria-hidden="true">shield_person</span
+              >Admin</span
+            >
+            <span class="seg-note">Can also manage users</span>
+          </button>
+        </div>
+        @if (isSelf()) {
+          <div class="field-hint">You can’t remove your own admin role.</div>
+        }
+      </div>
+
+      <div class="field">
+        <label class="dlg-label" for="quota-value">
+          Storage limit
+          @if (user(); as u) {
+            <span class="label-note">Using {{ formatBytes(u.storageUsedBytes) }} now</span>
+          }
+        </label>
+        <div class="size-input">
+          <div class="dlg-input">
+            <span class="material-symbols-rounded" aria-hidden="true">database</span>
+            <input
+              #quotaField
+              id="quota-value"
+              type="number"
+              min="0"
+              step="any"
+              inputmode="decimal"
+              [value]="quotaValue()"
+              (input)="setQuotaValue($any($event.target).value)"
+              [class.invalid]="!!quotaError()"
+              [attr.aria-invalid]="!!quotaError()"
+              aria-describedby="quota-hint"
+              [disabled]="busy()"
+            />
+          </div>
+          <select
+            aria-label="Unit"
+            (change)="setQuotaUnit($any($event.target).value)"
+            [disabled]="busy()"
+          >
+            @for (unit of units; track unit) {
+              <option [value]="unit" [selected]="unit === quotaUnit()">{{ unit }}</option>
+            }
+          </select>
+        </div>
+        @if (quotaError()) {
+          <div class="field-error" id="quota-hint">{{ quotaError() }}</div>
+        } @else if (quotaBelowUsage()) {
+          <div class="field-hint warn" id="quota-hint">
+            That’s less than they already store, so they won’t be able to upload until they free up
+            space.
+          </div>
+        } @else if (mode() === 'add') {
+          <div class="field-hint" id="quota-hint">Files in their trash count toward it too.</div>
+        }
+      </div>
+
+      @if (error()) {
+        <div class="dlg-error" role="alert">
+          <span class="material-symbols-rounded" aria-hidden="true">error</span>
+          <span>{{ error() }}</span>
+        </div>
+      }
+    </div>
+
+    <footer class="dialog-foot">
+      <button class="dlg-btn secondary" type="button" (click)="cancel.emit()" [disabled]="busy()">
+        Cancel
+      </button>
+      <button class="dlg-btn primary" type="submit" [disabled]="!canSubmit()">
+        @if (busy()) {
+          <span class="dlg-spinner" aria-hidden="true"></span>
+          Saving…
+        } @else {
+          {{ mode() === 'add' ? 'Add user' : 'Save changes' }}
+        }
+      </button>
+    </footer>
+  </form>
+</div>

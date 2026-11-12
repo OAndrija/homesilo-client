@@ -9,6 +9,7 @@ import { FilePreview } from '../file-preview/file-preview';
 import { ToastHost } from '../toast-host/toast-host';
 import { UploadPanel } from '../upload-panel/upload-panel';
 import { UploadService } from '../../core/services/uploads';
+import { Auth } from '../../core/services/auth';
 
 @Component({
   selector: 'app-layout',
@@ -29,6 +30,7 @@ export class Layout implements OnInit {
   private router = inject(Router);
   private searchService = inject(Search);
   protected uploads = inject(UploadService);
+  protected auth = inject(Auth);
 
   sidebarOpen = signal(true);
   searchInputValue = computed(() => this.searchService.text());
@@ -44,7 +46,10 @@ export class Layout implements OnInit {
         this.searchService.clear();
         // File search has nothing to search on the dashboard or in settings.
         const url = event.urlAfterRedirects;
-        this.isHome.set(url.startsWith('/home') || url.startsWith('/settings'));
+        // Pages without file search: the bar would search files, not what's on the page.
+        this.isHome.set(
+          url.startsWith('/home') || url.startsWith('/settings') || url.startsWith('/admin'),
+        );
       });
   }
 

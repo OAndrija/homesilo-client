@@ -15,9 +15,15 @@
         </button>
       }
       @if (hasAction('star')) {
-        <button class="sel-btn" (click)="starAll.emit()" title="Star selected">
+        <button
+          class="sel-btn star"
+          [class.starred]="starred()"
+          [attr.aria-pressed]="starred()"
+          (click)="starAll.emit()"
+          [title]="starred() ? 'Remove the selected items from Starred' : 'Star the selected items'"
+        >
           <span class="material-symbols-rounded" aria-hidden="true">star</span>
-          <span class="sel-label">Star</span>
+          <span class="sel-label">{{ starred() ? 'Starred' : 'Star' }}</span>
         </button>
       }
       @if (hasAction('move')) {

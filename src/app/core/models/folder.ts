@@ -6,6 +6,7 @@ export interface Folder {
   parentId: string | null;
   parentName: string | null;
   trashed: boolean;
+  starred: boolean;
   trashedAt: string | null;
   createdAt: string;
   lastModified: string;
