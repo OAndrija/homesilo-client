@@ -141,6 +141,26 @@
   --space-scale: 1.6;
 }
 
+/* Font (Settings → Appearance). Inter is the default in :root. */
+[data-font='system'] {
+  --font-body: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  --font-heading: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+}
+[data-font='readable'] {
+  --font-body: 'Atkinson Hyperlegible', system-ui, sans-serif;
+  --font-heading: 'Atkinson Hyperlegible', system-ui, sans-serif;
+}
+
+/* Reduced motion, from the Motion setting or the device: changes happen at once. */
+[data-motion='reduced'] *,
+[data-motion='reduced'] *::before,
+[data-motion='reduced'] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
 [data-theme='light'] {
   /* Daylight: cool, neutral greys (slate) so the golden accent and the barn red read
      cleanly; a soft grey page with white cards, as dark mode layers its surfaces. */

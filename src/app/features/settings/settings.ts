@@ -1,4 +1,4 @@
-import { DatePipe, DecimalPipe, NgTemplateOutlet } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import {
   afterNextRender,
   Component,
@@ -22,14 +22,8 @@ import { finalize } from 'rxjs';
 import { errorMessage } from '../../core/http/http-error';
 import { Auth } from '../../core/services/auth';
 import { DashboardStore } from '../../core/services/dashboard-store';
-import {
-  CORNERS,
-  SPACING,
-  Theme,
-  ThemeDefinition,
-  ThemePreference,
-  ThemeService,
-} from '../../core/services/theme';
+import { ThemeService } from '../../core/services/theme';
+import { AppearanceSettings } from './appearance/appearance-settings';
 import { formatBytes } from '../../core/utils/format';
 import { ActivityEntry } from '../../core/models/activity';
 import { ActivityApi } from '../../core/services/activity';
@@ -45,7 +39,14 @@ type SectionId = 'account' | 'appearance' | 'security' | 'activity' | 'storage';
 
 @Component({
   selector: 'app-settings',
-  imports: [ReactiveFormsModule, DatePipe, DecimalPipe, NgTemplateOutlet, RouterLink, ActivityItem],
+  imports: [
+    ReactiveFormsModule,
+    DatePipe,
+    DecimalPipe,
+    RouterLink,
+    ActivityItem,
+    AppearanceSettings,
+  ],
   templateUrl: './settings.html',
   styleUrl: './settings.css',
 })
@@ -70,34 +71,6 @@ export class Settings {
   activeSection = signal<SectionId>('account');
   /** After a nav click, keep that item highlighted while the page scrolls to it. */
   private holdHighlightUntil = 0;
-
-  readonly themeOptions: { value: ThemePreference; label: string; hint: string }[] = [
-    { value: 'system', label: 'System', hint: 'Match your device' },
-    { value: 'light', label: 'Light', hint: 'Always light' },
-    { value: 'dark', label: 'Dark', hint: 'Always dark' },
-  ];
-  readonly themeGroups: {
-    mode: Theme;
-    title: string;
-    hint: string;
-    themes: readonly ThemeDefinition[];
-  }[] = [
-    {
-      mode: 'light',
-      title: 'Light theme',
-      hint: 'Used in light mode.',
-      themes: this.themeService.lightThemes,
-    },
-    {
-      mode: 'dark',
-      title: 'Dark theme',
-      hint: 'Used in dark mode.',
-      themes: this.themeService.darkThemes,
-    },
-  ];
-  chosen = this.themeService.chosen;
-  readonly cornerOptions = CORNERS;
-  readonly spacingOptions = SPACING;
 
   // ── Storage ──
   stats = this.store.stats;
@@ -203,13 +176,10 @@ export class Settings {
   goTo(id: SectionId): void {
     this.activeSection.set(id);
     this.holdHighlightUntil = Date.now() + 1000;
-    this.host.nativeElement
-      .querySelector(`#${id}`)
-      ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-
-  setMode(preference: ThemePreference): void {
-    this.themeService.setPreference(preference);
+    this.host.nativeElement.querySelector(`#${id}`)?.scrollIntoView({
+      behavior: this.themeService.reducedMotion() ? 'auto' : 'smooth',
+      block: 'start',
+    });
   }
 
   onSubmit(): void {
