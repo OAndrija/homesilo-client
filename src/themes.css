@@ -350,3 +350,449 @@
   --color-highlight: #268bd2;
   --shadow-floating: 0 18px 40px rgba(0, 16, 20, 0.6), 0 2px 8px rgba(0, 16, 20, 0.35);
 }
+
+/* ── Catppuccin Latte: soft pastels on cool grey, mauve accent */
+
+[data-palette='catppuccin-latte'] {
+  --color-bg: #eff1f5;
+  --color-bg-elevated: #e6e9ef;
+  --color-surface: #f8f9fb;
+  --color-surface-alt: #f2f3f7;
+  --color-surface-input: #e9ecf2;
+  --color-surface-hover: #e6e9ef;
+  --color-surface-header: #f2f3f7;
+  --color-border-faint: #e9ecf1;
+  --color-border-subtle: #e1e4eb;
+  --color-border: #dce0e8;
+  --color-border-alt: #d4d8e1;
+  --color-border-strong: #ccd0da;
+  --color-border-stronger: #9ca0b0;
+  --color-text-primary: #4c4f69;
+  --color-text-heading: #41445d;
+  --color-text-heading-alt: #4c4f69;
+  --color-text-body: #4c4f69;
+  --color-text-muted: #5c5f77;
+  --color-text-subtitle: #6c6f85;
+  --color-text-icon-muted: #6c6f85;
+  --color-text-empty: #7c7f93;
+  --color-text-faint: #7c7f93;
+  --color-text-dim: #8c8fa1;
+  --color-text-placeholder: #9ca0b0;
+  --color-accent: #8839ef;
+  --color-accent-text: #8839ef;
+  --color-accent-hover: #7a2ee0;
+  --color-text-on-accent: #ffffff;
+  --color-danger: #d20f39;
+  --color-danger-text: #d20f39;
+  --color-success: #40a02b;
+  --color-star: #df8e1d;
+  --color-warning: #fe640b;
+  --color-info: #1e66f5;
+  --color-highlight: #7287fd;
+}
+
+/* ── Gruvbox Light: warm retro paper, burnt orange accent */
+
+[data-palette='gruvbox-light'] {
+  --color-bg: #fbf1c7;
+  --color-bg-elevated: #f2e5bc;
+  --color-surface: #f9f5d7;
+  --color-surface-alt: #f6efcc;
+  --color-surface-input: #f2e5bc;
+  --color-surface-hover: #ebdbb2;
+  --color-surface-header: #f6efcc;
+  --color-border-faint: #f2e5bc;
+  --color-border-subtle: #ebdbb2;
+  --color-border: #e2d1a6;
+  --color-border-alt: #d5c4a1;
+  --color-border-strong: #c9b994;
+  --color-border-stronger: #a89984;
+  --color-text-primary: #282828;
+  --color-text-heading: #282828;
+  --color-text-heading-alt: #3c3836;
+  --color-text-body: #3c3836;
+  --color-text-muted: #504945;
+  --color-text-subtitle: #665c54;
+  --color-text-icon-muted: #665c54;
+  --color-text-empty: #7c6f64;
+  --color-text-faint: #7c6f64;
+  --color-text-dim: #928374;
+  --color-text-placeholder: #a89984;
+  --color-accent: #af3a03;
+  --color-accent-text: #af3a03;
+  --color-accent-hover: #9a3302;
+  --color-text-on-accent: #fbf1c7;
+  --color-danger: #9d0006;
+  --color-danger-text: #9d0006;
+  --color-success: #79740e;
+  --color-star: #b57614;
+  --color-warning: #b57614;
+  --color-info: #076678;
+  --color-highlight: #076678;
+}
+
+/* ── One Light: Atom's bright neutral theme, blue accent */
+
+[data-palette='one-light'] {
+  --color-bg: #fafafa;
+  --color-bg-elevated: #eaeaeb;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f5f5f5;
+  --color-surface-input: #f0f0f1;
+  --color-surface-hover: #ececed;
+  --color-surface-header: #f5f5f5;
+  --color-border-faint: #f0f0f1;
+  --color-border-subtle: #e8e8e9;
+  --color-border: #dbdbdc;
+  --color-border-alt: #d4d4d6;
+  --color-border-strong: #c8c8ca;
+  --color-border-stronger: #a0a1a7;
+  --color-text-primary: #232324;
+  --color-text-heading: #232324;
+  --color-text-heading-alt: #383a42;
+  --color-text-body: #383a42;
+  --color-text-muted: #52545b;
+  --color-text-subtitle: #5f6168;
+  --color-text-icon-muted: #696c77;
+  --color-text-empty: #7d7f86;
+  --color-text-faint: #80828a;
+  --color-text-dim: #a0a1a7;
+  --color-text-placeholder: #b4b5ba;
+  --color-accent: #4078f2;
+  --color-accent-text: #3367d6;
+  --color-accent-hover: #3266d9;
+  --color-text-on-accent: #ffffff;
+  --color-danger: #e45649;
+  --color-danger-text: #ca3a2d;
+  --color-success: #50a14f;
+  --color-star: #c18401;
+  --color-warning: #c18401;
+  --color-info: #0184bc;
+  --color-highlight: #a626a4;
+}
+
+/* ── Rosé Pine Dawn: warm parchment, deep pine accent */
+
+[data-palette='rose-pine-dawn'] {
+  --color-bg: #faf4ed;
+  --color-bg-elevated: #f2e9e1;
+  --color-surface: #fffaf3;
+  --color-surface-alt: #fbf5ee;
+  --color-surface-input: #f4ede8;
+  --color-surface-hover: #f2e9e1;
+  --color-surface-header: #f8f1ea;
+  --color-border-faint: #f4ede8;
+  --color-border-subtle: #ece5df;
+  --color-border: #dfdad9;
+  --color-border-alt: #d8d2d1;
+  --color-border-strong: #cecacd;
+  --color-border-stronger: #9893a5;
+  --color-text-primary: #464261;
+  --color-text-heading: #464261;
+  --color-text-heading-alt: #575279;
+  --color-text-body: #575279;
+  --color-text-muted: #6e6a86;
+  --color-text-subtitle: #797593;
+  --color-text-icon-muted: #797593;
+  --color-text-empty: #8a86a0;
+  --color-text-faint: #8a86a0;
+  --color-text-dim: #9893a5;
+  --color-text-placeholder: #b3aebf;
+  --color-accent: #286983;
+  --color-accent-text: #286983;
+  --color-accent-hover: #1f5a71;
+  --color-text-on-accent: #fffaf3;
+  --color-danger: #b4637a;
+  --color-danger-text: #b4637a;
+  --color-success: #56949f;
+  --color-star: #d7902a;
+  --color-warning: #ea9d34;
+  --color-info: #56949f;
+  --color-highlight: #907aa9;
+}
+
+/* ── Catppuccin Mocha: soothing pastels on deep blue-grey */
+
+[data-palette='catppuccin-mocha'] {
+  --color-bg: #1e1e2e;
+  --color-bg-elevated: #181825;
+  --color-surface: #232334;
+  --color-surface-alt: #2a2b3c;
+  --color-surface-input: #2a2b3c;
+  --color-surface-hover: #313244;
+  --color-surface-header: #2a2b3c;
+  --color-border-faint: #222232;
+  --color-border-subtle: #2a2b3c;
+  --color-border: #313244;
+  --color-border-alt: #383a4d;
+  --color-border-strong: #45475a;
+  --color-border-stronger: #6c7086;
+  --color-text-primary: #cdd6f4;
+  --color-text-heading: #d9e0f7;
+  --color-text-heading-alt: #cdd6f4;
+  --color-text-body: #bac2de;
+  --color-text-muted: #a6adc8;
+  --color-text-subtitle: #9399b2;
+  --color-text-icon-muted: #9399b2;
+  --color-text-empty: #7f849c;
+  --color-text-faint: #7f849c;
+  --color-text-dim: #6c7086;
+  --color-text-placeholder: #585b70;
+  --color-accent: #cba6f7;
+  --color-accent-text: #cba6f7;
+  --color-accent-hover: #d6b8f9;
+  --color-text-on-accent: #11111b;
+  --color-danger: #f38ba8;
+  --color-danger-text: #f38ba8;
+  --color-success: #a6e3a1;
+  --color-star: #f9e2af;
+  --color-warning: #fab387;
+  --color-info: #89b4fa;
+  --color-highlight: #b4befe;
+  --silo-green: #a6e3a1;
+}
+
+/* ── Tokyo Night: city lights at night, soft blue accent */
+
+[data-palette='tokyo-night'] {
+  --color-bg: #1a1b26;
+  --color-bg-elevated: #16161e;
+  --color-surface: #1f2335;
+  --color-surface-alt: #222639;
+  --color-surface-input: #222639;
+  --color-surface-hover: #292e42;
+  --color-surface-header: #222639;
+  --color-border-faint: #1c1d29;
+  --color-border-subtle: #232433;
+  --color-border: #292e42;
+  --color-border-alt: #2f344b;
+  --color-border-strong: #3b4261;
+  --color-border-stronger: #565f89;
+  --color-text-primary: #c0caf5;
+  --color-text-heading: #c8d3f5;
+  --color-text-heading-alt: #c0caf5;
+  --color-text-body: #a9b1d6;
+  --color-text-muted: #9aa5ce;
+  --color-text-subtitle: #8b93bf;
+  --color-text-icon-muted: #8089b3;
+  --color-text-empty: #737aa2;
+  --color-text-faint: #737aa2;
+  --color-text-dim: #626a94;
+  --color-text-placeholder: #414868;
+  --color-accent: #7aa2f7;
+  --color-accent-text: #7aa2f7;
+  --color-accent-hover: #8fb0f9;
+  --color-text-on-accent: #16161e;
+  --color-danger: #f7768e;
+  --color-danger-text: #f7768e;
+  --color-success: #9ece6a;
+  --color-star: #e0af68;
+  --color-warning: #ff9e64;
+  --color-info: #7dcfff;
+  --color-highlight: #bb9af7;
+  --silo-green: #9ece6a;
+}
+
+/* ── Gruvbox Dark: warm retro browns, orange accent */
+
+[data-palette='gruvbox-dark'] {
+  --color-bg: #282828;
+  --color-bg-elevated: #1d2021;
+  --color-surface: #32302f;
+  --color-surface-alt: #353331;
+  --color-surface-input: #3c3836;
+  --color-surface-hover: #45403d;
+  --color-surface-header: #32302f;
+  --color-border-faint: #2c2a29;
+  --color-border-subtle: #353230;
+  --color-border: #3c3836;
+  --color-border-alt: #45403d;
+  --color-border-strong: #504945;
+  --color-border-stronger: #7c6f64;
+  --color-text-primary: #fbf1c7;
+  --color-text-heading: #fbf1c7;
+  --color-text-heading-alt: #ebdbb2;
+  --color-text-body: #ebdbb2;
+  --color-text-muted: #d5c4a1;
+  --color-text-subtitle: #bdae93;
+  --color-text-icon-muted: #bdae93;
+  --color-text-empty: #a89984;
+  --color-text-faint: #a89984;
+  --color-text-dim: #928374;
+  --color-text-placeholder: #665c54;
+  --color-accent: #fe8019;
+  --color-accent-text: #fe8019;
+  --color-accent-hover: #ff9440;
+  --color-text-on-accent: #282828;
+  --color-danger: #fb4934;
+  --color-danger-text: #fb4934;
+  --color-success: #b8bb26;
+  --color-star: #fabd2f;
+  --color-warning: #fabd2f;
+  --color-info: #83a598;
+  --color-highlight: #d3869b;
+  --silo-green: #b8bb26;
+}
+
+/* ── One Dark: Atom's classic dark theme, blue accent */
+
+[data-palette='one-dark'] {
+  --color-bg: #282c34;
+  --color-bg-elevated: #21252b;
+  --color-surface: #2c313a;
+  --color-surface-alt: #2f343e;
+  --color-surface-input: #1e2227;
+  --color-surface-hover: #353b45;
+  --color-surface-header: #2f343e;
+  --color-border-faint: #2a2e36;
+  --color-border-subtle: #30353f;
+  --color-border: #383e4a;
+  --color-border-alt: #3b4048;
+  --color-border-strong: #454b57;
+  --color-border-stronger: #5c6370;
+  --color-text-primary: #dcdfe4;
+  --color-text-heading: #e6e8ec;
+  --color-text-heading-alt: #dcdfe4;
+  --color-text-body: #abb2bf;
+  --color-text-muted: #9da5b4;
+  --color-text-subtitle: #8f97a6;
+  --color-text-icon-muted: #8b93a1;
+  --color-text-empty: #7f8794;
+  --color-text-faint: #7a828e;
+  --color-text-dim: #636b78;
+  --color-text-placeholder: #4b5263;
+  --color-accent: #61afef;
+  --color-accent-text: #61afef;
+  --color-accent-hover: #74baf2;
+  --color-text-on-accent: #1e2227;
+  --color-danger: #e06c75;
+  --color-danger-text: #e06c75;
+  --color-success: #98c379;
+  --color-star: #e5c07b;
+  --color-warning: #d19a66;
+  --color-info: #56b6c2;
+  --color-highlight: #c678dd;
+  --silo-green: #98c379;
+}
+
+/* ── Rosé Pine: muted purples with a soft rose accent */
+
+[data-palette='rose-pine'] {
+  --color-bg: #191724;
+  --color-bg-elevated: #16141f;
+  --color-surface: #1f1d2e;
+  --color-surface-alt: #232136;
+  --color-surface-input: #26233a;
+  --color-surface-hover: #2c2942;
+  --color-surface-header: #232136;
+  --color-border-faint: #1d1b2a;
+  --color-border-subtle: #26233a;
+  --color-border: #2f2c43;
+  --color-border-alt: #36334b;
+  --color-border-strong: #403d52;
+  --color-border-stronger: #6e6a86;
+  --color-text-primary: #e0def4;
+  --color-text-heading: #e0def4;
+  --color-text-heading-alt: #e0def4;
+  --color-text-body: #d2cfe8;
+  --color-text-muted: #a9a5c4;
+  --color-text-subtitle: #908caa;
+  --color-text-icon-muted: #908caa;
+  --color-text-empty: #817d9c;
+  --color-text-faint: #7f7b99;
+  --color-text-dim: #6e6a86;
+  --color-text-placeholder: #524f67;
+  --color-accent: #ebbcba;
+  --color-accent-text: #ebbcba;
+  --color-accent-hover: #f0cbc9;
+  --color-text-on-accent: #191724;
+  --color-danger: #eb6f92;
+  --color-danger-text: #eb6f92;
+  --color-success: #9ccfd8;
+  --color-star: #f6c177;
+  --color-warning: #f6c177;
+  --color-info: #9ccfd8;
+  --color-highlight: #c4a7e7;
+}
+
+/* ── Monokai: the classic olive-black editor theme, lime accent */
+
+[data-palette='monokai'] {
+  --color-bg: #272822;
+  --color-bg-elevated: #1e1f1c;
+  --color-surface: #2d2e27;
+  --color-surface-alt: #31322b;
+  --color-surface-input: #31322b;
+  --color-surface-hover: #3e3d32;
+  --color-surface-header: #31322b;
+  --color-border-faint: #2a2b25;
+  --color-border-subtle: #33342c;
+  --color-border: #3e3d32;
+  --color-border-alt: #45443a;
+  --color-border-strong: #49483e;
+  --color-border-stronger: #75715e;
+  --color-text-primary: #f8f8f2;
+  --color-text-heading: #f8f8f2;
+  --color-text-heading-alt: #f2f2ec;
+  --color-text-body: #e4e4dc;
+  --color-text-muted: #bdbbad;
+  --color-text-subtitle: #a8a593;
+  --color-text-icon-muted: #a8a593;
+  --color-text-empty: #959280;
+  --color-text-faint: #8f8b77;
+  --color-text-dim: #75715e;
+  --color-text-placeholder: #5b584a;
+  --color-accent: #a6e22e;
+  --color-accent-text: #a6e22e;
+  --color-accent-hover: #b6ec48;
+  --color-text-on-accent: #1e1f1c;
+  --color-danger: #f92672;
+  --color-danger-text: #ff5c93;
+  --color-success: #a6e22e;
+  --color-star: #e6db74;
+  --color-warning: #fd971f;
+  --color-info: #66d9ef;
+  --color-highlight: #ae81ff;
+  --silo-green: #a6e22e;
+}
+
+/* ── Everforest: calm forest greens and warm text */
+
+[data-palette='everforest'] {
+  --color-bg: #2d353b;
+  --color-bg-elevated: #232a2e;
+  --color-surface: #343f44;
+  --color-surface-alt: #374146;
+  --color-surface-input: #343f44;
+  --color-surface-hover: #3d484d;
+  --color-surface-header: #374247;
+  --color-border-faint: #313a3f;
+  --color-border-subtle: #374146;
+  --color-border: #3d484d;
+  --color-border-alt: #424d52;
+  --color-border-strong: #475258;
+  --color-border-stronger: #7a8478;
+  --color-text-primary: #e4d8bd;
+  --color-text-heading: #e4d8bd;
+  --color-text-heading-alt: #d3c6aa;
+  --color-text-body: #d3c6aa;
+  --color-text-muted: #9da9a0;
+  --color-text-subtitle: #9da9a0;
+  --color-text-icon-muted: #9da9a0;
+  --color-text-empty: #859289;
+  --color-text-faint: #859289;
+  --color-text-dim: #7a8478;
+  --color-text-placeholder: #56635f;
+  --color-accent: #a7c080;
+  --color-accent-text: #a7c080;
+  --color-accent-hover: #b5cc90;
+  --color-text-on-accent: #232a2e;
+  --color-danger: #e67e80;
+  --color-danger-text: #e67e80;
+  --color-success: #a7c080;
+  --color-star: #dbbc7f;
+  --color-warning: #e69875;
+  --color-info: #7fbbb3;
+  --color-highlight: #d699b6;
+  --silo-green: #a7c080;
+}
