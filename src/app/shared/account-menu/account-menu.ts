@@ -57,7 +57,7 @@ export class AccountMenu {
 
   signOut(): void {
     this.close();
-    this.auth.logout();
+    void this.auth.logout();
   }
 
   onTriggerKeydown(event: KeyboardEvent): void {
