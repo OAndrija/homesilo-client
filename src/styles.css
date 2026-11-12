@@ -112,53 +112,53 @@
 }
 
 [data-theme='light'] {
-  /* Daylight: clean near-neutral greys (a hint of warmth to sit with the barn red and
-     silo green), a bright golden accent for fills, and a deeper amber for text. */
+  /* Daylight: cool, neutral greys (slate) so the golden accent and the barn red read
+     cleanly; a soft grey page with white cards, as dark mode layers its surfaces. */
   /* ── Surfaces ── */
-  --color-bg: #ffffff; /* page content */
-  --color-bg-elevated: #f3f3f1; /* shell: sidebar and top bar */
+  --color-bg: #f5f6f8; /* page content */
+  --color-bg-elevated: #eceef2; /* shell: sidebar and top bar */
   --color-surface: #ffffff;
-  --color-surface-alt: #f7f7f5;
-  --color-surface-input: #f5f5f3;
-  --color-surface-hover: #efefec;
-  --color-surface-header: #f9f9f8;
+  --color-surface-alt: #f8f9fb;
+  --color-surface-input: #f6f7f9;
+  --color-surface-hover: #f1f3f6;
+  --color-surface-header: #f9fafb;
   /* ── Borders ── */
-  --color-border-faint: #f0f0ed;
-  --color-border-subtle: #ebebe7;
-  --color-border: #e2e2dd;
-  --color-border-alt: #dbdbd5;
-  --color-border-strong: #cfcfc8;
-  --color-border-stronger: #a9a9a1;
+  --color-border-faint: #f0f2f5;
+  --color-border-subtle: #eceef2;
+  --color-border: #e2e5ea;
+  --color-border-alt: #dadde3;
+  --color-border-strong: #cdd1d8;
+  --color-border-stronger: #a0a6b0;
   /* ── Text ── */
-  --color-text-primary: #1b1b18;
-  --color-text-heading: #161614;
-  --color-text-heading-alt: #1f1f1c;
-  --color-text-body: #3a3a35;
-  --color-text-muted: #54544e;
-  --color-text-subtitle: #6a6a63;
-  --color-text-icon-muted: #74746c;
-  --color-text-empty: #74746c;
-  --color-text-faint: #85857d;
-  --color-text-dim: #95958d;
-  --color-text-placeholder: #a8a8a0;
+  --color-text-primary: #14171c;
+  --color-text-heading: #101318;
+  --color-text-heading-alt: #1c2027;
+  --color-text-body: #363b44;
+  --color-text-muted: #545a65;
+  --color-text-subtitle: #646b77;
+  --color-text-icon-muted: #737a86;
+  --color-text-empty: #737a86;
+  --color-text-faint: #858c97;
+  --color-text-dim: #959ba5;
+  --color-text-placeholder: #a6abb4;
   --color-text-on-accent: #22190a;
   --color-text-white: #ffffff;
   /* ── Accent ── */
   --color-accent: #f2a628;
-  --color-accent-text: #9a5b00;
+  --color-accent-text: #a05c00;
   --color-accent-hover: #e6970f;
   --color-accent-bg-faint: rgba(242, 166, 40, 0.07);
   --color-accent-bg-subtle: rgba(242, 166, 40, 0.1);
-  --color-accent-bg: rgba(242, 166, 40, 0.14);
-  --color-accent-bg-medium: rgba(242, 166, 40, 0.18);
-  --color-accent-bg-strong: rgba(242, 166, 40, 0.2); /* sidebar active link */
+  --color-accent-bg: rgba(242, 166, 40, 0.12);
+  --color-accent-bg-medium: rgba(242, 166, 40, 0.15);
+  --color-accent-bg-strong: rgba(242, 166, 40, 0.17);
   --color-accent-bg-stronger: rgba(242, 166, 40, 0.26);
   --color-accent-bg-deep: rgba(242, 166, 40, 0.32);
   --color-accent-bg-deepest: rgba(242, 166, 40, 0.42);
-  --color-floating-bg: rgba(255, 255, 255, 0.92);
-  --color-floating-border: rgba(0, 0, 0, 0.08);
-  --shadow-floating: 0 16px 40px rgba(30, 28, 20, 0.14), 0 2px 6px rgba(30, 28, 20, 0.06);
-  --shadow-sm: 0 1px 2px rgba(30, 28, 20, 0.04), 0 2px 8px rgba(30, 28, 20, 0.04);
+  --color-floating-bg: rgba(255, 255, 255, 0.95);
+  --color-floating-border: rgba(16, 24, 40, 0.08);
+  --shadow-floating: 0 12px 32px rgba(16, 24, 40, 0.12), 0 2px 6px rgba(16, 24, 40, 0.06);
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05), 0 1px 3px rgba(16, 24, 40, 0.04);
   /* ── Danger ── */
   --color-danger: #dc2626;
   --color-danger-text: #b91c1c;
