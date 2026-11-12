@@ -25,6 +25,10 @@
   grid-column: span 2;
 }
 
+.dash-tile[data-size='tall'] {
+  grid-row: span 2;
+}
+
 .dash-tile[data-size='large'] {
   grid-column: span 2;
   grid-row: span 2;
@@ -32,6 +36,11 @@
 
 .dash-tile[data-size='wide'] {
   grid-column: 1 / -1;
+}
+
+.dash-tile[data-size='wide-tall'] {
+  grid-column: 1 / -1;
+  grid-row: span 2;
 }
 
 .tile-body {
@@ -107,6 +116,45 @@
 .dash-tile[data-size='small'] .breakdown,
 .dash-tile[data-size='medium'] .breakdown {
   display: none;
+}
+
+/* Tall storage: the silo stands above the numbers. */
+.dash-tile[data-size='tall'] .hero {
+  grid-template-columns: minmax(0, 1fr);
+  align-content: center;
+  gap: 16px;
+  padding: 22px 20px;
+  text-align: center;
+}
+
+.dash-tile[data-size='tall'] .hero-visual {
+  padding: 0;
+}
+
+.dash-tile[data-size='tall'] .silo {
+  max-width: 76px;
+}
+
+.dash-tile[data-size='tall'] .hero-head,
+.dash-tile[data-size='tall'] .free {
+  justify-content: center;
+}
+
+.dash-tile[data-size='tall'] .hero-head {
+  flex-wrap: wrap;
+  row-gap: 6px;
+}
+
+.dash-tile[data-size='tall'] .free-num {
+  flex-basis: 100%;
+}
+
+.dash-tile[data-size='tall'] .breakdown {
+  display: none;
+}
+
+.dash-tile[data-size='tall'] .free-num {
+  font-size: 44px;
 }
 
 .dash-tile[data-size='small'] .free-num {
@@ -189,6 +237,28 @@
   }
 }
 
+/* Stat cards at 2×2: bigger numbers and watermark. */
+.dash-tile[data-size='large'] .stat-card {
+  padding: 28px;
+}
+
+.dash-tile[data-size='large'] .stat-value {
+  font-size: 84px;
+}
+
+.dash-tile[data-size='large'] .stat-value-text {
+  font-size: 44px;
+}
+
+.dash-tile[data-size='large'] .stat-label {
+  font-size: 15px;
+}
+
+.dash-tile[data-size='large'] .stat-watermark,
+.dash-tile[data-size='tall'] .stat-watermark {
+  font-size: 200px;
+}
+
 /* ── Quick actions ── */
 
 .quick-grid {
@@ -235,6 +305,20 @@
   outline-offset: 2px;
 }
 
+/* Tall and large: four big buttons fill the tile. */
+.dash-tile[data-size='tall'] .quick-grid,
+.dash-tile[data-size='large'] .quick-grid {
+  flex: 1;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: minmax(76px, 132px);
+  align-content: center;
+}
+
+.dash-tile[data-size='tall'] .quick-btn .material-symbols-rounded,
+.dash-tile[data-size='large'] .quick-btn .material-symbols-rounded {
+  font-size: 28px;
+}
+
 @container tile (max-width: 300px) {
   .quick-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -250,7 +334,7 @@
 
 .photo-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
   gap: 8px;
 }
 
@@ -455,6 +539,116 @@
 .dash.resizing .dash-tile:not(.sizing) .tile-grip {
   opacity: 0;
   pointer-events: none;
+}
+
+/* A tapped tile: its sizes show in the picker. */
+.dash.editing .dash-tile.selected {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 4px;
+}
+
+/* ── Size picker ── */
+
+.size-picker {
+  position: absolute;
+  z-index: 30;
+  display: flex;
+  gap: 4px;
+  padding: 6px;
+  border: 1px solid var(--color-floating-border);
+  border-radius: var(--radius-xl);
+  background: var(--color-floating-bg);
+  box-shadow: var(--shadow-floating);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  animation: picker-in 0.16s cubic-bezier(0.2, 0, 0, 1);
+}
+
+@keyframes picker-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+}
+
+.size-picker.above {
+  animation-name: picker-in-above;
+}
+
+@keyframes picker-in-above {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.97);
+  }
+}
+
+.size-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 62px;
+  padding: 8px 8px 6px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-lg);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.size-option:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text-heading);
+}
+
+.size-option.active {
+  border-color: var(--color-accent);
+  background: var(--color-accent-bg);
+  color: var(--color-accent-text);
+}
+
+.size-option:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+/* A 4 × 2 sketch of the grid with the cells the size covers filled in. */
+.size-diagram {
+  display: grid;
+  grid-template-columns: repeat(4, 9px);
+  grid-template-rows: repeat(2, 9px);
+  gap: 2px;
+}
+
+.size-diagram span {
+  border-radius: 2px;
+  background: var(--color-border-strong);
+}
+
+.size-diagram span.on {
+  background: var(--color-text-heading);
+}
+
+.size-option.active .size-diagram span.on {
+  background: var(--color-accent);
+}
+
+@media (max-width: 760px) {
+  .size-picker {
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: calc(100vw - 48px);
+  }
+  .size-option {
+    min-width: 56px;
+  }
 }
 
 /* The size you're about to get, while dragging the grip. */

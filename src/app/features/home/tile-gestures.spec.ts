@@ -1,13 +1,15 @@
 import { nearestSize, spans } from './tile-gestures';
 
 describe('tile resizing', () => {
-  const all = ['small', 'medium', 'large', 'wide'] as const;
+  const all = ['small', 'tall', 'medium', 'large', 'wide', 'wide-tall'] as const;
 
   it('knows how much of the grid each size covers', () => {
     expect(spans('small', 4)).toEqual([1, 1]);
     expect(spans('medium', 4)).toEqual([2, 1]);
     expect(spans('large', 4)).toEqual([2, 2]);
     expect(spans('wide', 4)).toEqual([4, 1]);
+    expect(spans('tall', 4)).toEqual([1, 2]);
+    expect(spans('wide-tall', 4)).toEqual([4, 2]);
     // On a phone's two columns, medium and wide are the same width.
     expect(spans('wide', 2)).toEqual([2, 1]);
   });
@@ -17,6 +19,8 @@ describe('tile resizing', () => {
     expect(nearestSize(all, 'small', 2, 2.2, 4)).toBe('large');
     expect(nearestSize(all, 'medium', 3.9, 1, 4)).toBe('wide');
     expect(nearestSize(all, 'large', 0.8, 0.9, 4)).toBe('small');
+    expect(nearestSize(all, 'small', 1, 2.1, 4)).toBe('tall');
+    expect(nearestSize(all, 'wide', 4, 2, 4)).toBe('wide-tall');
   });
 
   it('only offers sizes the tile allows', () => {

@@ -26,7 +26,7 @@ import { UploadService } from '../../core/services/uploads';
 import { formatBytes } from '../../core/utils/format';
 import { getFileIcon } from '../../core/utils/file-icon.util';
 import { FriendlyDatePipe } from '../../shared/pipes/friendly-date';
-import { reducedMotion, TileGestures } from './tile-gestures';
+import { reducedMotion, spans, TileGestures } from './tile-gestures';
 import { ActivityItem } from '../../shared/activity-item/activity-item';
 import { ActivityApi } from '../../core/services/activity';
 import { ActivityEntry } from '../../core/models/activity';
@@ -192,6 +192,12 @@ export class Home {
     effect(() => {
       if (this.shownTiles().some((t) => t.id === 'activity')) this.loadActivity();
     });
+    // Keep the size picker next to its tile as tiles move and change size.
+    effect(() => {
+      this.draft();
+      if (!this.selected()) return;
+      afterNextRender({ write: () => this.placePicker() }, { injector: this.injector });
+    });
     inject(DestroyRef).onDestroy(() => this.saveOnLeave());
     this.store.ensureLoaded();
     this.loadRecentFiles();
@@ -224,7 +230,7 @@ export class Home {
       .getRootContents(0)
       .pipe(finalize(() => this.loadingFolders.set(false)))
       .subscribe({
-        next: (contents) => this.folders.set(contents.subfolders.slice(0, 12)),
+        next: (contents) => this.folders.set(contents.subfolders.slice(0, 16)),
       });
   }
 
@@ -257,7 +263,7 @@ export class Home {
     this.activityLoaded = true;
     this.activityLoading.set(true);
     this.activityApi
-      .myActivity(0, 8)
+      .myActivity(0, 10)
       .pipe(finalize(() => this.activityLoading.set(false)))
       .subscribe({ next: (page) => this.activity.set(page.content) });
   }
@@ -334,12 +340,12 @@ export class Home {
    * How many items a list tile shows at each size, so its content fits the tile
    * (a 2×1 tile is one grid row, 2×2 two) instead of stretching the whole row.
    */
-  private static readonly LIMITS: Partial<Record<TileId, Record<TileSize, number>>> = {
-    'starred-files': { small: 0, medium: 4, large: 8, wide: 8 },
-    folders: { small: 0, medium: 4, large: 8, wide: 8 },
-    recent: { small: 0, medium: 2, large: 5, wide: 8 },
-    photos: { small: 0, medium: 4, large: 8, wide: 8 },
-    activity: { small: 0, medium: 2, large: 4, wide: 5 },
+  private static readonly LIMITS: Partial<Record<TileId, Partial<Record<TileSize, number>>>> = {
+    'starred-files': { tall: 4, medium: 4, large: 8, wide: 8, 'wide-tall': 16 },
+    folders: { tall: 4, medium: 4, large: 8, wide: 8, 'wide-tall': 16 },
+    recent: { medium: 2, large: 5, wide: 8, 'wide-tall': 16 },
+    photos: { tall: 4, medium: 4, large: 8, wide: 8, 'wide-tall': 16 },
+    activity: { tall: 4, medium: 2, large: 4, wide: 5, 'wide-tall': 10 },
   };
 
   limit(tile: PlacedTile): number {
@@ -356,7 +362,95 @@ export class Home {
       this.animate(() => this.draft.set(tiles), this.gestures.lifted() ?? undefined),
     afterRender: (fn) => afterNextRender({ write: fn }, { injector: this.injector }),
     announce: (message) => this.announcement.set(message),
+    tapped: (id) => this.toggleSelected(id),
+    started: () => this.selected.set(null),
   });
+
+  // ── Size picker ──────────────────────────────────────────────
+
+  /** The tile whose sizes are shown, after a tap on it in edit mode. */
+  selected = signal<TileId | null>(null);
+  private picker = viewChild<ElementRef<HTMLElement>>('picker');
+  selectedTile = computed(() => this.draft().find((t) => t.id === this.selected()) ?? null);
+
+  toggleSelected(id: TileId, focusPicker = false): void {
+    const next = this.selected() === id ? null : id;
+    this.selected.set(next);
+    if (!next) return;
+    this.announcement.set(`${tileDefinition(id).title} selected. Choose a size.`);
+    if (focusPicker) {
+      afterNextRender(
+        () =>
+          this.picker()
+            ?.nativeElement.querySelector<HTMLElement>('[aria-checked="true"]')
+            ?.focus({ preventScroll: true }),
+        { injector: this.injector },
+      );
+    }
+  }
+
+  /** Closes the picker; with `refocus`, the keyboard goes back to the tile. */
+  closePicker(refocus = false): void {
+    const id = this.selected();
+    this.selected.set(null);
+    if (refocus && id) this.tileElement(id)?.focus({ preventScroll: true });
+  }
+
+  /** Cells of a 4 × 2 grid that a size covers, for the picker's little diagrams. */
+  sizeCells(size: TileSize): boolean[] {
+    const [columns, rows] = spans(size, 4);
+    return Array.from({ length: 8 }, (_, i) => i % 4 < columns && Math.floor(i / 4) < rows);
+  }
+
+  /** Arrow keys move between the sizes, as in any radio group. */
+  onPickerKeydown(event: KeyboardEvent): void {
+    const options = Array.from(
+      this.picker()?.nativeElement.querySelectorAll<HTMLElement>('[role="radio"]') ?? [],
+    );
+    const index = options.indexOf(document.activeElement as HTMLElement);
+    const step =
+      event.key === 'ArrowRight' || event.key === 'ArrowDown'
+        ? 1
+        : event.key === 'ArrowLeft' || event.key === 'ArrowUp'
+          ? -1
+          : 0;
+    if (!step || index < 0) return;
+    event.preventDefault();
+    options[(index + step + options.length) % options.length].focus();
+  }
+
+  /** Puts the picker under its tile (or above, near the bottom), inside the grid. */
+  private placePicker(): void {
+    const grid = this.grid()?.nativeElement;
+    const picker = this.picker()?.nativeElement;
+    const id = this.selected();
+    const tile = id && this.tileElement(id);
+    if (!grid || !picker || !tile) return;
+    const gap = 10;
+    const left = tile.offsetLeft + tile.offsetWidth / 2 - picker.offsetWidth / 2;
+    const maxLeft = Math.max(0, grid.clientWidth - picker.offsetWidth);
+    const below = tile.offsetTop + tile.offsetHeight + gap;
+    const fitsBelow =
+      tile.getBoundingClientRect().bottom + gap + picker.offsetHeight < window.innerHeight - 8;
+    const top = fitsBelow ? below : tile.offsetTop - picker.offsetHeight - gap;
+    picker.style.left = `${Math.min(Math.max(0, left), maxLeft)}px`;
+    picker.style.top = `${Math.max(0, top)}px`;
+    picker.classList.toggle('above', !fitsBelow);
+  }
+
+  @HostListener('window:resize')
+  onWindowResize(): void {
+    if (this.selected()) this.placePicker();
+  }
+
+  /** A press outside the selected tile and its picker closes the picker. */
+  @HostListener('document:pointerdown', ['$event'])
+  onDocumentPointerDown(event: PointerEvent): void {
+    if (!this.selected()) return;
+    const target = event.target as Element | null;
+    if (target?.closest('[data-tile], .size-picker')) return;
+    this.closePicker();
+  }
 
   /** The draft differs from what is saved. */
   private dirty = computed(
@@ -370,11 +464,13 @@ export class Home {
 
   cancelEdit(): void {
     this.gestures.dispose();
+    this.selected.set(null);
     this.editing.set(false);
   }
 
   finishEdit(): void {
     this.gestures.dispose();
+    this.selected.set(null);
     if (!this.dirty()) {
       this.editing.set(false);
       return;
@@ -412,6 +508,11 @@ export class Home {
   @HostListener('document:keydown.escape')
   onEscape(): void {
     if (this.gestures.cancel()) return;
+    if (this.selected()) {
+      const inPicker = !!(document.activeElement as Element | null)?.closest('.size-picker');
+      this.closePicker(inPicker);
+      return;
+    }
     if (this.editing() && !this.saving()) this.cancelEdit();
   }
 
@@ -436,6 +537,7 @@ export class Home {
   }
 
   removeTile(id: TileId): void {
+    if (this.selected() === id) this.selected.set(null);
     const index = this.draft().findIndex((t) => t.id === id);
     this.animate(() => this.draft.update((d) => d.filter((t) => t.id !== id)));
     this.announcement.set(`${tileDefinition(id).title} removed.`);
@@ -483,6 +585,11 @@ export class Home {
   onTileKeydown(tile: PlacedTile, index: number, event: KeyboardEvent): void {
     if (event.target !== event.currentTarget || this.gestures.active) return;
     const { key } = event;
+    if (key === 'Enter' || key === ' ') {
+      event.preventDefault();
+      this.toggleSelected(tile.id, true);
+      return;
+    }
     if (key === 'Delete' || key === 'Backspace') {
       event.preventDefault();
       this.removeTile(tile.id);

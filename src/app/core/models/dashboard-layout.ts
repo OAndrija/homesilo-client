@@ -1,5 +1,18 @@
-/** How much of the dashboard grid a tile covers: 1×1, 2×1, 2×2 or the full row. */
-export type TileSize = 'small' | 'medium' | 'large' | 'wide';
+/**
+ * How much of the dashboard grid a tile covers, as columns × rows: 1×1, 1×2,
+ * 2×1, 2×2, the full width, or the full width and two rows.
+ */
+export type TileSize = 'small' | 'tall' | 'medium' | 'large' | 'wide' | 'wide-tall';
+
+/** Every size, smallest first; the order the size picker lists them in. */
+export const TILE_SIZES: readonly TileSize[] = [
+  'small',
+  'tall',
+  'medium',
+  'large',
+  'wide',
+  'wide-tall',
+];
 
 export type TileId =
   | 'storage'
@@ -40,9 +53,11 @@ export interface DashboardLayoutResponse {
 
 export const TILE_SIZE_LABELS: Record<TileSize, { short: string; long: string }> = {
   small: { short: '1×1', long: 'Small' },
-  medium: { short: '2×1', long: 'Medium' },
+  tall: { short: '1×2', long: 'Tall' },
+  medium: { short: '2×1', long: 'Wide' },
   large: { short: '2×2', long: 'Large' },
   wide: { short: 'Full', long: 'Full width' },
+  'wide-tall': { short: 'Full×2', long: 'Full width, tall' },
 };
 
 export const TILES: readonly TileDefinition[] = [
@@ -51,7 +66,7 @@ export const TILES: readonly TileDefinition[] = [
     title: 'Storage',
     description: 'The silo, free space and what takes it up',
     icon: 'database',
-    sizes: ['small', 'medium', 'large', 'wide'],
+    sizes: ['small', 'tall', 'medium', 'large', 'wide'],
     defaultSize: 'large',
   },
   {
@@ -59,7 +74,7 @@ export const TILES: readonly TileDefinition[] = [
     title: 'Total files',
     description: 'How many files you keep',
     icon: 'folder_copy',
-    sizes: ['small', 'medium'],
+    sizes: ['small', 'tall', 'medium', 'large'],
     defaultSize: 'small',
   },
   {
@@ -67,7 +82,7 @@ export const TILES: readonly TileDefinition[] = [
     title: 'Added this week',
     description: 'Files uploaded in the last 7 days',
     icon: 'trending_up',
-    sizes: ['small', 'medium'],
+    sizes: ['small', 'tall', 'medium', 'large'],
     defaultSize: 'small',
   },
   {
@@ -75,7 +90,7 @@ export const TILES: readonly TileDefinition[] = [
     title: 'Starred',
     description: 'How many items you starred',
     icon: 'star',
-    sizes: ['small', 'medium'],
+    sizes: ['small', 'tall', 'medium', 'large'],
     defaultSize: 'small',
   },
   {
@@ -83,7 +98,7 @@ export const TILES: readonly TileDefinition[] = [
     title: 'Largest file type',
     description: 'The kind of file that uses the most space',
     icon: 'pie_chart',
-    sizes: ['small', 'medium'],
+    sizes: ['small', 'tall', 'medium', 'large'],
     defaultSize: 'small',
   },
   {
@@ -91,7 +106,7 @@ export const TILES: readonly TileDefinition[] = [
     title: 'Trash',
     description: 'Space used by deleted files',
     icon: 'delete',
-    sizes: ['small', 'medium'],
+    sizes: ['small', 'tall', 'medium', 'large'],
     defaultSize: 'small',
   },
   {
@@ -99,7 +114,7 @@ export const TILES: readonly TileDefinition[] = [
     title: 'Quick actions',
     description: 'Upload files and jump to your pages',
     icon: 'bolt',
-    sizes: ['small', 'medium', 'wide'],
+    sizes: ['small', 'tall', 'medium', 'large', 'wide'],
     defaultSize: 'medium',
   },
   {
@@ -107,7 +122,7 @@ export const TILES: readonly TileDefinition[] = [
     title: 'Starred files',
     description: 'Your starred files, one click away',
     icon: 'kid_star',
-    sizes: ['medium', 'large', 'wide'],
+    sizes: ['tall', 'medium', 'large', 'wide', 'wide-tall'],
     defaultSize: 'wide',
   },
   {
@@ -115,7 +130,7 @@ export const TILES: readonly TileDefinition[] = [
     title: 'Folders',
     description: 'The folders in My Files',
     icon: 'folder',
-    sizes: ['medium', 'large', 'wide'],
+    sizes: ['tall', 'medium', 'large', 'wide', 'wide-tall'],
     defaultSize: 'wide',
   },
   {
@@ -123,7 +138,7 @@ export const TILES: readonly TileDefinition[] = [
     title: 'Recent uploads',
     description: 'A table of your latest uploads',
     icon: 'schedule',
-    sizes: ['medium', 'large', 'wide'],
+    sizes: ['medium', 'large', 'wide', 'wide-tall'],
     defaultSize: 'wide',
   },
   {
@@ -131,7 +146,7 @@ export const TILES: readonly TileDefinition[] = [
     title: 'Recent photos',
     description: 'Previews of the pictures you uploaded last',
     icon: 'photo_library',
-    sizes: ['medium', 'large', 'wide'],
+    sizes: ['tall', 'medium', 'large', 'wide', 'wide-tall'],
     defaultSize: 'wide',
   },
   {
@@ -139,7 +154,7 @@ export const TILES: readonly TileDefinition[] = [
     title: 'Recent activity',
     description: 'Sign-ins and changes to your account',
     icon: 'history',
-    sizes: ['medium', 'large', 'wide'],
+    sizes: ['tall', 'medium', 'large', 'wide', 'wide-tall'],
     defaultSize: 'medium',
   },
 ];

@@ -19,7 +19,7 @@
       <div>
         <h2>Edit dashboard</h2>
         <p class="subtitle">
-          Hold a tile to move it, drag its corner to resize it, or remove the ones you don't need.
+          Hold a tile to move it, tap it to change its size, or remove the ones you don't need.
         </p>
       </div>
       <div class="header-actions edit-actions">
@@ -117,6 +117,7 @@
           [attr.data-size]="tile.size"
           [class.lifted]="gestures.lifted() === tile.id"
           [class.sizing]="gestures.resizing() === tile.id"
+          [class.selected]="editing() && selected() === tile.id"
           [class.just-added]="justAdded() === tile.id"
           [attr.role]="editing() ? 'listitem' : null"
           [attr.tabindex]="editing() ? 0 : null"
@@ -547,7 +548,7 @@
                   class="tile-grip"
                   tabindex="-1"
                   [attr.aria-label]="'Resize ' + def.title"
-                  title="Drag to resize"
+                  title="Drag to resize, or click to choose a size"
                   (pointerdown)="gestures.onGripPointerDown(tile.id, $event)"
                   (click)="$event.preventDefault()"
                 >
@@ -577,6 +578,37 @@
       }
       @if (gestures.lifted()) {
         <div class="drop-slot" aria-hidden="true"></div>
+      }
+      @if (editing() && selectedTile(); as sel) {
+        @let selDef = definition(sel.id);
+        <div
+          #picker
+          class="size-picker"
+          role="radiogroup"
+          [attr.aria-label]="'Size of ' + selDef.title"
+          (keydown)="onPickerKeydown($event)"
+        >
+          @for (size of selDef.sizes; track size) {
+            <button
+              type="button"
+              role="radio"
+              class="size-option"
+              [class.active]="sel.size === size"
+              [attr.aria-checked]="sel.size === size"
+              [attr.tabindex]="sel.size === size ? 0 : -1"
+              [attr.aria-label]="sizeLabels[size].long + ', ' + sizeLabels[size].short"
+              [title]="sizeLabels[size].long"
+              (click)="setSize(sel.id, size)"
+            >
+              <span class="size-diagram" aria-hidden="true">
+                @for (cell of sizeCells(size); track $index) {
+                  <span [class.on]="cell"></span>
+                }
+              </span>
+              <span class="size-name">{{ sizeLabels[size].short }}</span>
+            </button>
+          }
+        </div>
       }
     </div>
   </div>
