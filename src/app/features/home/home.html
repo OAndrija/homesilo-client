@@ -23,14 +23,37 @@
         </p>
       </div>
       <div class="header-actions edit-actions">
+        <div class="history" role="group" aria-label="History">
+          <button
+            type="button"
+            class="header-btn secondary icon-only"
+            (click)="undo()"
+            [disabled]="!canUndo()"
+            aria-label="Undo"
+            [title]="'Undo (' + shortcut + 'Z)'"
+          >
+            <span class="material-symbols-rounded" aria-hidden="true">undo</span>
+          </button>
+          <button
+            type="button"
+            class="header-btn secondary icon-only"
+            (click)="redo()"
+            [disabled]="!canRedo()"
+            aria-label="Redo"
+            [title]="'Redo (' + shortcut + (shortcut === '⌘' ? '⇧Z' : 'Y') + ')'"
+          >
+            <span class="material-symbols-rounded" aria-hidden="true">redo</span>
+          </button>
+        </div>
         <button
+          #resetButton
           type="button"
           class="header-btn secondary"
-          (click)="resetLayout()"
+          (click)="askReset()"
           [disabled]="draftIsDefault()"
         >
           <span class="material-symbols-rounded" aria-hidden="true">restart_alt</span>
-          Reset <span class="wide-only">to default</span>
+          <span class="wide-only">Reset to default</span><span class="narrow-only">Reset</span>
         </button>
         <button type="button" class="header-btn secondary" (click)="cancelEdit()">Cancel</button>
         <button type="button" class="header-btn" (click)="finishEdit()" [disabled]="saving()">
@@ -488,10 +511,12 @@
                     <h3 id="photos-heading">Recent photos</h3>
                   </div>
                   @if (photos().length === 0) {
-                    <p class="panel-empty">Pictures you upload show up here.</p>
+                    <p class="panel-empty">
+                      {{ photosLoading() ? 'Loading…' : 'Pictures you upload show up here.' }}
+                    </p>
                   } @else {
-                    <div class="photo-grid">
-                      @for (photo of photos().slice(0, limit(tile)); track photo.id) {
+                    <div #photoGrid class="photo-grid" [style.--columns]="photoColumns()">
+                      @for (photo of photos().slice(0, photoCount(tile.size)); track photo.id) {
                         <button
                           type="button"
                           class="photo"
@@ -499,7 +524,16 @@
                           [title]="photo.originalFileName"
                           [attr.aria-label]="'Open ' + photo.originalFileName"
                         >
-                          <img [src]="thumbnailUrl(photo)" alt="" loading="lazy" />
+                          @if (photo.thumbnail && !brokenThumbs().has(photo.id)) {
+                            <img
+                              [src]="thumbnailUrl(photo)"
+                              alt=""
+                              loading="lazy"
+                              (error)="onThumbError(photo)"
+                            />
+                          } @else {
+                            <span class="material-symbols-rounded" aria-hidden="true">image</span>
+                          }
                         </button>
                       }
                     </div>
@@ -637,5 +671,17 @@
         </div>
       }
     </section>
+  }
+
+  @if (confirmingReset()) {
+    <app-confirm-dialog
+      title="Reset your dashboard?"
+      message="Your tiles go back to the default ones, in their default order and sizes. Nothing is saved until you press Done."
+      note="You can still undo this."
+      confirmLabel="Reset"
+      icon="restart_alt"
+      (confirm)="closeReset(true)"
+      (cancel)="closeReset(false)"
+    />
   }
 </div>

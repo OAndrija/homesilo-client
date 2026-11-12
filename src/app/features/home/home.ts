@@ -27,6 +27,8 @@ import { formatBytes } from '../../core/utils/format';
 import { getFileIcon } from '../../core/utils/file-icon.util';
 import { FriendlyDatePipe } from '../../shared/pipes/friendly-date';
 import { reducedMotion, spans, TileGestures } from './tile-gestures';
+import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
+import { UndoHistory } from '../../core/utils/undo-history';
 import { ActivityItem } from '../../shared/activity-item/activity-item';
 import { ActivityApi } from '../../core/services/activity';
 import { ActivityEntry } from '../../core/models/activity';
@@ -58,9 +60,9 @@ const CATEGORY_META: Record<string, { color: string; icon: string }> = {
 
 @Component({
   selector: 'app-home',
-  imports: [FileTable, RouterLink, FriendlyDatePipe, ActivityItem],
+  imports: [FileTable, RouterLink, FriendlyDatePipe, ActivityItem, ConfirmDialog],
   templateUrl: './home.html',
-  styleUrls: ['./home.css', './dashboard-tiles.css'],
+  styleUrls: ['./home.css', './dashboard-tiles.css', './dashboard-edit.css'],
 })
 export class Home {
   private fileService = inject(Files);
@@ -81,9 +83,34 @@ export class Home {
   /** The latest uploads; the table shows the first few, Recent photos picks the pictures. */
   private recentUploads = signal<FileMetadata[]>([]);
   recentFiles = computed(() => this.recentUploads().slice(0, 8));
-  photos = computed(() =>
-    this.recentUploads().filter((f) => f.contentType.startsWith('image/') && f.thumbnail),
+  /** The newest pictures, for Recent photos; loaded once that tile is on the dashboard. */
+  photos = signal<FileMetadata[]>([]);
+  photosLoading = signal(false);
+  private photosLoaded = false;
+  private photoGrid = viewChild<ElementRef<HTMLElement>>('photoGrid');
+  private photoGridWidth = signal(0);
+  private static readonly PHOTO_MIN = 84;
+  private static readonly PHOTO_GAP = 8;
+  /** Rows of photos at each size: one per grid row the tile spans. */
+  private static readonly PHOTO_ROWS: Partial<Record<TileSize, number>> = {
+    tall: 2,
+    medium: 1,
+    large: 2,
+    wide: 1,
+    'wide-tall': 2,
+  };
+  /** As many columns of at least PHOTO_MIN pixels as the tile is wide. */
+  photoColumns = computed(() =>
+    Math.max(
+      1,
+      Math.floor((this.photoGridWidth() + Home.PHOTO_GAP) / (Home.PHOTO_MIN + Home.PHOTO_GAP)),
+    ),
   );
+
+  /** Exactly enough photos to fill the tile's rows, so there's never a half-empty row. */
+  photoCount(size: TileSize): number {
+    return this.photoColumns() * (Home.PHOTO_ROWS[size] ?? 1);
+  }
   activity = signal<ActivityEntry[]>([]);
   activityLoading = signal(false);
   private activityLoaded = false;
@@ -191,6 +218,19 @@ export class Home {
     // Recent activity is only fetched once its tile is on the dashboard.
     effect(() => {
       if (this.shownTiles().some((t) => t.id === 'activity')) this.loadActivity();
+      if (this.shownTiles().some((t) => t.id === 'photos')) this.loadPhotos();
+    });
+    // Recent photos picks its column count from its width, so it follows the tile.
+    effect((onCleanup) => {
+      const el = this.photoGrid()?.nativeElement;
+      if (!el) return;
+      this.photoGridWidth.set(el.clientWidth);
+      if (typeof ResizeObserver === 'undefined') return;
+      const observer = new ResizeObserver(([entry]) =>
+        this.photoGridWidth.set(entry.contentRect.width),
+      );
+      observer.observe(el);
+      onCleanup(() => observer.disconnect());
     });
     // Keep the size picker next to its tile as tiles move and change size.
     effect(() => {
@@ -205,9 +245,13 @@ export class Home {
     this.loadFolders();
 
     // New uploads show up in "Recent uploads" (batched, so one reload per burst).
-    this.uploads.uploaded
-      .pipe(debounceTime(400), takeUntilDestroyed())
-      .subscribe(() => this.loadRecentFiles());
+    this.uploads.uploaded.pipe(debounceTime(400), takeUntilDestroyed()).subscribe(() => {
+      this.loadRecentFiles();
+      if (this.photosLoaded) {
+        this.photosLoaded = false;
+        this.loadPhotos();
+      }
+    });
   }
 
   private loadRecentFiles(): void {
@@ -256,6 +300,16 @@ export class Home {
 
   openPhoto(file: FileMetadata): void {
     this.fileActions.open(file, this.photos());
+  }
+
+  private loadPhotos(): void {
+    if (this.photosLoaded) return;
+    this.photosLoaded = true;
+    this.photosLoading.set(true);
+    this.fileService
+      .listPhotos(0, 60)
+      .pipe(finalize(() => this.photosLoading.set(false)))
+      .subscribe({ next: (page) => this.photos.set(page.content) });
   }
 
   private loadActivity(): void {
@@ -344,7 +398,6 @@ export class Home {
     'starred-files': { tall: 4, medium: 4, large: 8, wide: 8, 'wide-tall': 16 },
     folders: { tall: 4, medium: 4, large: 8, wide: 8, 'wide-tall': 16 },
     recent: { medium: 2, large: 5, wide: 8, 'wide-tall': 16 },
-    photos: { tall: 4, medium: 4, large: 8, wide: 8, 'wide-tall': 16 },
     activity: { tall: 4, medium: 2, large: 4, wide: 5, 'wide-tall': 10 },
   };
 
@@ -364,7 +417,74 @@ export class Home {
     announce: (message) => this.announcement.set(message),
     tapped: (id) => this.toggleSelected(id),
     started: () => this.selected.set(null),
+    ended: () => this.settle(),
   });
+
+  // ── Undo and redo ────────────────────────────────────────────
+
+  /**
+   * Each finished change is one step: a drop, a resize, a size picked, a tile
+   * added or removed, a keyboard move or a reset. A drag that swaps past
+   * several tiles is one step, recorded when the tile is let go.
+   */
+  private history = new UndoHistory<PlacedTile[]>([], sameLayout);
+  canUndo = this.history.canUndo;
+  canRedo = this.history.canRedo;
+  readonly shortcut = /Mac|iPhone|iPad/.test(globalThis.navigator?.platform ?? '') ? '⌘' : 'Ctrl+';
+
+  /** Records the draft as a step, unless a tile is still in hand. */
+  private settle(): void {
+    if (!this.gestures.active) this.history.record(this.draft());
+  }
+
+  undo(): void {
+    if (this.gestures.active) return;
+    const previous = this.history.undo();
+    if (previous) this.restore(previous, 'Undone.');
+  }
+
+  redo(): void {
+    if (this.gestures.active) return;
+    const next = this.history.redo();
+    if (next) this.restore(next, 'Redone.');
+  }
+
+  private restore(tiles: PlacedTile[], message: string): void {
+    this.selected.set(null);
+    this.animate(() => this.draft.set(tiles));
+    this.announcement.set(message);
+  }
+
+  /** Ctrl+Z undoes; Ctrl+Shift+Z or Ctrl+Y redoes (⌘ on a Mac). */
+  @HostListener('document:keydown', ['$event'])
+  onHistoryKeys(event: KeyboardEvent): void {
+    if (!this.editing() || this.confirmingReset() || !(event.ctrlKey || event.metaKey)) return;
+    const key = event.key.toLowerCase();
+    if (key === 'z' && !event.shiftKey) {
+      event.preventDefault();
+      this.undo();
+    } else if (key === 'y' || (key === 'z' && event.shiftKey)) {
+      event.preventDefault();
+      this.redo();
+    }
+  }
+
+  // ── Reset ────────────────────────────────────────────────────
+
+  confirmingReset = signal(false);
+  private resetButton = viewChild<ElementRef<HTMLButtonElement>>('resetButton');
+
+  askReset(): void {
+    this.gestures.dispose();
+    this.selected.set(null);
+    this.confirmingReset.set(true);
+  }
+
+  closeReset(confirmed: boolean): void {
+    this.confirmingReset.set(false);
+    if (confirmed) this.resetLayout();
+    else this.resetButton()?.nativeElement.focus();
+  }
 
   // ── Size picker ──────────────────────────────────────────────
 
@@ -459,6 +579,7 @@ export class Home {
 
   startEdit(): void {
     this.draft.set([...(this.layout.tiles() ?? DEFAULT_LAYOUT)]);
+    this.history.reset(this.draft());
     this.editing.set(true);
   }
 
@@ -507,6 +628,7 @@ export class Home {
 
   @HostListener('document:keydown.escape')
   onEscape(): void {
+    if (this.confirmingReset()) return;
     if (this.gestures.cancel()) return;
     if (this.selected()) {
       const inPicker = !!(document.activeElement as Element | null)?.closest('.size-picker');
@@ -518,11 +640,13 @@ export class Home {
 
   resetLayout(): void {
     this.animate(() => this.draft.set([...DEFAULT_LAYOUT]));
-    this.announcement.set('Dashboard reset to the default tiles.');
+    this.settle();
+    this.announcement.set('Dashboard reset to the default tiles. Undo brings yours back.');
   }
 
   addTile(def: TileDefinition): void {
     this.animate(() => this.draft.update((d) => [...d, { id: def.id, size: def.defaultSize }]));
+    this.settle();
     this.announcement.set(`${def.title} added at the end.`);
     this.justAdded.set(def.id);
     setTimeout(() => this.justAdded.set(null), 1200);
@@ -540,6 +664,7 @@ export class Home {
     if (this.selected() === id) this.selected.set(null);
     const index = this.draft().findIndex((t) => t.id === id);
     this.animate(() => this.draft.update((d) => d.filter((t) => t.id !== id)));
+    this.settle();
     this.announcement.set(`${tileDefinition(id).title} removed.`);
     // Keep the keyboard nearby: the tile that took its place, or the one before.
     afterNextRender(
@@ -554,6 +679,7 @@ export class Home {
   setSize(id: TileId, size: TileSize): void {
     if (this.draft().find((t) => t.id === id)?.size === size) return;
     this.animate(() => this.draft.update((d) => d.map((t) => (t.id === id ? { ...t, size } : t))));
+    this.settle();
     this.announcement.set(`${tileDefinition(id).title}: ${TILE_SIZE_LABELS[size].long}.`);
   }
 
@@ -570,6 +696,7 @@ export class Home {
         }),
       skipAnimation,
     );
+    this.settle();
   }
 
   /** What a tile says to screen readers in edit mode. */
