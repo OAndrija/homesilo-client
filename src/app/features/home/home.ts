@@ -1,4 +1,16 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  computed,
+  DestroyRef,
+  effect,
+  ElementRef,
+  HostListener,
+  inject,
+  Injector,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { debounceTime, finalize } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -14,6 +26,23 @@ import { UploadService } from '../../core/services/uploads';
 import { formatBytes } from '../../core/utils/format';
 import { getFileIcon } from '../../core/utils/file-icon.util';
 import { FriendlyDatePipe } from '../../shared/pipes/friendly-date';
+import { ActivityItem } from '../../shared/activity-item/activity-item';
+import { ActivityApi } from '../../core/services/activity';
+import { ActivityEntry } from '../../core/models/activity';
+import { DashboardLayoutService } from '../../core/services/dashboard-layout';
+import { ToastService } from '../../core/services/toast';
+import { errorMessage } from '../../core/http/http-error';
+import {
+  DEFAULT_LAYOUT,
+  PlacedTile,
+  sameLayout,
+  TILE_SIZE_LABELS,
+  TileDefinition,
+  TileId,
+  TILES,
+  TileSize,
+  tileDefinition,
+} from '../../core/models/dashboard-layout';
 
 // Colours live in styles.css (--cat-*) so they adapt to light/dark themes.
 const CATEGORY_META: Record<string, { color: string; icon: string }> = {
@@ -28,9 +57,9 @@ const CATEGORY_META: Record<string, { color: string; icon: string }> = {
 
 @Component({
   selector: 'app-home',
-  imports: [FileTable, RouterLink, FriendlyDatePipe],
+  imports: [FileTable, RouterLink, FriendlyDatePipe, ActivityItem],
   templateUrl: './home.html',
-  styleUrl: './home.css',
+  styleUrls: ['./home.css', './dashboard-tiles.css'],
 })
 export class Home {
   private fileService = inject(Files);
@@ -39,10 +68,24 @@ export class Home {
   private store = inject(DashboardStore);
   private authService = inject(Auth);
   private fileActions = inject(FileActions);
+  private activityApi = inject(ActivityApi);
+  private layout = inject(DashboardLayoutService);
+  private toast = inject(ToastService);
+  private injector = inject(Injector);
+  private grid = viewChild<ElementRef<HTMLElement>>('grid');
 
   username = computed(() => this.authService.user()?.username ?? '');
+  userId = computed(() => this.authService.user()?.id ?? null);
 
-  recentFiles = signal<FileMetadata[]>([]);
+  /** The latest uploads; the table shows the first few, Recent photos picks the pictures. */
+  private recentUploads = signal<FileMetadata[]>([]);
+  recentFiles = computed(() => this.recentUploads().slice(0, 8));
+  photos = computed(() =>
+    this.recentUploads().filter((f) => f.contentType.startsWith('image/') && f.thumbnail),
+  );
+  activity = signal<ActivityEntry[]>([]);
+  activityLoading = signal(false);
+  private activityLoaded = false;
   loadingRecent = signal(true);
   starredFiles = signal<FileMetadata[]>([]);
   folders = signal<Folder[]>([]);
@@ -136,7 +179,19 @@ export class Home {
     return Math.round((this.siloBodyBottom - filled) * 10) / 10;
   });
 
+  /** "1.2 GB", or "Empty" when nothing is in the trash. */
+  trashLabel = computed(() => {
+    const bytes = this.store.stats()?.trashedBytes ?? 0;
+    return bytes > 0 ? this.formatSize(bytes) : 'Empty';
+  });
+
   constructor() {
+    this.layout.load();
+    // Recent activity is only fetched once its tile is on the dashboard.
+    effect(() => {
+      if (this.shownTiles().some((t) => t.id === 'activity')) this.loadActivity();
+    });
+    inject(DestroyRef).onDestroy(() => this.endDrag());
     this.store.ensureLoaded();
     this.loadRecentFiles();
     this.loadStarred();
@@ -150,10 +205,10 @@ export class Home {
 
   private loadRecentFiles(): void {
     this.fileService
-      .listRecentlyUploadedActive(0)
+      .listRecentlyUploadedActive(0, 24)
       .pipe(finalize(() => this.loadingRecent.set(false)))
       .subscribe({
-        next: (response) => this.recentFiles.set(response.content.slice(0, 8)),
+        next: (response) => this.recentUploads.set(response.content),
       });
   }
 
@@ -168,7 +223,7 @@ export class Home {
       .getRootContents(0)
       .pipe(finalize(() => this.loadingFolders.set(false)))
       .subscribe({
-        next: (contents) => this.folders.set(contents.subfolders.slice(0, 8)),
+        next: (contents) => this.folders.set(contents.subfolders.slice(0, 12)),
       });
   }
 
@@ -190,6 +245,20 @@ export class Home {
 
   openStarred(file: FileMetadata): void {
     this.fileActions.open(file, this.starredFiles());
+  }
+
+  openPhoto(file: FileMetadata): void {
+    this.fileActions.open(file, this.photos());
+  }
+
+  private loadActivity(): void {
+    if (this.activityLoaded) return;
+    this.activityLoaded = true;
+    this.activityLoading.set(true);
+    this.activityApi
+      .myActivity(0, 8)
+      .pipe(finalize(() => this.activityLoading.set(false)))
+      .subscribe({ next: (page) => this.activity.set(page.content) });
   }
 
   openRecent(file: FileMetadata): void {
@@ -238,6 +307,353 @@ export class Home {
     if (dropped && dropped.length > 0) this.upload(Array.from(dropped));
   }
 
+  // ── Tiles ─────────────────────────────────────────────────────
+
+  readonly sizeLabels = TILE_SIZE_LABELS;
+  readonly definition = tileDefinition;
+
+  editing = signal(false);
+  /** The layout being edited; saved on Done, dropped on Cancel. */
+  draft = signal<PlacedTile[]>([]);
+  saving = signal(false);
+  layoutReady = computed(() => this.layout.tiles() !== null);
+  shownTiles = computed<PlacedTile[]>(() =>
+    this.editing() ? this.draft() : (this.layout.tiles() ?? []),
+  );
+  hiddenTiles = computed<TileDefinition[]>(() =>
+    TILES.filter((t) => !this.draft().some((p) => p.id === t.id)),
+  );
+  draftIsDefault = computed(() => sameLayout(this.draft(), DEFAULT_LAYOUT));
+  /** For screen readers: what the last edit did. */
+  announcement = signal('');
+  /** Briefly highlights a tile that was just added. */
+  justAdded = signal<TileId | null>(null);
+
+  /**
+   * How many items a list tile shows at each size, so its content fits the tile
+   * (a 2×1 tile is one grid row, 2×2 two) instead of stretching the whole row.
+   */
+  private static readonly LIMITS: Partial<Record<TileId, Record<TileSize, number>>> = {
+    'starred-files': { small: 0, medium: 4, large: 8, wide: 8 },
+    folders: { small: 0, medium: 4, large: 8, wide: 8 },
+    recent: { small: 0, medium: 2, large: 5, wide: 8 },
+    photos: { small: 0, medium: 4, large: 8, wide: 8 },
+    activity: { small: 0, medium: 2, large: 4, wide: 5 },
+  };
+
+  limit(tile: PlacedTile): number {
+    return Home.LIMITS[tile.id]?.[tile.size] ?? 8;
+  }
+
+  startEdit(): void {
+    this.draft.set([...(this.layout.tiles() ?? DEFAULT_LAYOUT)]);
+    this.editing.set(true);
+  }
+
+  cancelEdit(): void {
+    this.endDrag();
+    this.editing.set(false);
+  }
+
+  finishEdit(): void {
+    this.endDrag();
+    const draft = this.draft();
+    if (sameLayout(draft, this.layout.tiles() ?? DEFAULT_LAYOUT)) {
+      this.editing.set(false);
+      return;
+    }
+    this.saving.set(true);
+    this.layout
+      .save(draft)
+      .pipe(finalize(() => this.saving.set(false)))
+      .subscribe({
+        next: () => {
+          this.editing.set(false);
+          this.toast.success('Dashboard saved');
+        },
+        error: (err) => this.toast.error(errorMessage(err, 'Couldn’t save your dashboard.')),
+      });
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    if (this.draggingId()) this.endDrag();
+    else if (this.editing() && !this.saving()) this.cancelEdit();
+  }
+
+  resetLayout(): void {
+    this.animate(() => this.draft.set([...DEFAULT_LAYOUT]));
+    this.announcement.set('Dashboard reset to the default tiles.');
+  }
+
+  addTile(def: TileDefinition): void {
+    this.animate(() => this.draft.update((d) => [...d, { id: def.id, size: def.defaultSize }]));
+    this.announcement.set(`${def.title} added at the end.`);
+    this.justAdded.set(def.id);
+    setTimeout(() => this.justAdded.set(null), 1200);
+    afterNextRender(
+      () => {
+        const el = this.tileElement(def.id);
+        el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        el?.querySelector<HTMLElement>('.tile-handle')?.focus({ preventScroll: true });
+      },
+      { injector: this.injector },
+    );
+  }
+
+  removeTile(id: TileId): void {
+    const index = this.draft().findIndex((t) => t.id === id);
+    this.animate(() => this.draft.update((d) => d.filter((t) => t.id !== id)));
+    this.announcement.set(`${tileDefinition(id).title} removed.`);
+    // Keep the keyboard nearby: the next tile's handle, or the previous one's.
+    afterNextRender(
+      () => {
+        const next = this.draft()[index] ?? this.draft()[index - 1];
+        if (next) this.tileElement(next.id)?.querySelector<HTMLElement>('.tile-remove')?.focus();
+      },
+      { injector: this.injector },
+    );
+  }
+
+  setSize(id: TileId, size: TileSize): void {
+    this.animate(() => this.draft.update((d) => d.map((t) => (t.id === id ? { ...t, size } : t))));
+    this.announcement.set(`${tileDefinition(id).title}: ${TILE_SIZE_LABELS[size].long}.`);
+  }
+
+  private moveTile(id: TileId, to: number): void {
+    const from = this.draft().findIndex((t) => t.id === id);
+    if (from < 0 || to < 0 || to >= this.draft().length || from === to) return;
+    this.animate(() =>
+      this.draft.update((d) => {
+        const next = [...d];
+        const [tile] = next.splice(from, 1);
+        next.splice(to, 0, tile);
+        return next;
+      }),
+    );
+  }
+
+  onHandleKeydown(tile: PlacedTile, index: number, event: KeyboardEvent): void {
+    const last = this.draft().length - 1;
+    const to =
+      event.key === 'ArrowLeft' || event.key === 'ArrowUp'
+        ? index - 1
+        : event.key === 'ArrowRight' || event.key === 'ArrowDown'
+          ? index + 1
+          : event.key === 'Home'
+            ? 0
+            : event.key === 'End'
+              ? last
+              : null;
+    if (to === null) return;
+    event.preventDefault();
+    if (to < 0 || to > last || to === index) return;
+    this.moveTile(tile.id, to);
+    this.announcement.set(
+      `${tileDefinition(tile.id).title} moved to position ${to + 1} of ${last + 1}.`,
+    );
+    // Moving the tile re-inserts it in the page, which drops focus; put it back.
+    afterNextRender(
+      () => this.tileElement(tile.id)?.querySelector<HTMLElement>('.tile-handle')?.focus(),
+      { injector: this.injector },
+    );
+  }
+
+  // ── Dragging (mouse, pen and touch) ──────────────────────────
+
+  draggingId = signal<TileId | null>(null);
+  ghost = signal<{
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+    icon: string;
+    title: string;
+  } | null>(null);
+  private drag: {
+    id: TileId;
+    offsetX: number;
+    offsetY: number;
+    x: number;
+    y: number;
+    lastTarget: string | null;
+    lastMove: number;
+    scroller: HTMLElement;
+    frame: number;
+  } | null = null;
+
+  onHandlePointerDown(tile: PlacedTile, event: PointerEvent): void {
+    if (event.button !== 0 || this.drag) return;
+    const el = this.tileElement(tile.id);
+    if (!el) return;
+    event.preventDefault();
+    const rect = el.getBoundingClientRect();
+    const def = tileDefinition(tile.id);
+    this.drag = {
+      id: tile.id,
+      offsetX: event.clientX - rect.left,
+      offsetY: event.clientY - rect.top,
+      x: event.clientX,
+      y: event.clientY,
+      lastTarget: null,
+      lastMove: 0,
+      scroller: scrollParent(el),
+      frame: requestAnimationFrame(this.autoScroll),
+    };
+    this.draggingId.set(tile.id);
+    this.ghost.set({
+      x: rect.left,
+      y: rect.top,
+      w: Math.min(rect.width, 360),
+      h: Math.min(rect.height, 220),
+      icon: def.icon,
+      title: def.title,
+    });
+    window.addEventListener('pointermove', this.onPointerMove);
+    window.addEventListener('pointerup', this.onPointerUp);
+    window.addEventListener('pointercancel', this.onPointerUp);
+  }
+
+  private onPointerMove = (event: PointerEvent): void => {
+    const drag = this.drag;
+    if (!drag) return;
+    drag.x = event.clientX;
+    drag.y = event.clientY;
+    this.ghost.update((g) => g && { ...g, x: drag.x - drag.offsetX, y: drag.y - drag.offsetY });
+    this.reorderAt(drag.x, drag.y);
+  };
+
+  private onPointerUp = (): void => {
+    const id = this.drag?.id;
+    this.endDrag();
+    if (id) {
+      const position = this.draft().findIndex((t) => t.id === id) + 1;
+      this.announcement.set(
+        `${tileDefinition(id).title} placed at position ${position} of ${this.draft().length}.`,
+      );
+    }
+  };
+
+  /** Moves the dragged tile into the place of the tile under the pointer. */
+  private reorderAt(x: number, y: number): void {
+    const drag = this.drag;
+    const grid = this.grid()?.nativeElement;
+    if (!drag || !grid) return;
+    // Let a move settle before the next, so tiles of different sizes don't trade places back and forth.
+    if (performance.now() - drag.lastMove < 140) return;
+
+    const hit = document.elementFromPoint(x, y)?.closest<HTMLElement>('[data-tile]');
+    if (hit && grid.contains(hit)) {
+      const id = hit.dataset['tile'] as TileId;
+      if (id === drag.id) {
+        drag.lastTarget = null;
+        return;
+      }
+      if (id === drag.lastTarget) return;
+      drag.lastTarget = id;
+      drag.lastMove = performance.now();
+      this.moveTile(
+        drag.id,
+        this.draft().findIndex((t) => t.id === id),
+      );
+      return;
+    }
+
+    // Past the last tile: move to the end.
+    const tiles = grid.querySelectorAll<HTMLElement>('[data-tile]');
+    const lastTile = tiles[tiles.length - 1];
+    if (!lastTile || lastTile.dataset['tile'] === drag.id) return;
+    const last = lastTile.getBoundingClientRect();
+    if (y > last.bottom || (y > last.top && x > last.right)) {
+      drag.lastTarget = null;
+      drag.lastMove = performance.now();
+      this.moveTile(drag.id, this.draft().length - 1);
+    }
+  }
+
+  /** Scrolls the page while a tile is held near its top or bottom edge. */
+  private autoScroll = (): void => {
+    const drag = this.drag;
+    if (!drag) return;
+    const bounds =
+      drag.scroller === document.scrollingElement
+        ? { top: 0, bottom: window.innerHeight }
+        : drag.scroller.getBoundingClientRect();
+    const edge = 72;
+    const speed =
+      drag.y < bounds.top + edge
+        ? -Math.ceil((bounds.top + edge - drag.y) / 6)
+        : drag.y > bounds.bottom - edge
+          ? Math.ceil((drag.y - (bounds.bottom - edge)) / 6)
+          : 0;
+    if (speed !== 0) {
+      drag.scroller.scrollBy(0, speed);
+      this.reorderAt(drag.x, drag.y);
+    }
+    drag.frame = requestAnimationFrame(this.autoScroll);
+  };
+
+  private endDrag(): void {
+    if (this.drag) cancelAnimationFrame(this.drag.frame);
+    this.drag = null;
+    this.draggingId.set(null);
+    this.ghost.set(null);
+    window.removeEventListener('pointermove', this.onPointerMove);
+    window.removeEventListener('pointerup', this.onPointerUp);
+    window.removeEventListener('pointercancel', this.onPointerUp);
+  }
+
+  private tileElement(id: TileId): HTMLElement | null {
+    return this.grid()?.nativeElement.querySelector<HTMLElement>(`[data-tile="${id}"]`) ?? null;
+  }
+
+  /**
+   * Runs a layout change and slides each tile from its old place to its new one,
+   * so a move, resize or removal is easy to follow.
+   */
+  private animate(change: () => void): void {
+    const grid = this.grid()?.nativeElement;
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (!grid || reduce || typeof grid.animate !== 'function') {
+      change();
+      return;
+    }
+    const before = new Map<string, DOMRect>();
+    grid.querySelectorAll<HTMLElement>('[data-tile]').forEach((el) => {
+      before.set(el.dataset['tile']!, el.getBoundingClientRect());
+    });
+    change();
+    afterNextRender(
+      () => {
+        grid.querySelectorAll<HTMLElement>('[data-tile]').forEach((el) => {
+          const old = before.get(el.dataset['tile']!);
+          if (!old) {
+            el.animate(
+              [
+                { opacity: 0, transform: 'scale(0.96)' },
+                { opacity: 1, transform: 'none' },
+              ],
+              {
+                duration: 200,
+                easing: 'ease-out',
+              },
+            );
+            return;
+          }
+          const now = el.getBoundingClientRect();
+          const dx = old.left - now.left;
+          const dy = old.top - now.top;
+          if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
+          el.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], {
+            duration: 220,
+            easing: 'cubic-bezier(0.2, 0, 0, 1)',
+          });
+        });
+      },
+      { injector: this.injector },
+    );
+  }
+
   readonly getFileIcon = getFileIcon;
 
   /** "<1%" for tiny shares so a real file type never reads as 0%. */
@@ -247,6 +663,17 @@ export class Home {
   }
 
   formatSize = formatBytes;
+}
+
+/** The element that scrolls the page around this one. */
+function scrollParent(el: HTMLElement): HTMLElement {
+  for (let node = el.parentElement; node; node = node.parentElement) {
+    const { overflowY } = getComputedStyle(node);
+    if ((overflowY === 'auto' || overflowY === 'scroll') && node.scrollHeight > node.clientHeight) {
+      return node;
+    }
+  }
+  return document.scrollingElement as HTMLElement;
 }
 
 function hasFiles(event: DragEvent): boolean {
