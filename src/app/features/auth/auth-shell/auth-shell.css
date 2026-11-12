@@ -242,3 +242,8 @@
     padding-top: 40px;
   }
 }
+
+/* In daylight the form sits on white, beside the grey brand panel. */
+:host-context([data-theme='light']) .form-side {
+  background: var(--color-surface);
+}

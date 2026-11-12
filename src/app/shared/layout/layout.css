@@ -136,6 +136,16 @@
   color: var(--color-accent-text);
 }
 
+/* In daylight the active link is a white pill on the grey shell, like the cards. */
+:host-context([data-theme='light']) .nav-link.active {
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+:host-context([data-theme='light']) .nav-link.active .material-symbols-rounded {
+  color: var(--color-accent);
+}
+
 .main-area {
   flex: 1;
   display: flex;

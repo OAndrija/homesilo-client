@@ -795,3 +795,33 @@
     transform: none;
   }
 }
+
+/* ── Light mode ───────────────────────────────────────────────────
+   The colour glows that give the dark cards depth look loud on white, so in
+   daylight they shrink to a hint and the borders go neutral. */
+
+:host-context([data-theme='light']) .hero,
+:host-context([data-theme='light']) .stat-card {
+  border-color: var(--color-border);
+  background:
+    radial-gradient(
+      90% 80% at 100% 0%,
+      color-mix(in srgb, var(--hue) 7%, transparent),
+      transparent 65%
+    ),
+    var(--color-surface);
+}
+
+:host-context([data-theme='light']) .hero::after,
+:host-context([data-theme='light']) .stat-card::after {
+  opacity: 0.45;
+}
+
+:host-context([data-theme='light']) .stat-card:hover {
+  border-color: color-mix(in srgb, var(--hue) 40%, var(--color-border));
+  box-shadow: var(--shadow-floating);
+}
+
+:host-context([data-theme='light']) .stat-icon {
+  box-shadow: 0 6px 14px -6px color-mix(in srgb, var(--hue) 55%, transparent);
+}
