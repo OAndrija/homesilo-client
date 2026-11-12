@@ -19,7 +19,7 @@
       <div>
         <h2>Edit dashboard</h2>
         <p class="subtitle">
-          Drag tiles to move them, pick a size, or remove the ones you don't need.
+          Hold a tile to move it, drag its corner to resize it, or remove the ones you don't need.
         </p>
       </div>
       <div class="header-actions edit-actions">
@@ -30,7 +30,7 @@
           [disabled]="draftIsDefault()"
         >
           <span class="material-symbols-rounded" aria-hidden="true">restart_alt</span>
-          Reset<span class="wide-only">&nbsp;to default</span>
+          Reset <span class="wide-only">to default</span>
         </button>
         <button type="button" class="header-btn secondary" (click)="cancelEdit()">Cancel</button>
         <button type="button" class="header-btn" (click)="finishEdit()" [disabled]="saving()">
@@ -91,21 +91,40 @@
     }
   }
 
-  <p id="tile-move-help" class="visually-hidden">
-    Drag the handle, or focus it and use the arrow keys, to move this tile.
+  <p id="tile-edit-help" class="visually-hidden">
+    Drag to move. With the keyboard, arrow keys move the tile, Shift and arrow keys change its size,
+    and Delete removes it.
   </p>
   <p class="visually-hidden" aria-live="polite">{{ announcement() }}</p>
 
-  <div class="dash" [class.editing]="editing()" [class.dragging]="!!draggingId()">
-    <div #grid class="dash-grid">
+  <div
+    class="dash"
+    [class.editing]="editing()"
+    [class.carrying]="!!gestures.lifted()"
+    [class.resizing]="!!gestures.resizing()"
+  >
+    <div
+      #grid
+      class="dash-grid"
+      [attr.role]="editing() ? 'list' : null"
+      [attr.aria-label]="editing() ? 'Dashboard tiles' : null"
+    >
       @for (tile of shownTiles(); track tile.id; let i = $index) {
         @let def = definition(tile.id);
         <div
           class="dash-tile"
           [attr.data-tile]="tile.id"
           [attr.data-size]="tile.size"
-          [class.placeholder]="draggingId() === tile.id"
+          [class.lifted]="gestures.lifted() === tile.id"
+          [class.sizing]="gestures.resizing() === tile.id"
           [class.just-added]="justAdded() === tile.id"
+          [attr.role]="editing() ? 'listitem' : null"
+          [attr.tabindex]="editing() ? 0 : null"
+          [attr.aria-label]="editing() ? tileLabel(tile, i) : null"
+          [attr.aria-describedby]="editing() ? 'tile-edit-help' : null"
+          (pointerdown)="editing() && gestures.onTilePointerDown(tile.id, $event)"
+          (keydown)="editing() && onTileKeydown(tile, i, $event)"
+          (contextmenu)="editing() && $event.preventDefault()"
         >
           <div class="tile-body" [attr.inert]="editing() ? '' : null">
             @switch (tile.id) {
@@ -514,21 +533,8 @@
             <div class="tile-edit">
               <button
                 type="button"
-                class="tile-handle"
-                [attr.aria-label]="
-                  'Move ' + def.title + ', position ' + (i + 1) + ' of ' + shownTiles().length
-                "
-                aria-describedby="tile-move-help"
-                title="Drag to move"
-                (pointerdown)="onHandlePointerDown(tile, $event)"
-                (keydown)="onHandleKeydown(tile, i, $event)"
-              >
-                <span class="material-symbols-rounded" aria-hidden="true">drag_indicator</span>
-              </button>
-              <span class="tile-name-tag">{{ def.title }}</span>
-              <button
-                type="button"
                 class="tile-remove"
+                tabindex="-1"
                 [attr.aria-label]="'Remove ' + def.title"
                 title="Remove"
                 (click)="removeTile(tile.id)"
@@ -536,25 +542,20 @@
                 <span class="material-symbols-rounded" aria-hidden="true">remove</span>
               </button>
               @if (def.sizes.length > 1) {
-                <div
-                  class="tile-sizes"
-                  role="radiogroup"
-                  [attr.aria-label]="'Size of ' + def.title"
+                <button
+                  type="button"
+                  class="tile-grip"
+                  tabindex="-1"
+                  [attr.aria-label]="'Resize ' + def.title"
+                  title="Drag to resize"
+                  (pointerdown)="gestures.onGripPointerDown(tile.id, $event)"
+                  (click)="$event.preventDefault()"
                 >
-                  @for (size of def.sizes; track size) {
-                    <button
-                      type="button"
-                      role="radio"
-                      [attr.aria-checked]="tile.size === size"
-                      [attr.aria-label]="sizeLabels[size].long"
-                      [title]="sizeLabels[size].long"
-                      [class.active]="tile.size === size"
-                      (click)="setSize(tile.id, size)"
-                    >
-                      {{ sizeLabels[size].short }}
-                    </button>
-                  }
-                </div>
+                  <span class="material-symbols-rounded" aria-hidden="true">open_in_full</span>
+                </button>
+              }
+              @if (gestures.resizing() === tile.id) {
+                <span class="size-badge" aria-hidden="true">{{ sizeLabels[tile.size].short }}</span>
               }
             </div>
           }
@@ -573,6 +574,9 @@
             }
           </div>
         }
+      }
+      @if (gestures.lifted()) {
+        <div class="drop-slot" aria-hidden="true"></div>
       }
     </div>
   </div>
@@ -601,19 +605,5 @@
         </div>
       }
     </section>
-  }
-
-  @if (ghost(); as g) {
-    <div
-      class="tile-ghost"
-      aria-hidden="true"
-      [style.left.px]="g.x"
-      [style.top.px]="g.y"
-      [style.width.px]="g.w"
-      [style.height.px]="g.h"
-    >
-      <span class="material-symbols-rounded" aria-hidden="true">{{ g.icon }}</span>
-      {{ g.title }}
-    </div>
   }
 </div>
