@@ -1,0 +1,245 @@
+/* Extras for the admin dialogs, on top of the shared dialog styles. */
+
+.dialog.wide {
+  width: min(520px, 100%);
+}
+
+.dialog-body.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+}
+
+.field .dlg-label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.field .dlg-label.plain {
+  display: block;
+}
+
+/* No spinner arrows on the storage size; typing is quicker. */
+input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
+}
+
+.label-note {
+  color: var(--color-text-faint);
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+.field-error {
+  margin-top: 6px;
+  color: var(--color-danger-text);
+  font-size: 12.5px;
+}
+
+.field-hint {
+  margin-top: 6px;
+  color: var(--color-text-muted);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+.field-hint.warn {
+  color: var(--color-accent-text);
+}
+
+/* Buttons inside a text field, on the right (show / generate / copy). */
+.dlg-input.with-actions input {
+  padding-right: 112px;
+}
+
+.input-actions {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  display: flex;
+  gap: 2px;
+  transform: translateY(-50%);
+}
+
+.input-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.input-action:hover:not(:disabled) {
+  background: var(--color-surface-hover);
+  color: var(--color-text-heading);
+}
+
+.input-action:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+.input-action .material-symbols-rounded {
+  font-size: 19px;
+}
+
+/* Two-option switch (Member / Admin). */
+.segmented {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-input);
+}
+
+.segmented button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 9px 12px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
+  text-align: left;
+  cursor: pointer;
+}
+
+.segmented button:hover:not(:disabled) {
+  color: var(--color-text-heading);
+}
+
+.segmented button[aria-checked='true'] {
+  border-color: var(--color-accent-bg-strong);
+  background: var(--color-surface);
+  color: var(--color-text-heading);
+  box-shadow: var(--shadow-sm);
+}
+
+.segmented button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.segmented button:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+.seg-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.seg-title .material-symbols-rounded {
+  font-size: 18px;
+}
+
+.segmented button[aria-checked='true'] .seg-title .material-symbols-rounded {
+  color: var(--color-accent-text);
+}
+
+.seg-note {
+  font-size: 12px;
+  color: var(--color-text-faint);
+}
+
+/* Number plus unit (100 | GB). */
+.size-input {
+  display: grid;
+  grid-template-columns: 1fr 96px;
+  gap: 8px;
+}
+
+.size-input select {
+  height: 46px;
+  padding: 0 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-input);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.size-input select:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-bg);
+}
+
+.mono {
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  letter-spacing: 0.02em;
+}
+
+/* Who the dialog is about. */
+.person {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-input);
+}
+
+.person-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-accent-bg-strong);
+  color: var(--color-accent-text);
+  font-weight: 700;
+}
+
+.person-name {
+  color: var(--color-text-heading);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.person-meta {
+  margin-top: 2px;
+  color: var(--color-text-muted);
+  font-size: 12.5px;
+}
+
+.consequences {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--color-text-body);
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+.consequences strong {
+  color: var(--color-text-heading);
+}

@@ -14,3 +14,9 @@ export const guestGuard: CanActivateFn = () => {
   const auth = inject(Auth);
   return auth.isLoggedIn() ? inject(Router).createUrlTree(['/home']) : true;
 };
+
+/** Only admins; everyone else is sent to the dashboard. */
+export const adminGuard: CanActivateFn = () => {
+  const auth = inject(Auth);
+  return auth.isAdmin() ? true : inject(Router).createUrlTree(['/home']);
+};
