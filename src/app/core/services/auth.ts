@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { catchError, finalize, map, Observable, of, tap } from 'rxjs';
+import { catchError, map, Observable, of, tap } from 'rxjs';
 import { API_BASE } from '../api';
 import {
   AuthConfig,
@@ -52,14 +52,26 @@ export class Auth {
       .pipe(map((response) => this.startSession(response)));
   }
 
-  logout(): void {
-    this.http
-      .post<void>(`${API_BASE}/auth/logout`, {})
-      .pipe(
-        catchError(() => of(undefined)),
-        finalize(() => this.endSession()),
+  /**
+   * Ends the session on the server, then here. The request is sent with
+   * `keepalive`, so it still reaches the server if the tab is closed or
+   * reloaded right after clicking Sign out (an ordinary request would be
+   * cancelled, leaving the session valid). HttpClient's XHR backend can't do
+   * that, hence fetch, with the CSRF header the interceptor would have added.
+   */
+  logout(): Promise<void> {
+    const token = readCookie('XSRF-TOKEN');
+    return fetch(`${API_BASE}/auth/logout`, {
+      method: 'POST',
+      credentials: 'same-origin',
+      keepalive: true,
+      headers: token ? { 'X-XSRF-TOKEN': token } : {},
+    })
+      .then(
+        () => undefined,
+        () => undefined, // offline: the cookie expires on its own; sign out here regardless
       )
-      .subscribe();
+      .finally(() => this.endSession());
   }
 
   changePassword(request: ChangePasswordRequest): Observable<void> {
@@ -83,4 +95,9 @@ export class Auth {
     this.dashboardStore.reset();
     this.router.navigate(['/login'], returnUrl ? { queryParams: { returnUrl } } : {});
   }
+}
+
+function readCookie(name: string): string | null {
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : null;
 }

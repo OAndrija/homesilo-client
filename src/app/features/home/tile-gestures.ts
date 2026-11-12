@@ -11,6 +11,10 @@ export interface TileGestureHost {
   /** Runs after the next render, before the browser paints. */
   afterRender(fn: () => void): void;
   announce(message: string): void;
+  /** A press that was let go without carrying the tile: a tap or click. */
+  tapped(id: TileId): void;
+  /** A tile was picked up or its grip pressed. */
+  started(id: TileId): void;
 }
 
 /** How long a finger rests on a tile before it lifts (Android uses about this). */
@@ -38,7 +42,7 @@ interface Pointer {
  *   itself lifts and follows the pointer; the others make room as it passes.
  * - Drop: release. The tile settles into its new place. Escape puts it back.
  * - Resize: drag the corner grip; the tile snaps to the nearest size it allows.
- *   A tap on the grip steps to the next size.
+ * - Tap (or click) a tile or its grip: the dashboard shows the sizes it can take.
  */
 export class TileGestures {
   /** The tile being carried. */
@@ -104,6 +108,7 @@ export class TileGestures {
       touch: event.pointerType === 'touch',
     };
     this.resize = { id, startX: event.clientX, startY: event.clientY, moved: false };
+    this.host.started(id);
     this.listen();
     this.loop();
   }
@@ -171,13 +176,19 @@ export class TileGestures {
     if (this.pointer && event.pointerId !== this.pointer.id) return;
     if (this.drag) this.drop();
     else if (this.resize) this.endResize();
-    else this.stop();
+    else {
+      const id = this.pending?.id;
+      this.stop();
+      if (id) this.host.tapped(id);
+    }
   };
 
   /** The browser took the pointer over (a scroll began); keep what was done so far. */
   private onCancel = (event: PointerEvent): void => {
     if (this.pointer && event.pointerId !== this.pointer.id) return;
-    this.onUp(event);
+    if (this.drag) this.drop();
+    else if (this.resize) this.endResize();
+    else this.stop();
   };
 
   // ── Carrying a tile ──────────────────────────────────────────
@@ -202,6 +213,7 @@ export class TileGestures {
     // Whatever slide the tile was in the middle of, it now follows the pointer.
     el.getAnimations().forEach((a) => a.cancel());
     this.lifted.set(pending.id);
+    this.host.started(pending.id);
     if (pointer.touch) navigator.vibrate?.(12);
     this.position();
     this.host.announce(`${tileDefinition(pending.id).title} picked up. ${this.positionText()}`);
@@ -366,14 +378,9 @@ export class TileGestures {
 
   private endResize(): void {
     const resize = this.resize!;
-    if (!resize.moved) {
-      // A tap on the grip steps to the next size, around to the smallest again.
-      const sizes = tileDefinition(resize.id).sizes;
-      const current = this.host.tiles().find((t) => t.id === resize.id)?.size;
-      const next = sizes[(sizes.indexOf(current!) + 1) % sizes.length];
-      this.host.resizeTile(resize.id, next);
-    }
     this.stop();
+    // A tap on the grip opens the size picker, like a tap on the tile.
+    if (!resize.moved) this.host.tapped(resize.id);
   }
 
   // ── Shared ───────────────────────────────────────────────────
@@ -444,10 +451,14 @@ export function spans(size: TileSize, columns: number): [number, number] {
       return [1, 1];
     case 'medium':
       return [Math.min(2, columns), 1];
+    case 'tall':
+      return [1, 2];
     case 'large':
       return [Math.min(2, columns), 2];
     case 'wide':
       return [columns, 1];
+    case 'wide-tall':
+      return [columns, 2];
   }
 }
 

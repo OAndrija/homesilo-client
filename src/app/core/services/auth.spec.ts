@@ -58,14 +58,37 @@ describe('Auth', () => {
     expect(auth.isLoggedIn()).toBe(true);
   });
 
-  it('signs out locally even if the logout request fails', () => {
+  it('signs out with a request that outlives the page, sending the CSRF token', async () => {
     auth.restoreSession().subscribe();
     http.expectOne('/api/v1/users/me').flush(ALICE);
+    document.cookie = 'XSRF-TOKEN=abc%3D123';
+    const fetchSpy = vi
+      .spyOn(window, 'fetch')
+      .mockResolvedValue(new Response(null, { status: 204 }));
 
-    auth.logout();
-    http.expectOne('/api/v1/auth/logout').flush(null, { status: 0, statusText: 'Network error' });
+    await auth.logout();
+
+    expect(fetchSpy).toHaveBeenCalledWith('/api/v1/auth/logout', {
+      method: 'POST',
+      credentials: 'same-origin',
+      keepalive: true,
+      headers: { 'X-XSRF-TOKEN': 'abc=123' },
+    });
+    expect(auth.user()).toBeNull();
+    expect(router.navigate).toHaveBeenCalledWith(['/login'], {});
+    fetchSpy.mockRestore();
+    document.cookie = 'XSRF-TOKEN=; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+  });
+
+  it('signs out locally even if the logout request fails', async () => {
+    auth.restoreSession().subscribe();
+    http.expectOne('/api/v1/users/me').flush(ALICE);
+    const fetchSpy = vi.spyOn(window, 'fetch').mockRejectedValue(new TypeError('offline'));
+
+    await auth.logout();
 
     expect(auth.user()).toBeNull();
     expect(router.navigate).toHaveBeenCalledWith(['/login'], {});
+    fetchSpy.mockRestore();
   });
 });
