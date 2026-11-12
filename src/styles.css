@@ -1,4 +1,5 @@
-:root {
+:root,
+[data-theme='dark'] {
   /* ── Surfaces (darkest → lightest) ── */
   --color-bg: #0d0f1a;
   --color-bg-elevated: #141620;

@@ -29,7 +29,8 @@
               "@fontsource/space-grotesk/600.css",
               "@fontsource/space-grotesk/700.css",
               "material-symbols/rounded.css",
-              "src/styles.css"
+              "src/styles.css",
+              "src/themes.css"
             ]
           },
           "configurations": {
