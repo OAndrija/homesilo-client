@@ -19,15 +19,26 @@ export interface ThemeDefinition {
  */
 export const THEMES: readonly ThemeDefinition[] = [
   { id: 'homesilo-light', label: 'HomeSilo', mode: 'light' },
+  { id: 'catppuccin-latte', label: 'Catppuccin Latte', mode: 'light' },
   { id: 'github-light', label: 'GitHub', mode: 'light' },
+  { id: 'gruvbox-light', label: 'Gruvbox', mode: 'light' },
   { id: 'material-light', label: 'Material', mode: 'light' },
+  { id: 'one-light', label: 'One Light', mode: 'light' },
+  { id: 'rose-pine-dawn', label: 'Rosé Pine Dawn', mode: 'light' },
   { id: 'solarized-light', label: 'Solarized', mode: 'light' },
   { id: 'homesilo-dark', label: 'HomeSilo', mode: 'dark' },
-  { id: 'github-dark', label: 'GitHub', mode: 'dark' },
-  { id: 'material-dark', label: 'Material', mode: 'dark' },
-  { id: 'nord', label: 'Nord', mode: 'dark' },
+  { id: 'catppuccin-mocha', label: 'Catppuccin Mocha', mode: 'dark' },
   { id: 'dracula', label: 'Dracula', mode: 'dark' },
+  { id: 'everforest', label: 'Everforest', mode: 'dark' },
+  { id: 'github-dark', label: 'GitHub', mode: 'dark' },
+  { id: 'gruvbox-dark', label: 'Gruvbox', mode: 'dark' },
+  { id: 'material-dark', label: 'Material', mode: 'dark' },
+  { id: 'monokai', label: 'Monokai', mode: 'dark' },
+  { id: 'nord', label: 'Nord', mode: 'dark' },
+  { id: 'one-dark', label: 'One Dark', mode: 'dark' },
+  { id: 'rose-pine', label: 'Rosé Pine', mode: 'dark' },
   { id: 'solarized-dark', label: 'Solarized', mode: 'dark' },
+  { id: 'tokyo-night', label: 'Tokyo Night', mode: 'dark' },
 ];
 
 const DEFAULT_THEME: Record<Theme, string> = {

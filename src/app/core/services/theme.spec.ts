@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { ThemeService } from './theme';
+import { THEMES, ThemeService } from './theme';
 
 describe('ThemeService', () => {
   beforeEach(() => {
@@ -71,6 +71,13 @@ describe('ThemeService themes', () => {
     expect(service.chosen().light).toBe('github-light');
     // jsdom resolves "system" to dark, so the dark theme still shows.
     expect(service.active().id).toBe('homesilo-dark');
+  });
+
+  it('has unique theme ids, starting each mode with HomeSilo', () => {
+    expect(new Set(THEMES.map((t) => t.id)).size).toBe(THEMES.length);
+    const service = TestBed.inject(ThemeService);
+    expect(service.lightThemes[0].id).toBe('homesilo-light');
+    expect(service.darkThemes[0].id).toBe('homesilo-dark');
   });
 
   it('ignores unknown or mismatched saved themes', () => {
