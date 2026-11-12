@@ -1,4 +1,9 @@
-<div class="toasts" aria-live="polite" aria-relevant="additions">
+<div
+  class="toasts"
+  [class.above-bar]="bars.selectionBarOpen()"
+  aria-live="polite"
+  aria-relevant="additions"
+>
   @for (toast of toastService.toasts(); track toast.id) {
     <div
       class="toast"

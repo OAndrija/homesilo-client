@@ -54,6 +54,7 @@ export class FileTable {
   folderDownload = output<Folder>();
   folderRename = output<Folder>();
   folderTrash = output<Folder>();
+  folderStar = output<Folder>();
   folderRestore = output<Folder>();
   folderDeleteForever = output<Folder>();
   itemsMoved = output<MovePayload>();

@@ -102,6 +102,9 @@
             <div class="name-wrap">
               <span class="material-symbols-rounded file-icon folder-icon">folder</span>
               <span class="name-text">{{ folder.name }}</span>
+              @if (folder.starred) {
+                <span class="material-symbols-rounded star-mark" aria-label="Starred">star</span>
+              }
             </div>
           </td>
           <td class="cell-muted cell-size">—</td>
@@ -147,6 +150,20 @@
                   aria-label="Move to trash"
                 >
                   <span class="material-symbols-rounded" aria-hidden="true">delete</span>
+                </button>
+              }
+              @if (hasAction('star')) {
+                <button
+                  class="icon-btn star"
+                  [class.starred]="folder.starred"
+                  (click)="folderStar.emit(folder); $event.stopPropagation()"
+                  [title]="folder.starred ? 'Unstar' : 'Star'"
+                  [attr.aria-label]="folder.starred ? 'Unstar folder' : 'Star folder'"
+                  [attr.aria-pressed]="folder.starred"
+                >
+                  <span class="material-symbols-rounded star-icon-glyph" aria-hidden="true"
+                    >star</span
+                  >
                 </button>
               }
               @if (hasAction('restore')) {
@@ -265,8 +282,12 @@
                   [class.starred]="file.starred"
                   (click)="star.emit(file); $event.stopPropagation()"
                   [title]="file.starred ? 'Unstar' : 'Star'"
+                  [attr.aria-label]="file.starred ? 'Unstar file' : 'Star file'"
+                  [attr.aria-pressed]="file.starred"
                 >
-                  <span class="material-symbols-rounded star-icon-glyph">star</span>
+                  <span class="material-symbols-rounded star-icon-glyph" aria-hidden="true"
+                    >star</span
+                  >
                 </button>
               }
               @if (hasAction('restore')) {
