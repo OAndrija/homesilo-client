@@ -1,0 +1,90 @@
+<div class="activity-page">
+  <header class="page-header">
+    <div>
+      <h2>Activity</h2>
+      <p class="subtitle">What happened on this server, newest first.</p>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <label class="search">
+      <span class="material-symbols-rounded" aria-hidden="true">search</span>
+      <input
+        type="search"
+        placeholder="Search people, files and folders"
+        aria-label="Search activity by person, file or folder"
+        [value]="queryInput()"
+        (input)="onQueryInput($any($event.target).value)"
+        autocomplete="off"
+        spellcheck="false"
+      />
+    </label>
+
+    <div class="tabs" role="radiogroup" aria-label="Show">
+      @for (c of categories; track c.label) {
+        <button
+          type="button"
+          role="radio"
+          [attr.aria-checked]="category() === c.value"
+          (click)="setCategory(c.value)"
+        >
+          {{ c.label }}
+        </button>
+      }
+    </div>
+
+    @if (userId()) {
+      <span class="chip">
+        <span class="material-symbols-rounded" aria-hidden="true">person</span>
+        {{ userName() || 'One account' }}
+        <button
+          type="button"
+          (click)="clearUser()"
+          [attr.aria-label]="'Show everyone, not just ' + (userName() || 'this account')"
+        >
+          <span class="material-symbols-rounded" aria-hidden="true">close</span>
+        </button>
+      </span>
+    }
+  </div>
+
+  @if (error()) {
+    <div class="server-error" role="alert">{{ error() }}</div>
+  }
+
+  <div class="feed" [class.is-loading]="loading() | loadingDelay" aria-live="polite">
+    @for (group of groups(); track group.key) {
+      <section class="day" [attr.aria-label]="group.label">
+        <h3 class="day-label">{{ group.label }}</h3>
+        <ul class="entries">
+          @for (entry of group.entries; track entry.id) {
+            <li>
+              <app-activity-item [entry]="entry" [meId]="me()?.id ?? null" />
+            </li>
+          }
+        </ul>
+      </section>
+    } @empty {
+      @if (!loading()) {
+        <div class="empty">
+          <span class="material-symbols-rounded" aria-hidden="true">history</span>
+          @if (hasFilters()) {
+            <div class="empty-title">Nothing matches these filters</div>
+            <button type="button" class="clear-btn" (click)="clearFilters()">Clear filters</button>
+          } @else {
+            <div class="empty-title">No activity yet</div>
+            <p>Sign-ins, uploads and account changes will show up here.</p>
+          }
+        </div>
+      }
+    }
+
+    @if (hasMore()) {
+      <div class="more">
+        <button type="button" class="more-btn" (click)="loadMore()" [disabled]="loadingMore()">
+          {{ loadingMore() ? 'Loading…' : 'Show older activity' }}
+        </button>
+      </div>
+    }
+  </div>
+</div>

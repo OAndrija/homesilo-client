@@ -21,6 +21,7 @@ import {
 import { UserRole } from '../../core/models/auth.models';
 import { AdminApi } from '../../core/services/admin';
 import { Auth } from '../../core/services/auth';
+import { Router } from '@angular/router';
 import { ToastService } from '../../core/services/toast';
 import { formatBytes } from '../../core/utils/format';
 import { formatLimit } from '../../core/utils/storage-size';
@@ -67,6 +68,7 @@ export class AdminUsers {
   private api = inject(AdminApi);
   private auth = inject(Auth);
   private toast = inject(ToastService);
+  private router = inject(Router);
   private host: ElementRef<HTMLElement> = inject(ElementRef);
 
   readonly pageSize = PAGE_SIZE;
@@ -310,6 +312,13 @@ export class AdminUsers {
     this.closeMenu();
     this.dialogError.set('');
     this.formDialog.set({ mode: 'edit', user });
+  }
+
+  viewActivity(user: AdminUser): void {
+    this.closeMenu();
+    this.router.navigate(['/admin/activity'], {
+      queryParams: { userId: user.id, name: user.username },
+    });
   }
 
   openPassword(user: AdminUser): void {

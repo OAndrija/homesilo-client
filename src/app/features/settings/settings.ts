@@ -23,6 +23,9 @@ import { Auth } from '../../core/services/auth';
 import { DashboardStore } from '../../core/services/dashboard-store';
 import { ThemePreference, ThemeService } from '../../core/services/theme';
 import { formatBytes } from '../../core/utils/format';
+import { ActivityEntry } from '../../core/models/activity';
+import { ActivityApi } from '../../core/services/activity';
+import { ActivityItem } from '../../shared/activity-item/activity-item';
 
 function passwordsMatch(group: AbstractControl): ValidationErrors | null {
   const next = group.get('newPassword')?.value;
@@ -30,11 +33,11 @@ function passwordsMatch(group: AbstractControl): ValidationErrors | null {
   return next && confirm && next !== confirm ? { mismatch: true } : null;
 }
 
-type SectionId = 'account' | 'appearance' | 'security' | 'storage';
+type SectionId = 'account' | 'appearance' | 'security' | 'activity' | 'storage';
 
 @Component({
   selector: 'app-settings',
-  imports: [ReactiveFormsModule, DatePipe, DecimalPipe, RouterLink],
+  imports: [ReactiveFormsModule, DatePipe, DecimalPipe, RouterLink, ActivityItem],
   templateUrl: './settings.html',
   styleUrl: './settings.css',
 })
@@ -43,6 +46,7 @@ export class Settings {
   private store = inject(DashboardStore);
   protected themeService = inject(ThemeService);
   private host = inject(ElementRef<HTMLElement>);
+  private activityApi = inject(ActivityApi);
 
   user = this.auth.user;
   initial = computed(() => (this.user()?.username ?? '?').charAt(0).toUpperCase());
@@ -51,6 +55,7 @@ export class Settings {
     { id: 'account', label: 'Account', icon: 'person' },
     { id: 'appearance', label: 'Appearance', icon: 'palette' },
     { id: 'security', label: 'Security', icon: 'lock' },
+    { id: 'activity', label: 'Recent activity', icon: 'history' },
     { id: 'storage', label: 'Storage', icon: 'database' },
   ];
   activeSection = signal<SectionId>('account');
@@ -102,8 +107,22 @@ export class Settings {
   errorMessage = signal('');
   success = signal(false);
 
+  // ── Recent activity on this account ──────────────────────────
+  activity = signal<ActivityEntry[]>([]);
+  activityPage = signal(0);
+  activityHasMore = signal(false);
+  activityLoading = signal(true);
+  activityError = signal('');
+  /** Failed or blocked sign-ins among those shown, to call out at the top. */
+  failedSignIns = computed(
+    () =>
+      this.activity().filter((e) => e.action === 'SIGN_IN_FAILED' || e.action === 'SIGN_IN_BLOCKED')
+        .length,
+  );
+
   constructor() {
     this.store.ensureLoaded();
+    this.loadActivity(0);
 
     // Highlight the section being read in the side navigation.
     const destroyRef = inject(DestroyRef);
@@ -123,6 +142,25 @@ export class Settings {
       }
       destroyRef.onDestroy(() => observer.disconnect());
     });
+  }
+
+  loadActivity(page: number): void {
+    this.activityLoading.set(true);
+    this.activityApi
+      .myActivity(page, 10)
+      .pipe(finalize(() => this.activityLoading.set(false)))
+      .subscribe({
+        next: (response) => {
+          this.activity.update((list) =>
+            page === 0 ? response.content : [...list, ...response.content],
+          );
+          this.activityPage.set(page);
+          this.activityHasMore.set(!response.last);
+          this.activityError.set('');
+        },
+        error: (err) =>
+          this.activityError.set(errorMessage(err, 'Couldn’t load your recent activity.')),
+      });
   }
 
   goTo(id: SectionId): void {
