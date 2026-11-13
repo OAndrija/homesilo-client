@@ -50,28 +50,4 @@ export function nextSort(current: SortState, key: SortKey): SortState {
   return { key, direction: key === 'name' ? 'asc' : 'desc' };
 }
 
-/** Remembers each list's sort in this browser (a convenience; failures are ignored). */
-export function loadSort(view: string): SortState {
-  try {
-    const raw = localStorage.getItem(`hs-sort-${view}`);
-    const parsed = raw ? (JSON.parse(raw) as SortState) : null;
-    if (
-      parsed &&
-      ['name', 'size', 'date'].includes(parsed.key) &&
-      ['asc', 'desc'].includes(parsed.direction)
-    ) {
-      return parsed;
-    }
-  } catch {
-    // fall back to the default
-  }
-  return DEFAULT_SORT;
-}
-
-export function saveSort(view: string, sort: SortState): void {
-  try {
-    localStorage.setItem(`hs-sort-${view}`, JSON.stringify(sort));
-  } catch {
-    // storage unavailable: the sort just isn't remembered
-  }
-}
+export const SORT_KEYS: readonly SortKey[] = ['name', 'size', 'date'];

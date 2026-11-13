@@ -1,24 +1,8 @@
 import { Component, input, output } from '@angular/core';
 import { SortKey, SortState } from '../../core/models/sort';
 
-export type FileView = 'list' | 'grid';
-
-/** Remembered per page, like the sort order. */
-export function loadView(page: string): FileView {
-  try {
-    return localStorage.getItem(`hs-view-${page}`) === 'grid' ? 'grid' : 'list';
-  } catch {
-    return 'list';
-  }
-}
-
-export function saveView(page: string, view: FileView): void {
-  try {
-    localStorage.setItem(`hs-view-${page}`, view);
-  } catch {
-    /* storage unavailable: the view just isn't remembered */
-  }
-}
+export type { FileView } from '../../core/services/list-settings';
+import type { FileView } from '../../core/services/list-settings';
 
 /**
  * List / grid switch, plus a sort picker for the grid (the list sorts from its

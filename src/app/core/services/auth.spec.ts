@@ -5,6 +5,7 @@ import { provideRouter, Router } from '@angular/router';
 import { User } from '../models/auth.models';
 import { Auth } from './auth';
 import { DashboardStore } from './dashboard-store';
+import { PreferencesService } from './preferences';
 
 const ALICE: User = {
   id: '1',
@@ -23,6 +24,7 @@ describe('Auth', () => {
   let store: DashboardStore;
 
   beforeEach(() => {
+    localStorage.clear();
     TestBed.configureTestingModule({
       providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     });
@@ -39,6 +41,7 @@ describe('Auth', () => {
   it('restores an existing session on startup', () => {
     auth.restoreSession().subscribe();
     http.expectOne('/api/v1/users/me').flush(ALICE);
+    http.expectOne('/api/v1/users/me/preferences').flush({ values: {}, updatedAt: null });
     expect(auth.user()).toEqual(ALICE);
     expect(auth.isAdmin()).toBe(true);
   });
@@ -54,6 +57,7 @@ describe('Auth', () => {
   it('clears cached dashboard data when a new session starts', () => {
     auth.login({ username: 'alice', password: 'x' }).subscribe();
     http.expectOne('/api/v1/auth/login').flush({ user: ALICE, expiresInSeconds: 60 });
+    http.expectOne('/api/v1/users/me/preferences').flush({ values: {}, updatedAt: null });
     expect(store.reset).toHaveBeenCalled();
     expect(auth.isLoggedIn()).toBe(true);
   });
@@ -61,6 +65,7 @@ describe('Auth', () => {
   it('signs out with a request that outlives the page, sending the CSRF token', async () => {
     auth.restoreSession().subscribe();
     http.expectOne('/api/v1/users/me').flush(ALICE);
+    http.expectOne('/api/v1/users/me/preferences').flush({ values: {}, updatedAt: null });
     document.cookie = 'XSRF-TOKEN=abc%3D123';
     const fetchSpy = vi
       .spyOn(window, 'fetch')
@@ -83,12 +88,41 @@ describe('Auth', () => {
   it('signs out locally even if the logout request fails', async () => {
     auth.restoreSession().subscribe();
     http.expectOne('/api/v1/users/me').flush(ALICE);
+    http.expectOne('/api/v1/users/me/preferences').flush({ values: {}, updatedAt: null });
     const fetchSpy = vi.spyOn(window, 'fetch').mockRejectedValue(new TypeError('offline'));
 
     await auth.logout();
 
     expect(auth.user()).toBeNull();
     expect(router.navigate).toHaveBeenCalledWith(['/login'], {});
+    fetchSpy.mockRestore();
+  });
+
+  it("signs in once the account's own settings have arrived", () => {
+    const prefs = TestBed.inject(PreferencesService);
+    auth.login({ username: 'alice', password: 'x' }).subscribe();
+    http.expectOne('/api/v1/auth/login').flush({ user: ALICE, expiresInSeconds: 60 });
+    expect(auth.isLoggedIn()).toBe(false);
+
+    http
+      .expectOne('/api/v1/users/me/preferences')
+      .flush({ values: { 'appearance.spacing': 'compact' }, updatedAt: null });
+    expect(auth.isLoggedIn()).toBe(true);
+    expect(prefs.get('appearance.spacing')).toBe('compact');
+  });
+
+  it("forgets the account's settings on sign-out", async () => {
+    const prefs = TestBed.inject(PreferencesService);
+    auth.restoreSession().subscribe();
+    http.expectOne('/api/v1/users/me').flush(ALICE);
+    http
+      .expectOne('/api/v1/users/me/preferences')
+      .flush({ values: { 'appearance.spacing': 'compact' }, updatedAt: null });
+    const fetchSpy = vi.spyOn(window, 'fetch').mockResolvedValue(new Response(null));
+
+    await auth.logout();
+
+    expect(prefs.get('appearance.spacing')).toBeNull();
     fetchSpy.mockRestore();
   });
 });

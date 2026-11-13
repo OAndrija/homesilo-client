@@ -1,5 +1,14 @@
-import { computed, effect, inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
+import {
+  computed,
+  effect,
+  inject,
+  Injectable,
+  PLATFORM_ID,
+  signal,
+  untracked,
+} from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { PreferencesService, PreferenceValues } from './preferences';
 
 /** Light or dark: decides which of the two chosen themes is showing. */
 export type Theme = 'dark' | 'light';
@@ -126,6 +135,12 @@ const DEFAULT_THEME: Record<Theme, string> = {
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
   private platformId = inject(PLATFORM_ID);
+  private prefs = inject(PreferencesService);
+  /**
+   * This browser's copy of the last look shown, used before anyone signs in
+   * (the sign-in page, and the first moment of a visit). The signed-in
+   * account's own settings come from {@link PreferencesService}.
+   */
   private readonly STORAGE_KEY = 'hs-theme';
   private readonly media = isPlatformBrowser(this.platformId)
     ? window.matchMedia?.('(prefers-color-scheme: light)')
@@ -211,6 +226,14 @@ export class ThemeService {
   readonly active = computed<ThemeDefinition>(() => definition(this.chosen()[this.theme()]));
 
   constructor() {
+    // Another account's settings, or a fresh copy from the server: show them.
+    effect(() => {
+      // Only on a switch, not on every change (whatever made a change already shows it,
+      // and signing out clears the values but keeps the look on screen).
+      if (this.prefs.revision() === 0) return; // nobody signed in yet: keep this browser's look
+      untracked(() => this.applyPreferences(this.prefs.values()));
+    });
+
     this.media?.addEventListener?.('change', (e) =>
       this.systemTheme.set(e.matches ? 'light' : 'dark'),
     );
@@ -254,27 +277,32 @@ export class ThemeService {
   setAccent(accent: Accent): void {
     this.accent.set(accent);
     this.write('hs-accent', accent);
+    this.prefs.set({ 'appearance.accent': accent === 'theme' ? null : accent });
   }
 
   setCards(cards: CardStyle): void {
     this.cards.set(cards);
     this.write('hs-cards', cards);
+    this.prefs.set({ 'appearance.cards': cards === 'vivid' ? null : cards });
   }
 
   setFont(font: Font): void {
     this.font.set(font);
     this.write('hs-font', font);
+    this.prefs.set({ 'appearance.font': font === 'inter' ? null : font });
   }
 
   setMotion(motion: Motion): void {
     this.motion.set(motion);
     this.write('hs-motion', motion);
+    this.prefs.set({ 'appearance.motion': motion === 'system' ? null : motion });
   }
 
   /** Back to HomeSilo's look: themes, mode and every appearance setting. */
   resetAppearance(): void {
     this.preference.set('system');
     this.chosen.set({ ...DEFAULT_THEME });
+    this.saveThemes();
     this.setCorners('rounded');
     this.setSpacing('comfortable');
     this.setAccent('theme');
@@ -333,15 +361,18 @@ export class ThemeService {
   setCorners(corners: Corners): void {
     this.corners.set(corners);
     this.write('hs-corners', corners);
+    this.prefs.set({ 'appearance.corners': corners === 'rounded' ? null : corners });
   }
 
   setSpacing(spacing: Spacing): void {
     this.spacing.set(spacing);
     this.write('hs-spacing', spacing);
+    this.prefs.set({ 'appearance.spacing': spacing === 'comfortable' ? null : spacing });
   }
 
   setPreference(preference: ThemePreference): void {
     this.preference.set(preference);
+    this.saveThemes();
   }
 
   /**
@@ -353,6 +384,7 @@ export class ThemeService {
     if (!theme) return;
     this.chosen.update((c) => ({ ...c, [theme.mode]: theme.id }));
     if (this.preference() !== 'system') this.preference.set(theme.mode);
+    this.saveThemes();
   }
 
   isChosen(id: string): boolean {
@@ -361,7 +393,78 @@ export class ThemeService {
   }
 
   toggle(): void {
-    this.preference.set(this.theme() === 'dark' ? 'light' : 'dark');
+    this.setPreference(this.theme() === 'dark' ? 'light' : 'dark');
+  }
+
+  /** The mode and the theme for each, as account settings (defaults left out). */
+  private saveThemes(): void {
+    const pref = this.preference();
+    const chosen = this.chosen();
+    this.prefs.set({
+      'theme.mode': pref === 'system' ? null : pref,
+      'theme.light': chosen.light === DEFAULT_THEME.light ? null : chosen.light,
+      'theme.dark': chosen.dark === DEFAULT_THEME.dark ? null : chosen.dark,
+    });
+  }
+
+  /** Shows an account's settings; anything it hasn't set gets its default. */
+  private applyPreferences(values: PreferenceValues): void {
+    const mode = values['theme.mode'];
+    this.preference.set(mode === 'light' || mode === 'dark' ? mode : 'system');
+    const themeFor = (m: Theme) => {
+      const id = values[`theme.${m}`];
+      return THEMES.some((t) => t.id === id && t.mode === m) ? id! : DEFAULT_THEME[m];
+    };
+    this.chosen.set({ light: themeFor('light'), dark: themeFor('dark') });
+
+    const pick = <T extends string>(name: string, allowed: readonly T[], fallback: T): T => {
+      const value = values[`appearance.${name}`] as T | undefined;
+      const chosen = value && allowed.includes(value) ? value : fallback;
+      this.write(`hs-${name}`, chosen); // this browser's last look, for the sign-in page
+      return chosen;
+    };
+    this.corners.set(
+      pick(
+        'corners',
+        CORNERS.map((c) => c.value),
+        'rounded',
+      ),
+    );
+    this.spacing.set(
+      pick(
+        'spacing',
+        SPACING.map((c) => c.value),
+        'comfortable',
+      ),
+    );
+    this.accent.set(
+      pick(
+        'accent',
+        ACCENTS.map((a) => a.value),
+        'theme',
+      ),
+    );
+    this.cards.set(
+      pick(
+        'cards',
+        CARD_STYLES.map((c) => c.value),
+        'vivid',
+      ),
+    );
+    this.font.set(
+      pick(
+        'font',
+        FONTS.map((f) => f.value),
+        'inter',
+      ),
+    );
+    this.motion.set(
+      pick(
+        'motion',
+        MOTIONS.map((m) => m.value),
+        'system',
+      ),
+    );
   }
 
   private storedPreference(): ThemePreference {

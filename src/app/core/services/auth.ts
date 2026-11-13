@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { catchError, map, Observable, of, tap } from 'rxjs';
+import { catchError, map, Observable, of, switchMap } from 'rxjs';
 import { API_BASE } from '../api';
 import {
   AuthConfig,
@@ -12,6 +12,7 @@ import {
   User,
 } from '../models/auth.models';
 import { DashboardStore } from './dashboard-store';
+import { PreferencesService } from './preferences';
 
 /**
  * Session state. The token is an HttpOnly cookie the app never sees; the
@@ -22,6 +23,7 @@ export class Auth {
   private http = inject(HttpClient);
   private router = inject(Router);
   private dashboardStore = inject(DashboardStore);
+  private preferences = inject(PreferencesService);
 
   private readonly userSignal = signal<User | null>(null);
   readonly user = this.userSignal.asReadonly();
@@ -32,7 +34,10 @@ export class Auth {
   restoreSession(): Observable<User | null> {
     return this.http.get<User>(`${API_BASE}/users/me`).pipe(
       catchError(() => of(null)),
-      tap((user) => this.userSignal.set(user)),
+      switchMap((user) => {
+        this.userSignal.set(user);
+        return user ? this.preferences.load(user.id).pipe(map(() => user)) : of(null);
+      }),
     );
   }
 
@@ -43,13 +48,13 @@ export class Auth {
   register(request: RegisterRequest): Observable<User> {
     return this.http
       .post<AuthResponse>(`${API_BASE}/auth/register`, request)
-      .pipe(map((response) => this.startSession(response)));
+      .pipe(switchMap((response) => this.startSession(response)));
   }
 
   login(request: LoginRequest): Observable<User> {
     return this.http
       .post<AuthResponse>(`${API_BASE}/auth/login`, request)
-      .pipe(map((response) => this.startSession(response)));
+      .pipe(switchMap((response) => this.startSession(response)));
   }
 
   /**
@@ -84,14 +89,20 @@ export class Auth {
     this.endSession(this.router.url);
   }
 
-  private startSession(response: AuthResponse): User {
+  /** Signs in here, once this account's settings are in place, so the app opens in its own look. */
+  private startSession(response: AuthResponse): Observable<User> {
     this.dashboardStore.reset();
-    this.userSignal.set(response.user);
-    return response.user;
+    return this.preferences.load(response.user.id).pipe(
+      map(() => {
+        this.userSignal.set(response.user);
+        return response.user;
+      }),
+    );
   }
 
   private endSession(returnUrl?: string): void {
     this.userSignal.set(null);
+    this.preferences.clear();
     this.dashboardStore.reset();
     this.router.navigate(['/login'], returnUrl ? { queryParams: { returnUrl } } : {});
   }

@@ -9,17 +9,25 @@ import { Folder } from '../../core/models/folder';
 import { catchError, concatMap, finalize, forkJoin, from, Observable, of } from 'rxjs';
 import { FileTable } from '../../shared/file-table/file-table';
 import { FileGrid } from '../../shared/file-grid/file-grid';
-import {
-  FileView,
-  loadView,
-  saveView,
-  ViewControls,
-} from '../../shared/view-controls/view-controls';
+import { FileView, ViewControls } from '../../shared/view-controls/view-controls';
 import { SelectionBar } from '../../shared/selection-bar/selection-bar';
 import { LoadingDelayPipe } from '../../shared/pipes/loading-delay';
 import { FileActions } from '../../core/services/file-actions';
 import { errorMessage } from '../../core/http/http-error';
-import { fileSortParam, loadSort, saveSort, SortState, sortFolders } from '../../core/models/sort';
+import {
+  DEFAULT_SORT,
+  fileSortParam,
+  SORT_KEYS,
+  SortState,
+  sortFolders,
+} from '../../core/models/sort';
+import { PreferencesService } from '../../core/services/preferences';
+import {
+  sortChange,
+  sortSetting,
+  viewChange,
+  viewSetting,
+} from '../../core/services/list-settings';
 import { ToastService } from '../../core/services/toast';
 import { allStarred, Stars } from '../../core/services/stars';
 import { TableSkeleton } from '../../shared/table-skeleton/table-skeleton';
@@ -52,7 +60,7 @@ export class Starred {
   fileGrid = viewChild(FileGrid);
   /** Whichever of the list or the grid is showing; both share the selection API. */
   items = computed(() => this.fileTable() ?? this.fileGrid());
-  view = signal<FileView>(loadView('starred'));
+  view = viewSetting('starred');
 
   files = signal<FileMetadata[]>([]);
   folders = signal<Folder[]>([]);
@@ -61,7 +69,8 @@ export class Starred {
   errorMessage = signal('');
   currentPage = signal(0);
   hasMore = signal(false);
-  sort = signal<SortState>(loadSort('starred'));
+  private prefs = inject(PreferencesService);
+  sort = sortSetting<SortState['key']>('starred', SORT_KEYS, DEFAULT_SORT);
 
   sortedFolders = computed(() => sortFolders(this.folders(), this.sort()));
   isSearching = computed(() => this.searchService.query().trim().length > 0);
@@ -99,12 +108,12 @@ export class Starred {
   setView(view: FileView): void {
     this.items()?.clearSelection();
     this.view.set(view);
-    saveView('starred', view);
+    this.prefs.set(viewChange('starred', view));
   }
 
   onSortChange(sort: SortState): void {
     this.sort.set(sort);
-    saveSort('starred', sort);
+    this.prefs.set(sortChange('starred', sort, DEFAULT_SORT));
   }
 
   private get sortParam(): string {

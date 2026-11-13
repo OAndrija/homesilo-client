@@ -16,7 +16,20 @@ import { map } from 'rxjs/operators';
 import { errorMessage } from '../../core/http/http-error';
 import { FileMetadata } from '../../core/models/file-metadata';
 import { Folder } from '../../core/models/folder';
-import { fileSortParam, loadSort, saveSort, SortState, sortFolders } from '../../core/models/sort';
+import {
+  DEFAULT_SORT,
+  fileSortParam,
+  SORT_KEYS,
+  SortState,
+  sortFolders,
+} from '../../core/models/sort';
+import { PreferencesService } from '../../core/services/preferences';
+import {
+  sortChange,
+  sortSetting,
+  viewChange,
+  viewSetting,
+} from '../../core/services/list-settings';
 import { DashboardStore } from '../../core/services/dashboard-store';
 import { FileActions } from '../../core/services/file-actions';
 import { Files } from '../../core/services/files';
@@ -30,12 +43,7 @@ import { FolderNameDialog } from '../../shared/folder-name-dialog/folder-name-di
 import { FolderPickerDialog } from '../../shared/folder-picker-dialog/folder-picker-dialog';
 import { LoadingDelayPipe } from '../../shared/pipes/loading-delay';
 import { FileGrid } from '../../shared/file-grid/file-grid';
-import {
-  FileView,
-  loadView,
-  saveView,
-  ViewControls,
-} from '../../shared/view-controls/view-controls';
+import { FileView, ViewControls } from '../../shared/view-controls/view-controls';
 import { SelectionBar } from '../../shared/selection-bar/selection-bar';
 import { TableSkeleton } from '../../shared/table-skeleton/table-skeleton';
 
@@ -73,7 +81,7 @@ export class MyFiles {
   fileGrid = viewChild(FileGrid);
   /** Whichever of the list or the grid is showing; both share the selection API. */
   items = computed(() => this.fileTable() ?? this.fileGrid());
-  view = signal<FileView>(loadView('my-files'));
+  view = viewSetting('my-files');
   fileInput = viewChild<ElementRef<HTMLInputElement>>('fileInput');
 
   // ── Navigation ───────────────────────────────────────────────
@@ -93,7 +101,8 @@ export class MyFiles {
   hasMore = signal(false);
 
   // ── Sorting: files are sorted by the server (they're paged), folders here ──
-  sort = signal<SortState>(loadSort('my-files'));
+  private prefs = inject(PreferencesService);
+  sort = sortSetting<SortState['key']>('my-files', SORT_KEYS, DEFAULT_SORT);
   sortedFolders = computed(() => sortFolders(this.folders(), this.sort()));
 
   // ── Drag-and-drop upload ─────────────────────────────────────
@@ -167,12 +176,12 @@ export class MyFiles {
   setView(view: FileView): void {
     this.items()?.clearSelection();
     this.view.set(view);
-    saveView('my-files', view);
+    this.prefs.set(viewChange('my-files', view));
   }
 
   onSortChange(sort: SortState): void {
     this.sort.set(sort);
-    saveSort('my-files', sort);
+    this.prefs.set(sortChange('my-files', sort, DEFAULT_SORT));
   }
 
   private get sortParam(): string {
