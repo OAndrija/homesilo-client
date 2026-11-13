@@ -84,4 +84,27 @@ describe('describeActivity', () => {
     expect(sentence(expired)).toBe('HomeSilo cleared old items from the trash');
     expect(describeActivity(expired).detail).toBe('7 items');
   });
+
+  it('describes setup and invites', () => {
+    expect(sentence(entry({ action: 'SERVER_SET_UP' }))).toBe('maja set up HomeSilo');
+    expect(
+      sentence(
+        entry({ action: 'INVITE_CREATED', targetType: null, targetName: 'Mum', newValue: 'USER' }),
+      ),
+    ).toBe('maja made an invite link for Mum');
+    const forAdmin = entry({
+      action: 'INVITE_CREATED',
+      targetType: null,
+      targetName: null,
+      newValue: 'ADMIN',
+    });
+    expect(sentence(forAdmin)).toBe('maja made an invite link');
+    expect(describeActivity(forAdmin).detail).toBe('for an admin account');
+    expect(sentence(entry({ action: 'INVITE_REVOKED', targetType: null, targetName: 'Mum' }))).toBe(
+      'maja revoked an invite link for Mum',
+    );
+    expect(describeActivity(entry({ action: 'SIGNED_UP', newValue: 'owner' })).detail).toBe(
+      'invited by owner',
+    );
+  });
 });

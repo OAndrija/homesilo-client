@@ -1,0 +1,105 @@
+<section class="panel invites" aria-labelledby="invites-title">
+  <div class="invites-head">
+    <div>
+      <h3 class="invites-title" id="invites-title">Invites</h3>
+      <p class="invites-sub">
+        Each link lets one person create their own account, with the username and password they
+        choose.
+      </p>
+    </div>
+    <button #inviteButton type="button" class="invite-btn" (click)="inviteSomeone.emit()">
+      <span class="material-symbols-rounded" aria-hidden="true">forward_to_inbox</span>
+      Invite someone
+    </button>
+  </div>
+
+  @if (error()) {
+    <p class="invites-error" role="alert">{{ error() }}</p>
+  }
+
+  @if (invites(); as all) {
+    @if (open().length) {
+      <ul class="invite-list" aria-label="Open invites">
+        @for (invite of open(); track invite.id) {
+          <li class="invite-row">
+            <span class="invite-icon" aria-hidden="true">
+              <span class="material-symbols-rounded" aria-hidden="true">mail</span>
+            </span>
+            <div class="invite-main">
+              <span class="invite-name">
+                {{ label(invite) }}
+                @if (invite.role === 'ADMIN') {
+                  <span class="role-chip">Admin</span>
+                }
+              </span>
+              <span class="invite-meta" [title]="invite.expiresAt | exactDate">
+                {{ expiresIn(invite.expiresAt) }}
+                @if (invite.createdBy) {
+                  · made by {{ invite.createdBy }}
+                }
+              </span>
+            </div>
+            <button
+              type="button"
+              class="revoke-btn"
+              (click)="revoke(invite)"
+              [disabled]="revoking() === invite.id"
+              [attr.aria-label]="'Revoke invite: ' + label(invite)"
+            >
+              Revoke
+            </button>
+          </li>
+        }
+      </ul>
+    } @else if (all.length === 0) {
+      <p class="invites-empty">
+        No invites yet. The person you invite picks their own username and password.
+      </p>
+    } @else {
+      <p class="invites-empty">No open invites.</p>
+    }
+
+    @if (finished().length) {
+      <button
+        type="button"
+        class="finished-toggle"
+        (click)="showFinished.set(!showFinished())"
+        [attr.aria-expanded]="showFinished()"
+        aria-controls="finished-invites"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">{{
+          showFinished() ? 'expand_less' : 'expand_more'
+        }}</span>
+        Used and expired ({{ finished().length }})
+      </button>
+      @if (showFinished()) {
+        <ul
+          class="invite-list finished"
+          id="finished-invites"
+          aria-label="Used and expired invites"
+        >
+          @for (invite of finished(); track invite.id) {
+            <li class="invite-row">
+              <span class="invite-icon" aria-hidden="true">
+                <span class="material-symbols-rounded" aria-hidden="true">{{
+                  invite.status === 'USED' ? 'how_to_reg' : 'schedule'
+                }}</span>
+              </span>
+              <div class="invite-main">
+                <span class="invite-name">{{ label(invite) }}</span>
+                <span class="invite-meta">
+                  @if (invite.status === 'USED') {
+                    Joined as {{ invite.usedBy ?? 'a deleted account' }},
+                    {{ invite.usedAt | friendlyDate }}
+                  } @else {
+                    Expired {{ invite.expiresAt | friendlyDate }}, not used
+                  }
+                </span>
+              </div>
+            </li>
+          }
+        </ul>
+      }
+    }
+  }
+</section>

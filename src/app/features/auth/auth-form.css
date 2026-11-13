@@ -309,3 +309,32 @@ form {
     transition: none;
   }
 }
+
+/* A spinner on a light surface (inside a notice), not on the accent button. */
+.spinner.dark {
+  flex-shrink: 0;
+  margin-top: 2px;
+  border-color: var(--color-border);
+  border-top-color: var(--color-accent-text);
+}
+
+/* Setup: the code is read off a terminal, so it's set like one. */
+.code-input input {
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.log-command {
+  display: block;
+  margin-top: 6px;
+  padding: 8px 10px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border-subtle);
+  color: var(--color-text-body);
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 12.5px;
+  overflow-x: auto;
+  white-space: nowrap;
+}

@@ -27,6 +27,14 @@ export class Login {
 
   errorMessage = signal('');
   loading = signal(false);
+  /** Whether anyone can sign up here, or it takes an invite. */
+  registrationOpen = signal(false);
+
+  constructor() {
+    this.auth.config().subscribe({
+      next: (config) => this.registrationOpen.set(config.registrationEnabled),
+    });
+  }
 
   get username() {
     return this.form.controls.username;

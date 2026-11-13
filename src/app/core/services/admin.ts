@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { API_BASE } from '../api';
 import { AdminOverview, AdminUser, NewUser, UserChanges, UserFilters } from '../models/admin';
 import { PageResponse } from '../models/file-metadata';
+import { CreatedInvite, Invite, NewInvite } from '../models/invite';
 
 const ADMIN_URL = `${API_BASE}/admin`;
 
@@ -43,5 +44,17 @@ export class AdminApi {
 
   deleteUser(id: string): Observable<void> {
     return this.http.delete<void>(`${ADMIN_URL}/users/${id}`);
+  }
+
+  listInvites(): Observable<Invite[]> {
+    return this.http.get<Invite[]>(`${ADMIN_URL}/invites`);
+  }
+
+  createInvite(invite: NewInvite): Observable<CreatedInvite> {
+    return this.http.post<CreatedInvite>(`${ADMIN_URL}/invites`, invite);
+  }
+
+  revokeInvite(id: string): Observable<void> {
+    return this.http.delete<void>(`${ADMIN_URL}/invites/${id}`);
   }
 }

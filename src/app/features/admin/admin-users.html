@@ -5,7 +5,7 @@
       <p class="subtitle">
         @if (overview(); as o) {
           {{ o.users }} account{{ o.users === 1 ? '' : 's' }} on this server, sign-ups
-          {{ o.registrationEnabled ? 'open' : 'closed' }}
+          {{ o.registrationEnabled ? 'open to anyone' : 'by invite' }}
         } @else {
           Accounts on this server
         }
@@ -97,6 +97,8 @@
       </div>
     </section>
   }
+
+  <app-invites-panel (inviteSomeone)="inviting.set(true)" />
 
   <!-- ── Toolbar ──────────────────────────────────────────────── -->
   <div class="toolbar" role="search">
@@ -435,4 +437,8 @@
     (confirm)="deleteUser(user)"
     (cancel)="closeDialogs()"
   />
+}
+
+@if (inviting()) {
+  <app-invite-dialog (created)="invitesPanelReload()" (closed)="closeInvite()" />
 }

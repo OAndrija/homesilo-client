@@ -78,6 +78,10 @@
       </button>
     </form>
 
-    <p class="switch-auth">New to HomeSilo? <a routerLink="/register">Create an account</a></p>
+    @if (registrationOpen()) {
+      <p class="switch-auth">New to HomeSilo? <a routerLink="/register">Create an account</a></p>
+    } @else {
+      <p class="switch-auth">New here? Ask an admin for an invite link.</p>
+    }
   </div>
 </app-auth-shell>

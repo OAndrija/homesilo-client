@@ -45,7 +45,14 @@ export function describeActivity(entry: ActivityEntry, meId?: string | null): Ac
 
   switch (entry.action) {
     case 'SIGNED_UP':
-      return { icon: 'person_add', tone: 'good', actor, verb: 'created an account' };
+      return {
+        icon: 'person_add',
+        tone: 'good',
+        actor,
+        verb: 'created an account',
+        // newValue: who sent the invite they joined with.
+        detail: entry.newValue ? `invited by ${entry.newValue}` : undefined,
+      };
     case 'SIGNED_IN':
       return { icon: 'login', tone: 'neutral', actor, verb: 'signed in' };
     case 'SIGNED_OUT':
@@ -170,6 +177,27 @@ export function describeActivity(entry: ActivityEntry, meId?: string | null): Ac
         detail: count(entry.newValue, 'item', 'items'),
       };
 
+    case 'SERVER_SET_UP':
+      return { icon: 'rocket_launch', tone: 'admin', actor, verb: 'set up HomeSilo' };
+    case 'INVITE_CREATED':
+      return {
+        icon: 'forward_to_inbox',
+        tone: 'admin',
+        actor,
+        verb: 'made an invite link',
+        connector: name ? 'for' : undefined,
+        object: name || undefined,
+        detail: entry.newValue === 'ADMIN' ? 'for an admin account' : undefined,
+      };
+    case 'INVITE_REVOKED':
+      return {
+        icon: 'link_off',
+        tone: 'admin',
+        actor,
+        verb: 'revoked an invite link',
+        connector: name ? 'for' : undefined,
+        object: name || undefined,
+      };
     case 'USER_CREATED':
       return {
         icon: 'person_add',

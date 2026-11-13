@@ -26,7 +26,11 @@ describe('Login', () => {
     http = TestBed.inject(HttpTestingController);
     router = TestBed.inject(Router);
     vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
-    return TestBed.createComponent(Login).componentInstance;
+    const login = TestBed.createComponent(Login).componentInstance;
+    http
+      .expectOne('/api/v1/auth/config')
+      .flush({ registrationEnabled: false, setupRequired: false });
+    return login;
   }
 
   afterEach(() => http.verify());
@@ -75,5 +79,33 @@ describe('Login', () => {
     http.expectOne('/api/v1/users/me/preferences').flush({ values: {}, updatedAt: null });
 
     expect(router.navigateByUrl).toHaveBeenCalledWith('/home');
+  });
+
+  it('offers sign-up only when it is open, and an invite hint otherwise', () => {
+    TestBed.configureTestingModule({
+      imports: [Login],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { queryParamMap: convertToParamMap({}) } },
+        },
+      ],
+    });
+    http = TestBed.inject(HttpTestingController);
+    const fixture = TestBed.createComponent(Login);
+    http
+      .expectOne('/api/v1/auth/config')
+      .flush({ registrationEnabled: false, setupRequired: false });
+    fixture.detectChanges();
+    const text = () =>
+      (fixture.nativeElement as HTMLElement).querySelector('.switch-auth')!.textContent;
+    expect(text()).toContain('Ask an admin for an invite link');
+
+    fixture.componentInstance.registrationOpen.set(true);
+    fixture.detectChanges();
+    expect(text()).toContain('Create an account');
   });
 });

@@ -1,18 +1,38 @@
 import { Routes } from '@angular/router';
-import { adminGuard, authGuard, guestGuard } from './core/guards/auth-guard';
+import {
+  adminGuard,
+  authGuard,
+  guestGuard,
+  setupDoneGuard,
+  setupNeededGuard,
+} from './core/guards/auth-guard';
 import { Layout } from './shared/layout/layout';
 
 export const routes: Routes = [
   {
+    path: 'setup',
+    canActivate: [guestGuard, setupNeededGuard],
+    title: 'Set up HomeSilo',
+    loadComponent: () => import('./features/auth/setup/setup').then((m) => m.Setup),
+  },
+  {
     path: 'login',
-    canActivate: [guestGuard],
+    canActivate: [guestGuard, setupDoneGuard],
     title: 'Sign in · HomeSilo',
     loadComponent: () => import('./features/auth/login/login').then((m) => m.Login),
   },
   {
     path: 'register',
-    canActivate: [guestGuard],
+    canActivate: [guestGuard, setupDoneGuard],
     title: 'Create account · HomeSilo',
+    loadComponent: () => import('./features/auth/register/register').then((m) => m.Register),
+  },
+  {
+    // The link's secret is in the fragment (/invite#…), which the server never sees.
+    path: 'invite',
+    canActivate: [guestGuard, setupDoneGuard],
+    title: "You're invited · HomeSilo",
+    data: { invite: true },
     loadComponent: () => import('./features/auth/register/register').then((m) => m.Register),
   },
   {
