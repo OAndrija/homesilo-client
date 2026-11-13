@@ -1,4 +1,6 @@
-import { PropertiesService } from '../../core/services/properties';
+import { PropertiesTarget } from '../../core/services/properties';
+import { Router } from '@angular/router';
+import { ItemDetails } from '../item-details/item-details';
 import { HttpClient } from '@angular/common/http';
 import {
   Component,
@@ -19,6 +21,16 @@ import { getFileIcon } from '../../core/utils/file-icon.util';
 import { formatBytes } from '../../core/utils/format';
 import { FriendlyDatePipe } from '../pipes/friendly-date';
 
+const DETAILS_KEY = 'hs-viewer-details';
+
+function readDetailsOpen(): boolean {
+  try {
+    return localStorage.getItem(DETAILS_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
 /** Text bigger than this is offered as a download rather than loaded into the page. */
 const MAX_TEXT_BYTES = 2 * 1024 * 1024;
 /** Characters of a text file shown before cutting off. */
@@ -27,13 +39,13 @@ const MAX_TEXT_CHARS = 200_000;
 /** Full-screen viewer for images, video, audio, PDFs and text, opened from any file list. */
 @Component({
   selector: 'app-file-preview',
-  imports: [FriendlyDatePipe],
+  imports: [FriendlyDatePipe, ItemDetails],
   templateUrl: './file-preview.html',
   styleUrl: './file-preview.css',
 })
 export class FilePreview {
   protected preview = inject(FilePreviewService);
-  private properties = inject(PropertiesService);
+  private router = inject(Router);
   private files = inject(Files);
   private fileActions = inject(FileActions);
   private http = inject(HttpClient);
@@ -58,6 +70,13 @@ export class FilePreview {
   );
   icon = computed(() => getFileIcon(this.file()?.originalFileName ?? ''));
   readonly formatBytes = formatBytes;
+
+  /** The details panel beside the content; stays open from file to file and visit to visit. */
+  detailsOpen = signal(readDetailsOpen());
+  detailsTarget = computed<PropertiesTarget | null>(() => {
+    const file = this.file();
+    return file ? { kind: 'file', item: file } : null;
+  });
 
   mediaLoading = signal(true);
   mediaFailed = signal(false);
@@ -109,9 +128,20 @@ export class FilePreview {
     });
   }
 
-  showProperties(): void {
-    const file = this.file();
-    if (file) this.properties.showFile(file);
+  toggleDetails(): void {
+    const open = !this.detailsOpen();
+    this.detailsOpen.set(open);
+    try {
+      localStorage.setItem(DETAILS_KEY, String(open));
+    } catch {
+      // Without storage, the choice lasts for this visit.
+    }
+  }
+
+  /** A folder in the details' location: leave the viewer and go there. */
+  goToFolder(folderId: string | null): void {
+    this.close();
+    void this.router.navigate(['/my-files'], { queryParams: folderId ? { folderId } : {} });
   }
 
   close(): void {
@@ -130,11 +160,16 @@ export class FilePreview {
 
   @HostListener('document:keydown', ['$event'])
   onKeydown(event: KeyboardEvent): void {
-    // While properties are open on top, the keys are theirs.
-    if (!this.preview.isOpen() || this.properties.target()) return;
+    if (!this.preview.isOpen()) return;
     const target = event.target as HTMLElement;
     const inMediaControls = target.tagName === 'VIDEO' || target.tagName === 'AUDIO';
     switch (event.key) {
+      case 'i':
+      case 'I':
+        if (event.ctrlKey || event.metaKey || event.altKey) return;
+        event.preventDefault();
+        this.toggleDetails();
+        break;
       case 'Escape':
         event.preventDefault();
         this.close();
