@@ -1,0 +1,110 @@
+@if (error()) {
+  <p class="load-error" role="alert">{{ error() }}</p>
+}
+<dl class="props">
+  @if (file(); as f) {
+    <div class="row">
+      <dt>Type</dt>
+      <dd>
+        {{ kind() }}
+        <span class="faint">{{ f.contentType }}</span>
+      </dd>
+    </div>
+    <div class="row">
+      <dt>Size</dt>
+      <dd>
+        {{ formatBytes(f.size) }}
+        <span class="faint">{{ f.size | number: '1.0-0' }} bytes</span>
+      </dd>
+    </div>
+  }
+  @if (folder()) {
+    <div class="row">
+      <dt>Contains</dt>
+      <dd>
+        @if (summary(); as s) {
+          {{ s.files | number }} {{ s.files === 1 ? 'file' : 'files' }}, {{ s.folders | number }}
+          {{ s.folders === 1 ? 'folder' : 'folders' }}
+        } @else {
+          <span class="skeleton"></span>
+        }
+      </dd>
+    </div>
+    <div class="row">
+      <dt>Size</dt>
+      <dd>
+        @if (summary(); as s) {
+          {{ formatBytes(s.bytes) }}
+          <span class="faint">{{ s.bytes | number: '1.0-0' }} bytes</span>
+        } @else {
+          <span class="skeleton"></span>
+        }
+      </dd>
+    </div>
+  }
+  <div class="row">
+    <dt>Location</dt>
+    <dd>
+      @if (loading() && !details()) {
+        <span class="skeleton"></span>
+      } @else {
+        <nav class="path" aria-label="Location">
+          @if (trashed()) {
+            <span class="crumb">Trash</span>
+            <span class="faint was">was in</span>
+          }
+          <button type="button" class="crumb link" (click)="goTo.emit(null)">My Files</button>
+          @for (crumb of path(); track crumb.id) {
+            <span class="material-symbols-rounded sep" aria-hidden="true">chevron_right</span>
+            <button type="button" class="crumb link" (click)="goTo.emit(crumb.id)">
+              {{ crumb.name }}
+            </button>
+          }
+        </nav>
+      }
+    </dd>
+  </div>
+  @if (file(); as f) {
+    <div class="row">
+      <dt>Uploaded</dt>
+      <dd>{{ f.uploadedAt | exactDate }}</dd>
+    </div>
+    <div class="row">
+      <dt>Modified</dt>
+      <dd>{{ f.lastModified | exactDate }}</dd>
+    </div>
+  }
+  @if (folder(); as d) {
+    <div class="row">
+      <dt>Created</dt>
+      <dd>{{ d.createdAt | exactDate }}</dd>
+    </div>
+    <div class="row">
+      <dt>Modified</dt>
+      <dd>{{ d.lastModified | exactDate }}</dd>
+    </div>
+  }
+  @if (file()?.trashedAt ?? folder()?.trashedAt; as trashedAt) {
+    <div class="row">
+      <dt>Trashed</dt>
+      <dd>{{ trashedAt | exactDate }}</dd>
+    </div>
+  }
+  <div class="row">
+    <dt>Starred</dt>
+    <dd>
+      @if (file()?.starred ?? folder()?.starred) {
+        <span class="material-symbols-rounded starred" aria-hidden="true">star</span>
+        Yes
+      } @else {
+        No
+      }
+    </dd>
+  </div>
+  @if (!inViewer() && file(); as f) {
+    <div class="row">
+      <dt>Preview</dt>
+      <dd>{{ f.thumbnail ? 'Available' : 'None for this type' }}</dd>
+    </div>
+  }
+</dl>

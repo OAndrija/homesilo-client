@@ -1,19 +1,18 @@
 @if (folders().length > 0) {
   <section class="group" aria-label="Folders">
     <h3 class="group-label">Folders</h3>
-    <div
-      class="folder-grid"
-      role="listbox"
-      aria-label="Folders"
-      [attr.aria-multiselectable]="selectable()"
-    >
+    <div class="folder-grid" role="list" aria-label="Folders">
       @for (folder of folders(); track folder.id; let i = $index) {
         <div
           class="folder-tile"
-          role="option"
+          role="listitem"
           tabindex="0"
-          [attr.aria-selected]="isFolderSelected(folder.id)"
-          [attr.aria-label]="folder.name + (folder.starred ? ', starred' : '')"
+          [attr.aria-label]="
+            folder.name +
+            ', folder' +
+            (folder.starred ? ', starred' : '') +
+            (isFolderSelected(folder.id) ? ', selected' : '')
+          "
           [class.selected]="isFolderSelected(folder.id)"
           [class.drag-over]="dragOverFolderId() === folder.id"
           draggable="true"
@@ -61,21 +60,19 @@
     @if (folders().length > 0) {
       <h3 class="group-label">Files</h3>
     }
-    <div
-      class="file-grid"
-      role="listbox"
-      aria-label="Files"
-      [attr.aria-multiselectable]="selectable()"
-    >
+    <div class="file-grid" role="list" aria-label="Files">
       @for (file of files(); track file.id; let i = $index) {
         @let thumb = thumbnailUrl(file);
         @let icon = getFileIcon(file.originalFileName);
         <div
           class="file-tile"
-          role="option"
+          role="listitem"
           tabindex="0"
-          [attr.aria-selected]="isSelected(file.id)"
-          [attr.aria-label]="file.originalFileName + (file.starred ? ', starred' : '')"
+          [attr.aria-label]="
+            file.originalFileName +
+            (file.starred ? ', starred' : '') +
+            (isSelected(file.id) ? ', selected' : '')
+          "
           [class.selected]="isSelected(file.id)"
           draggable="true"
           (dragstart)="onDragStart('file', file.id, $event)"

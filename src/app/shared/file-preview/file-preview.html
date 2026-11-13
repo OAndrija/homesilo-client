@@ -40,9 +40,11 @@
         <button
           type="button"
           class="bar-btn"
-          (click)="showProperties()"
-          aria-label="Properties"
-          title="Properties"
+          [class.active]="detailsOpen()"
+          (click)="toggleDetails()"
+          aria-label="Details"
+          [attr.aria-pressed]="detailsOpen()"
+          title="Details (I)"
         >
           <span class="material-symbols-rounded" aria-hidden="true">info</span>
         </button>
@@ -58,129 +60,149 @@
             <span class="material-symbols-rounded" aria-hidden="true">open_in_new</span>
           </a>
         }
-        <button type="button" class="download-btn" (click)="download()">
+        <button type="button" class="download-btn" (click)="download()" aria-label="Download">
           <span class="material-symbols-rounded" aria-hidden="true">download</span>
-          <span class="download-label">Download</span>
+          <span class="download-label" aria-hidden="true">Download</span>
         </button>
       </div>
     </header>
 
-    <div class="stage" (click)="onStageClick($event)">
-      @switch (kind()) {
-        @case ('image') {
-          @if (mediaLoading() && !mediaFailed()) {
-            <!-- The small preview stands in while the full image downloads. -->
-            @if (file.thumbnail) {
-              <img class="placeholder" [src]="thumbUrl()" alt="" aria-hidden="true" />
+    <div class="body">
+      <div class="stage" (click)="onStageClick($event)">
+        @switch (kind()) {
+          @case ('image') {
+            @if (mediaLoading() && !mediaFailed()) {
+              <!-- The small preview stands in while the full image downloads. -->
+              @if (file.thumbnail) {
+                <img class="placeholder" [src]="thumbUrl()" alt="" aria-hidden="true" />
+              }
+              <span class="spinner" aria-hidden="true"></span>
             }
-            <span class="spinner" aria-hidden="true"></span>
+            @if (mediaFailed()) {
+              <div class="card">
+                <span class="card-icon" aria-hidden="true">
+                  <span class="material-symbols-rounded" aria-hidden="true">broken_image</span>
+                </span>
+                <div class="card-title">Couldn't show this image</div>
+                <p class="card-text">The file may be damaged. Download it to try another app.</p>
+              </div>
+            } @else {
+              <img
+                class="media image"
+                [class.hidden]="mediaLoading()"
+                [src]="url()"
+                [alt]="file.originalFileName"
+                (load)="mediaLoading.set(false)"
+                (error)="mediaFailed.set(true)"
+              />
+            }
           }
-          @if (mediaFailed()) {
-            <div class="card">
+          @case ('video') {
+            <video class="media video" [src]="url()" controls playsinline preload="metadata">
+              Your browser can't play this video.
+            </video>
+          }
+          @case ('audio') {
+            <div class="card audio-card">
               <span class="card-icon" aria-hidden="true">
-                <span class="material-symbols-rounded" aria-hidden="true">broken_image</span>
+                <span class="material-symbols-rounded" aria-hidden="true">music_note</span>
               </span>
-              <div class="card-title">Couldn't show this image</div>
-              <p class="card-text">The file may be damaged. Download it to try another app.</p>
+              <div class="card-title">{{ file.originalFileName }}</div>
+              <audio [src]="url()" controls preload="metadata"></audio>
             </div>
-          } @else {
-            <img
-              class="media image"
-              [class.hidden]="mediaLoading()"
-              [src]="url()"
-              [alt]="file.originalFileName"
-              (load)="mediaLoading.set(false)"
-              (error)="mediaFailed.set(true)"
-            />
           }
-        }
-        @case ('video') {
-          <video class="media video" [src]="url()" controls playsinline preload="metadata">
-            Your browser can't play this video.
-          </video>
-        }
-        @case ('audio') {
-          <div class="card audio-card">
-            <span class="card-icon" aria-hidden="true">
-              <span class="material-symbols-rounded" aria-hidden="true">music_note</span>
-            </span>
-            <div class="card-title">{{ file.originalFileName }}</div>
-            <audio [src]="url()" controls preload="metadata"></audio>
-          </div>
-        }
-        @case ('pdf') {
-          <iframe class="media pdf" [src]="frameUrl()" [title]="file.originalFileName"></iframe>
-        }
-        @case ('text') {
-          @if (textTooLarge()) {
+          @case ('pdf') {
+            <iframe class="media pdf" [src]="frameUrl()" [title]="file.originalFileName"></iframe>
+          }
+          @case ('text') {
+            @if (textTooLarge()) {
+              <div class="card">
+                <span class="card-icon" aria-hidden="true">
+                  <span class="material-symbols-rounded" aria-hidden="true">description</span>
+                </span>
+                <div class="card-title">This file is too large to preview</div>
+                <p class="card-text">Download it to open it with an app on your device.</p>
+                <button type="button" class="download-btn" (click)="download()">
+                  <span class="material-symbols-rounded" aria-hidden="true">download</span>
+                  Download
+                </button>
+              </div>
+            } @else if (mediaFailed()) {
+              <div class="card">
+                <span class="card-icon" aria-hidden="true">
+                  <span class="material-symbols-rounded" aria-hidden="true">error</span>
+                </span>
+                <div class="card-title">Couldn't load this file</div>
+                <p class="card-text">Try again, or download it instead.</p>
+              </div>
+            } @else if (text() === null) {
+              <span class="spinner" aria-hidden="true"></span>
+            } @else {
+              <div class="text-sheet" tabindex="0" role="region" aria-label="File contents">
+                <pre>{{ text() }}</pre>
+                @if (textTruncated()) {
+                  <p class="truncated">
+                    Showing the beginning of the file. Download it to see the rest.
+                  </p>
+                }
+              </div>
+            }
+          }
+          @default {
             <div class="card">
-              <span class="card-icon" aria-hidden="true">
-                <span class="material-symbols-rounded" aria-hidden="true">description</span>
+              <span class="card-icon" [style.--tint]="icon().color" aria-hidden="true">
+                <span class="material-symbols-rounded" aria-hidden="true">{{ icon().icon }}</span>
               </span>
-              <div class="card-title">This file is too large to preview</div>
+              <div class="card-title">No preview for this file type</div>
               <p class="card-text">Download it to open it with an app on your device.</p>
               <button type="button" class="download-btn" (click)="download()">
                 <span class="material-symbols-rounded" aria-hidden="true">download</span>
                 Download
               </button>
             </div>
-          } @else if (mediaFailed()) {
-            <div class="card">
-              <span class="card-icon" aria-hidden="true">
-                <span class="material-symbols-rounded" aria-hidden="true">error</span>
-              </span>
-              <div class="card-title">Couldn't load this file</div>
-              <p class="card-text">Try again, or download it instead.</p>
-            </div>
-          } @else if (text() === null) {
-            <span class="spinner" aria-hidden="true"></span>
-          } @else {
-            <div class="text-sheet">
-              <pre>{{ text() }}</pre>
-              @if (textTruncated()) {
-                <p class="truncated">
-                  Showing the beginning of the file. Download it to see the rest.
-                </p>
-              }
-            </div>
           }
         }
-        @default {
-          <div class="card">
-            <span class="card-icon" [style.--tint]="icon().color" aria-hidden="true">
-              <span class="material-symbols-rounded" aria-hidden="true">{{ icon().icon }}</span>
-            </span>
-            <div class="card-title">No preview for this file type</div>
-            <p class="card-text">Download it to open it with an app on your device.</p>
-            <button type="button" class="download-btn" (click)="download()">
-              <span class="material-symbols-rounded" aria-hidden="true">download</span>
-              Download
+
+        @if (preview.hasPrevious()) {
+          <button
+            type="button"
+            class="nav-btn prev"
+            (click)="preview.previous()"
+            aria-label="Previous file"
+            title="Previous (←)"
+          >
+            <span class="material-symbols-rounded" aria-hidden="true">chevron_left</span>
+          </button>
+        }
+        @if (preview.hasNext()) {
+          <button
+            type="button"
+            class="nav-btn next"
+            (click)="preview.next()"
+            aria-label="Next file"
+            title="Next (→)"
+          >
+            <span class="material-symbols-rounded" aria-hidden="true">chevron_right</span>
+          </button>
+        }
+      </div>
+
+      @if (detailsOpen() && detailsTarget(); as target) {
+        <aside class="details" aria-labelledby="viewer-details-title">
+          <div class="details-head">
+            <h2 id="viewer-details-title">Details</h2>
+            <button
+              type="button"
+              class="bar-btn"
+              (click)="toggleDetails()"
+              aria-label="Close details"
+              title="Close details (I)"
+            >
+              <span class="material-symbols-rounded" aria-hidden="true">close</span>
             </button>
           </div>
-        }
-      }
-
-      @if (preview.hasPrevious()) {
-        <button
-          type="button"
-          class="nav-btn prev"
-          (click)="preview.previous()"
-          aria-label="Previous file"
-          title="Previous (←)"
-        >
-          <span class="material-symbols-rounded" aria-hidden="true">chevron_left</span>
-        </button>
-      }
-      @if (preview.hasNext()) {
-        <button
-          type="button"
-          class="nav-btn next"
-          (click)="preview.next()"
-          aria-label="Next file"
-          title="Next (→)"
-        >
-          <span class="material-symbols-rounded" aria-hidden="true">chevron_right</span>
-        </button>
+          <app-item-details [target]="target" [inViewer]="true" (goTo)="goToFolder($event)" />
+        </aside>
       }
     </div>
   </div>
