@@ -60,6 +60,7 @@ describe('Login', () => {
     http
       .expectOne('/api/v1/auth/login')
       .flush({ user: { id: '1', username: 'alice' }, expiresInSeconds: 60 });
+    http.expectOne('/api/v1/users/me/preferences').flush({ values: {}, updatedAt: null });
 
     expect(router.navigateByUrl).toHaveBeenCalledWith('/my-files?folderId=abc');
   });
@@ -71,6 +72,7 @@ describe('Login', () => {
     http
       .expectOne('/api/v1/auth/login')
       .flush({ user: { id: '1', username: 'alice' }, expiresInSeconds: 60 });
+    http.expectOne('/api/v1/users/me/preferences').flush({ values: {}, updatedAt: null });
 
     expect(router.navigateByUrl).toHaveBeenCalledWith('/home');
   });

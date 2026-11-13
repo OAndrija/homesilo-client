@@ -11,7 +11,15 @@ import { SelectionBar } from '../../shared/selection-bar/selection-bar';
 import { Search } from '../../core/services/search';
 import { DashboardStore } from '../../core/services/dashboard-store';
 import { LoadingDelayPipe } from '../../shared/pipes/loading-delay';
-import { fileSortParam, loadSort, saveSort, SortState, sortFolders } from '../../core/models/sort';
+import {
+  DEFAULT_SORT,
+  fileSortParam,
+  SORT_KEYS,
+  SortState,
+  sortFolders,
+} from '../../core/models/sort';
+import { PreferencesService } from '../../core/services/preferences';
+import { sortChange, sortSetting } from '../../core/services/list-settings';
 import { ToastService } from '../../core/services/toast';
 import { TableSkeleton } from '../../shared/table-skeleton/table-skeleton';
 import {
@@ -42,7 +50,8 @@ export class Trash {
   errorMessage = signal('');
   currentPage = signal(0);
   hasMore = signal(false);
-  sort = signal<SortState>(loadSort('trash'));
+  private prefs = inject(PreferencesService);
+  sort = sortSetting<SortState['key']>('trash', SORT_KEYS, DEFAULT_SORT);
   /** Folders aren't paged here, so they're sorted in the browser (by deletion time for "date"). */
   sortedFolders = computed(() => sortFolders(this.folders(), this.sort(), 'trashedAt'));
 
@@ -94,7 +103,7 @@ export class Trash {
 
   onSortChange(sort: SortState): void {
     this.sort.set(sort);
-    saveSort('trash', sort);
+    this.prefs.set(sortChange('trash', sort, DEFAULT_SORT));
   }
 
   private get sortParam(): string {

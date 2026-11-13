@@ -30,6 +30,8 @@ import { LoadingDelayPipe } from '../../shared/pipes/loading-delay';
 import { DeleteUserDialog } from './delete-user-dialog';
 import { PasswordDialog } from './password-dialog';
 import { UserFormDialog } from './user-form-dialog';
+import { PreferencesService } from '../../core/services/preferences';
+import { sortChange, sortSetting } from '../../core/services/list-settings';
 
 export type UserSortKey = 'username' | 'role' | 'enabled' | 'lastLoginAt' | 'createdAt';
 
@@ -38,7 +40,15 @@ interface UserSort {
   direction: 'asc' | 'desc';
 }
 
-const SORT_STORAGE_KEY = 'hs-sort-admin-users';
+const SORT_PAGE = 'admin-users';
+const SORT_KEYS: readonly UserSortKey[] = [
+  'username',
+  'role',
+  'enabled',
+  'lastLoginAt',
+  'createdAt',
+];
+const DEFAULT_SORT: UserSort = { key: 'username', direction: 'asc' };
 const PAGE_SIZE = 25;
 /** Colours for the people using the most storage, then everyone else. */
 const SEGMENT_COLORS = [
@@ -89,7 +99,8 @@ export class AdminUsers {
   private query = signal('');
   role = signal<UserRole | null>(null);
   status = signal<AccountStatus | null>(null);
-  sort = signal<UserSort>(loadSort());
+  private prefs = inject(PreferencesService);
+  sort = sortSetting(SORT_PAGE, SORT_KEYS, DEFAULT_SORT);
   private reloadTick = signal(0);
 
   hasFilters = computed(() => !!this.query() || !!this.role() || !!this.status());
@@ -205,11 +216,7 @@ export class AdminUsers {
         : { key, direction: firstDirection };
     this.sort.set(next);
     this.page.set(0);
-    try {
-      localStorage.setItem(SORT_STORAGE_KEY, JSON.stringify(next));
-    } catch {
-      /* storage unavailable: the sort just isn't remembered */
-    }
+    this.prefs.set(sortChange(SORT_PAGE, next, DEFAULT_SORT));
   }
 
   ariaSort(key: UserSortKey): 'ascending' | 'descending' | null {
@@ -424,21 +431,4 @@ export class AdminUsers {
       error: () => this.overview.set(null),
     });
   }
-}
-
-function loadSort(): UserSort {
-  try {
-    const saved = JSON.parse(localStorage.getItem(SORT_STORAGE_KEY) ?? 'null');
-    const keys: UserSortKey[] = ['username', 'role', 'enabled', 'lastLoginAt', 'createdAt'];
-    if (
-      saved &&
-      keys.includes(saved.key) &&
-      (saved.direction === 'asc' || saved.direction === 'desc')
-    ) {
-      return saved;
-    }
-  } catch {
-    /* fall through to the default */
-  }
-  return { key: 'username', direction: 'asc' };
 }

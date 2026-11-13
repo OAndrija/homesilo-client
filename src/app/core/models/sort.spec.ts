@@ -1,5 +1,5 @@
 import { Folder } from './folder';
-import { fileSortParam, loadSort, nextSort, saveSort, sortFolders } from './sort';
+import { fileSortParam, nextSort, sortFolders } from './sort';
 
 function folder(name: string, lastModified: string, trashedAt: string | null = null): Folder {
   return { id: name, name, lastModified, trashedAt } as Folder;
@@ -51,14 +51,5 @@ describe('sorting', () => {
     expect(
       sortFolders(list, { key: 'date', direction: 'desc' }, 'trashedAt').map((f) => f.name),
     ).toEqual(['a', 'b']);
-  });
-
-  it('remembers a sort per list and ignores anything malformed', () => {
-    localStorage.clear();
-    expect(loadSort('x')).toEqual({ key: 'date', direction: 'desc' });
-    saveSort('x', { key: 'size', direction: 'asc' });
-    expect(loadSort('x')).toEqual({ key: 'size', direction: 'asc' });
-    localStorage.setItem('hs-sort-x', '{"key":"evil","direction":"up"}');
-    expect(loadSort('x')).toEqual({ key: 'date', direction: 'desc' });
   });
 });

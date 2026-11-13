@@ -1,5 +1,14 @@
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { PreferencesService } from './preferences';
 import { readableOn, THEMES, ThemeService } from './theme';
+
+beforeEach(() =>
+  TestBed.configureTestingModule({
+    providers: [provideHttpClient(), provideHttpClientTesting()],
+  }),
+);
 
 describe('ThemeService', () => {
   beforeEach(() => {
@@ -171,5 +180,90 @@ describe('readableOn', () => {
     expect(readableOn('#3b82f6')).toBe('#111318');
     expect(readableOn('#1d4ed8')).toBe('#ffffff');
     expect(readableOn('#b91c1c')).toBe('#ffffff');
+  });
+});
+
+describe('ThemeService with accounts', () => {
+  let http: HttpTestingController;
+  let prefs: PreferencesService;
+
+  beforeEach(() => {
+    localStorage.clear();
+    localStorage.setItem('hs-prefs-claimed', '1');
+    http = TestBed.inject(HttpTestingController);
+    prefs = TestBed.inject(PreferencesService);
+  });
+
+  afterEach(() => http.verify());
+
+  function signIn(userId: string, values: Record<string, string>): void {
+    prefs.load(userId).subscribe();
+    http.expectOne('/api/v1/users/me/preferences').flush({ values, updatedAt: null });
+    TestBed.tick();
+  }
+
+  it("shows each account's own look, and the defaults for one that changed nothing", () => {
+    const theme = TestBed.inject(ThemeService);
+    signIn('ana', {
+      'theme.mode': 'dark',
+      'theme.dark': 'nord',
+      'appearance.spacing': 'compact',
+    });
+    expect(theme.preference()).toBe('dark');
+    expect(theme.chosen().dark).toBe('nord');
+    expect(theme.spacing()).toBe('compact');
+    expect(document.documentElement.getAttribute('data-spacing')).toBe('compact');
+
+    prefs.clear();
+    signIn('ben', {});
+    expect(theme.preference()).toBe('system');
+    expect(theme.chosen().dark).toBe('homesilo-dark');
+    expect(theme.spacing()).toBe('comfortable');
+  });
+
+  it('keeps the look on screen after signing out, for the sign-in page', () => {
+    const theme = TestBed.inject(ThemeService);
+    signIn('ana', { 'appearance.spacing': 'compact' });
+    prefs.clear();
+    TestBed.tick();
+    expect(theme.spacing()).toBe('compact');
+    expect(localStorage.getItem('hs-spacing')).toBe('compact');
+  });
+
+  it('saves a change to the account, leaving defaults out', () => {
+    const theme = TestBed.inject(ThemeService);
+    signIn('ana', { 'appearance.corners': 'sharp' });
+
+    theme.setCorners('rounded');
+    theme.setTheme('dracula');
+    // Sent one after another: the second goes once the first is answered.
+    const first = http.expectOne((r) => r.method === 'PATCH');
+    expect(first.request.body.values).toEqual({ 'appearance.corners': null });
+    first.flush({ values: {}, updatedAt: null });
+    const second = http.expectOne((r) => r.method === 'PATCH');
+    expect(second.request.body.values).toEqual({ 'theme.dark': 'dracula' });
+    second.flush({ values: {}, updatedAt: null });
+  });
+
+  it('ignores settings it does not know', () => {
+    const theme = TestBed.inject(ThemeService);
+    signIn('ana', { 'theme.dark': 'no-such-theme', 'appearance.font': 'comic' });
+    expect(theme.chosen().dark).toBe('homesilo-dark');
+    expect(theme.font()).toBe('inter');
+  });
+
+  it("gives this browser's old look to the first account even while the app is showing it", () => {
+    localStorage.removeItem('hs-prefs-claimed');
+    localStorage.setItem('hs-spacing', 'compact');
+    const theme = TestBed.inject(ThemeService);
+    TestBed.tick();
+
+    prefs.load('ana').subscribe();
+    TestBed.tick(); // whatever shows meanwhile must not overwrite the old look before it's read
+    http.expectOne('/api/v1/users/me/preferences').flush({ values: {}, updatedAt: null });
+    TestBed.tick();
+
+    expect(theme.spacing()).toBe('compact');
+    http.expectOne((r) => r.method === 'PATCH').flush({ values: {}, updatedAt: null });
   });
 });
