@@ -688,59 +688,60 @@
       @if (gestures.lifted()) {
         <div class="drop-slot" aria-hidden="true"></div>
       }
-      @if (editing() && selectedTile(); as sel) {
-        @let selDef = definition(sel.id);
-        <div #picker class="size-picker" (keydown)="onPickerKeydown($event)">
-          <div class="picker-row" role="radiogroup" [attr.aria-label]="'Size of ' + selDef.title">
-            @for (size of selDef.sizes; track size) {
+    </div>
+    <!-- Outside the list of tiles: it is not one of them. -->
+    @if (editing() && selectedTile(); as sel) {
+      @let selDef = definition(sel.id);
+      <div #picker class="size-picker" (keydown)="onPickerKeydown($event)">
+        <div class="picker-row" role="radiogroup" [attr.aria-label]="'Size of ' + selDef.title">
+          @for (size of selDef.sizes; track size) {
+            <button
+              type="button"
+              role="radio"
+              class="size-option"
+              [class.active]="sel.size === size"
+              [attr.aria-checked]="sel.size === size"
+              [attr.tabindex]="sel.size === size ? 0 : -1"
+              [attr.aria-label]="sizeLabels[size].long + ', ' + sizeLabels[size].short"
+              [title]="sizeLabels[size].long"
+              (click)="setSize(sel.id, size)"
+            >
+              <span class="size-diagram" aria-hidden="true">
+                @for (cell of sizeCells(size); track $index) {
+                  <span [class.on]="cell"></span>
+                }
+              </span>
+              <span class="size-name">{{ sizeLabels[size].short }}</span>
+            </button>
+          }
+        </div>
+        @if (selDef.variants; as variants) {
+          <div
+            class="picker-row looks"
+            role="radiogroup"
+            [attr.aria-label]="'Look of ' + selDef.title"
+          >
+            @for (variant of variants; track variant.id) {
               <button
                 type="button"
                 role="radio"
                 class="size-option"
-                [class.active]="sel.size === size"
-                [attr.aria-checked]="sel.size === size"
-                [attr.tabindex]="sel.size === size ? 0 : -1"
-                [attr.aria-label]="sizeLabels[size].long + ', ' + sizeLabels[size].short"
-                [title]="sizeLabels[size].long"
-                (click)="setSize(sel.id, size)"
+                [class.active]="look(sel) === variant.id"
+                [attr.aria-checked]="look(sel) === variant.id"
+                [attr.tabindex]="look(sel) === variant.id ? 0 : -1"
+                [attr.aria-label]="variant.label"
+                (click)="setVariant(sel.id, variant.id)"
               >
-                <span class="size-diagram" aria-hidden="true">
-                  @for (cell of sizeCells(size); track $index) {
-                    <span [class.on]="cell"></span>
-                  }
-                </span>
-                <span class="size-name">{{ sizeLabels[size].short }}</span>
+                <span class="material-symbols-rounded look-icon" aria-hidden="true">{{
+                  variant.icon
+                }}</span>
+                <span class="size-name">{{ variant.label }}</span>
               </button>
             }
           </div>
-          @if (selDef.variants; as variants) {
-            <div
-              class="picker-row looks"
-              role="radiogroup"
-              [attr.aria-label]="'Look of ' + selDef.title"
-            >
-              @for (variant of variants; track variant.id) {
-                <button
-                  type="button"
-                  role="radio"
-                  class="size-option"
-                  [class.active]="look(sel) === variant.id"
-                  [attr.aria-checked]="look(sel) === variant.id"
-                  [attr.tabindex]="look(sel) === variant.id ? 0 : -1"
-                  [attr.aria-label]="variant.label"
-                  (click)="setVariant(sel.id, variant.id)"
-                >
-                  <span class="material-symbols-rounded look-icon" aria-hidden="true">{{
-                    variant.icon
-                  }}</span>
-                  <span class="size-name">{{ variant.label }}</span>
-                </button>
-              }
-            </div>
-          }
-        </div>
-      }
-    </div>
+        }
+      </div>
+    }
   </div>
 
   @if (editing()) {

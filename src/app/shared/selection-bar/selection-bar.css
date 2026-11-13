@@ -122,12 +122,9 @@
   transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-/* Filled and gold once every selected item is starred. */
-.sel-btn.star.starred {
-  color: var(--color-star);
-}
-
+/* A filled gold star once every selected item is starred; the label stays readable. */
 .sel-btn.star.starred .material-symbols-rounded {
+  color: var(--color-star);
   font-variation-settings: 'FILL' 1;
   transform: scale(1.08);
 }

@@ -70,7 +70,7 @@
   opacity: 0;
   max-height: 0;
   font-size: 12px;
-  color: var(--color-text-dim);
+  color: var(--color-text-faint);
   padding-left: 23px;
   transition:
     opacity var(--transition-fast),

@@ -5,8 +5,10 @@
    picked up anywhere, carried and dropped. A tile has two controls: remove
    (top right) and a resize grip (bottom right). */
 
+.dash,
 .dash-grid {
-  position: relative; /* tiles' offsets are measured from the grid */
+  position: relative; /* tiles' offsets are measured from the grid, which sits at the
+     top left of .dash, where the size picker is placed */
 }
 
 .dash.editing .dash-tile {

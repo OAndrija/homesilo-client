@@ -7,12 +7,12 @@
     aria-haspopup="menu"
     [attr.aria-expanded]="open()"
     aria-controls="account-menu"
-    [attr.aria-label]="'Account menu for ' + user.username"
     (click)="toggle()"
     (keydown)="onTriggerKeydown($event)"
   >
     <span class="avatar" aria-hidden="true">{{ initial() }}</span>
     <span class="trigger-name">{{ user.username }}</span>
+    <span class="visually-hidden">, account menu</span>
     <span class="material-symbols-rounded chevron" aria-hidden="true">expand_more</span>
   </button>
 
