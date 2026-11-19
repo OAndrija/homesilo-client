@@ -9,7 +9,11 @@ COPY . .
 RUN npm run build
 
 # ── Runtime: nginx serves the SPA and proxies /api to the server ──────────────
-FROM nginxinc/nginx-unprivileged:1.30-alpine
+FROM nginxinc/nginx-unprivileged:1.30.7-alpine
+# Alpine security fixes published since the base image was built (Dependabot bumps the tag itself).
+USER root
+RUN apk upgrade --no-cache
+USER 101
 COPY --chmod=755 nginx/15-upload-size.envsh /docker-entrypoint.d/15-upload-size.envsh
 COPY --chmod=755 nginx/20-real-ip.envsh /docker-entrypoint.d/20-real-ip.envsh
 COPY nginx/security-headers.conf /etc/nginx/snippets/security-headers.conf
