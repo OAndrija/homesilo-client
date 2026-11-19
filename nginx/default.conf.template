@@ -1,6 +1,15 @@
 # Rendered by the nginx image's envsubst step: only ${API_UPSTREAM} and
 # ${NGINX_MAX_BODY_SIZE} are substituted; nginx's own $variables are left alone.
 
+# Whether the visitor's connection is HTTPS. nginx itself speaks plain HTTP: TLS
+# ends at the proxy in front (Caddy, Cloudflare), which says so in X-Forwarded-Proto.
+# The API uses it to mark session cookies Secure. A client claiming "https" over
+# plain HTTP only gets a cookie its own browser won't send back, so it's safe to pass on.
+map $http_x_forwarded_proto $forwarded_proto {
+    default $scheme;
+    https   https;
+}
+
 server {
     listen 8080;
     server_name _;
@@ -28,7 +37,7 @@ server {
         # (see 20-real-ip.envsh for running behind another proxy).
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $remote_addr;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Proto $forwarded_proto;
         proxy_set_header X-Forwarded-Host $http_host;
 
         # Stream uploads and downloads instead of spooling them through nginx.
