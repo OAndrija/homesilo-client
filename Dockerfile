@@ -9,7 +9,8 @@ COPY . .
 RUN npm run build
 
 # ── Runtime: nginx serves the SPA and proxies /api to the server ──────────────
-FROM nginxinc/nginx-unprivileged:1.30.7-alpine
+# The image moved from nginxinc/ to nginx/; the old name gets no new releases.
+FROM nginx/nginx-unprivileged:1.30.7-alpine
 # Alpine security fixes published since the base image was built (Dependabot bumps the tag itself).
 USER root
 RUN apk upgrade --no-cache
