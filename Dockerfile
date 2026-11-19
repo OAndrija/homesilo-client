@@ -9,7 +9,7 @@ COPY . .
 RUN npm run build
 
 # ── Runtime: nginx serves the SPA and proxies /api to the server ──────────────
-FROM nginxinc/nginx-unprivileged:1.27-alpine
+FROM nginxinc/nginx-unprivileged:1.30-alpine
 COPY --chmod=755 nginx/15-upload-size.envsh /docker-entrypoint.d/15-upload-size.envsh
 COPY --chmod=755 nginx/20-real-ip.envsh /docker-entrypoint.d/20-real-ip.envsh
 COPY nginx/security-headers.conf /etc/nginx/snippets/security-headers.conf
