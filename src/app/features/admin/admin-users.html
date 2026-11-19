@@ -5,7 +5,10 @@
       <p class="subtitle">
         @if (overview(); as o) {
           {{ o.users }} account{{ o.users === 1 ? '' : 's' }} on this server, sign-ups
-          {{ o.registrationEnabled ? 'open to anyone' : 'by invite' }}
+          {{ o.registrationEnabled ? 'open to anyone' : 'by invite' }}.
+          @if (o.version !== 'dev') {
+            Running HomeSilo {{ o.version }}.
+          }
         } @else {
           Accounts on this server
         }
