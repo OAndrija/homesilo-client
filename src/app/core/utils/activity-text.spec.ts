@@ -103,6 +103,9 @@ describe('describeActivity', () => {
     expect(sentence(entry({ action: 'INVITE_REVOKED', targetType: null, targetName: 'Mum' }))).toBe(
       'maja revoked an invite link for Mum',
     );
+    expect(sentence(entry({ action: 'SESSIONS_REVOKED' }))).toBe(
+      'maja signed out of other devices',
+    );
     expect(describeActivity(entry({ action: 'SIGNED_UP', newValue: 'owner' })).detail).toBe(
       'invited by owner',
     );

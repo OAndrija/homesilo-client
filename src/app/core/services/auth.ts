@@ -97,6 +97,11 @@ export class Auth {
     return this.http.put<void>(`${API_BASE}/users/me/password`, request);
   }
 
+  /** Ends every other session of this account; this one gets a fresh cookie. */
+  signOutOtherDevices(): Observable<void> {
+    return this.http.post<void>(`${API_BASE}/users/me/sessions/sign-out-others`, {});
+  }
+
   /** The server rejected our cookie (expired, revoked, account disabled). */
   handleSessionExpired(): void {
     if (!this.userSignal()) return;

@@ -6,6 +6,7 @@ export type ActivityAction =
   | 'SIGN_IN_FAILED'
   | 'SIGN_IN_BLOCKED'
   | 'SIGNED_OUT'
+  | 'SESSIONS_REVOKED'
   | 'PASSWORD_CHANGED'
   | 'FILE_UPLOADED'
   | 'FILE_RENAMED'

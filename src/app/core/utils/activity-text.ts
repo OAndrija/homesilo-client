@@ -55,6 +55,8 @@ export function describeActivity(entry: ActivityEntry, meId?: string | null): Ac
       };
     case 'SIGNED_IN':
       return { icon: 'login', tone: 'neutral', actor, verb: 'signed in' };
+    case 'SESSIONS_REVOKED':
+      return { icon: 'devices', tone: 'neutral', actor, verb: 'signed out of other devices' };
     case 'SIGNED_OUT':
       return { icon: 'logout', tone: 'neutral', actor, verb: 'signed out' };
     case 'PASSWORD_CHANGED':

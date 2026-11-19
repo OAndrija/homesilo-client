@@ -3,8 +3,7 @@ import { FileMetadata } from '../models/file-metadata';
 import { Folder } from '../models/folder';
 
 export type PropertiesTarget =
-  | { kind: 'file'; item: FileMetadata }
-  | { kind: 'folder'; item: Folder };
+  { kind: 'file'; item: FileMetadata } | { kind: 'folder'; item: Folder };
 
 /** Which file or folder's properties are showing; the dialog lives in the layout. */
 @Injectable({ providedIn: 'root' })

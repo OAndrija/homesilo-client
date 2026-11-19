@@ -167,6 +167,42 @@
         </form>
       </section>
 
+      <section class="panel" aria-labelledby="devices-heading">
+        <div class="panel-head">
+          <h3 id="devices-heading">Other devices</h3>
+          <p>
+            Lost a phone, or signed in on a computer that isn't yours? Sign out everywhere except
+            here.
+          </p>
+        </div>
+        @if (devicesMessage(); as m) {
+          <div class="panel-body">
+            <div
+              class="message"
+              [class.success-message]="!m.error"
+              [class.error-message]="m.error"
+              [attr.role]="m.error ? 'alert' : 'status'"
+            >
+              <span class="material-symbols-rounded" aria-hidden="true">{{
+                m.error ? 'error' : 'check_circle'
+              }}</span>
+              {{ m.text }}
+            </div>
+          </div>
+        }
+        <div class="panel-foot">
+          <span>They'll need your password to sign in again.</span>
+          <button
+            type="button"
+            class="header-btn compact secondary"
+            (click)="signOutOtherDevices()"
+            [disabled]="signingOut()"
+          >
+            {{ signingOut() ? 'Signing out…' : 'Sign out other devices' }}
+          </button>
+        </div>
+      </section>
+
       <!-- ── Recent activity ─────────────────────────────────── -->
       <section id="activity" class="panel" aria-labelledby="activity-heading">
         <div class="panel-head">

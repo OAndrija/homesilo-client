@@ -1,0 +1,25 @@
+#!/bin/sh
+# Who is the client? By default nginx is the edge, so it's whoever connected to it,
+# and anything a client claims in X-Forwarded-For is ignored (the API rate-limits
+# sign-ins by address, so it mustn't be possible to make one up).
+#
+# Behind another proxy (Cloudflare Tunnel, Caddy, Traefik), every request would seem
+# to come from that proxy. Set TRUSTED_PROXIES to its address(es) and REAL_IP_HEADER
+# to the header it puts the real address in, e.g.
+#   TRUSTED_PROXIES="172.16.0.0/12"  REAL_IP_HEADER="CF-Connecting-IP"
+conf=/etc/nginx/conf.d/00-real-ip.conf
+: > "$conf"
+if [ -n "${TRUSTED_PROXIES:-}" ]; then
+  for cidr in $(printf '%s' "$TRUSTED_PROXIES" | tr ',' ' '); do
+    case "$cidr" in
+      *[!0-9a-fA-F.:/]*) echo "20-real-ip: ignoring '$cidr', not an address or CIDR" >&2 ;;
+      *) echo "set_real_ip_from $cidr;" >> "$conf" ;;
+    esac
+  done
+  header="${REAL_IP_HEADER:-X-Forwarded-For}"
+  case "$header" in
+    *[!A-Za-z0-9-]*) echo "20-real-ip: bad REAL_IP_HEADER '$header', using X-Forwarded-For" >&2; header=X-Forwarded-For ;;
+  esac
+  echo "real_ip_header $header;" >> "$conf"
+  echo "real_ip_recursive on;" >> "$conf"
+fi

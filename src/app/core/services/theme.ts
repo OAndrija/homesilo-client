@@ -84,15 +84,7 @@ export const SPACING: readonly { value: Spacing; label: string }[] = [
 
 /** An accent colour over the theme's own, or the theme's ('theme'). */
 export type Accent =
-  | 'theme'
-  | 'blue'
-  | 'teal'
-  | 'green'
-  | 'gold'
-  | 'orange'
-  | 'red'
-  | 'pink'
-  | 'purple';
+  'theme' | 'blue' | 'teal' | 'green' | 'gold' | 'orange' | 'red' | 'pink' | 'purple';
 export const ACCENTS: readonly { value: Accent; label: string; color: string | null }[] = [
   { value: 'theme', label: "Theme's own", color: null },
   { value: 'blue', label: 'Blue', color: '#3b82f6' },
