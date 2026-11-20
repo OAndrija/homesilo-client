@@ -5,6 +5,7 @@ import { API_BASE } from '../api';
 import { AdminOverview, AdminUser, NewUser, UserChanges, UserFilters } from '../models/admin';
 import { PageResponse } from '../models/file-metadata';
 import { CreatedInvite, Invite, NewInvite } from '../models/invite';
+import { BackupStatus, ServerSettings, ServerSettingsChange } from '../models/server-settings';
 
 const ADMIN_URL = `${API_BASE}/admin`;
 
@@ -56,5 +57,21 @@ export class AdminApi {
 
   revokeInvite(id: string): Observable<void> {
     return this.http.delete<void>(`${ADMIN_URL}/invites/${id}`);
+  }
+
+  settings(): Observable<ServerSettings> {
+    return this.http.get<ServerSettings>(`${ADMIN_URL}/settings`);
+  }
+
+  updateSettings(change: ServerSettingsChange): Observable<ServerSettings> {
+    return this.http.patch<ServerSettings>(`${ADMIN_URL}/settings`, change);
+  }
+
+  backups(): Observable<BackupStatus> {
+    return this.http.get<BackupStatus>(`${ADMIN_URL}/backups`);
+  }
+
+  backUpNow(): Observable<BackupStatus> {
+    return this.http.post<BackupStatus>(`${ADMIN_URL}/backups`, {});
   }
 }

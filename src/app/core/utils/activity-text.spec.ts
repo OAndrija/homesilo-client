@@ -85,6 +85,38 @@ describe('describeActivity', () => {
     expect(describeActivity(expired).detail).toBe('7 items');
   });
 
+  it('describes server settings and backups', () => {
+    const trash = entry({
+      action: 'SETTING_CHANGED',
+      targetType: null,
+      targetName: 'trash.retention-days',
+      oldValue: '30',
+      newValue: '0',
+    });
+    expect(sentence(trash)).toBe('maja changed how long the trash is kept');
+    expect(describeActivity(trash).detail).toBe('from 30 days to forever');
+    const signUp = entry({
+      action: 'SETTING_CHANGED',
+      targetType: null,
+      targetName: 'registration.open',
+      oldValue: 'false',
+      newValue: 'true',
+    });
+    expect(describeActivity(signUp).detail).toBe('to anyone');
+    expect(sentence(entry({ action: 'BACKUP_CREATED', targetType: null }))).toBe(
+      'maja made a database backup',
+    );
+    const failed = entry({
+      action: 'BACKUP_FAILED',
+      actorId: null,
+      actorUsername: null,
+      targetType: null,
+      newValue: 'disk full',
+    });
+    expect(sentence(failed)).toBe('A database backup failed');
+    expect(describeActivity(failed).detail).toBe('disk full');
+  });
+
   it('describes setup and invites', () => {
     expect(sentence(entry({ action: 'SERVER_SET_UP' }))).toBe('maja set up HomeSilo');
     expect(

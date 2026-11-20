@@ -1,0 +1,169 @@
+.server-sections {
+  display: grid;
+  gap: 20px;
+  max-width: 760px;
+}
+
+.hint {
+  color: var(--color-text-muted);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.hint a,
+.switch-hint a {
+  color: var(--color-accent-text);
+}
+
+/* ── Sign-up switch ─────────────────────────────────────── */
+
+.switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  cursor: pointer;
+}
+
+.switch-text {
+  display: grid;
+  gap: 4px;
+}
+
+.switch-title {
+  color: var(--color-text-heading);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.switch-hint {
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 44px;
+  height: 26px;
+  margin: 0;
+  border-radius: 999px;
+  background: var(--color-border-stronger);
+  cursor: pointer;
+  appearance: none;
+  transition: background var(--transition-fast);
+}
+
+.switch::after {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.25);
+  content: '';
+  transition: translate var(--transition-fast);
+}
+
+.switch:checked {
+  background: var(--color-accent);
+}
+
+.switch:checked::after {
+  translate: 18px 0;
+}
+
+.switch:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.switch:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+/* ── Numbers with a unit ────────────────────────────────── */
+
+.with-unit {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.with-unit input {
+  width: 140px;
+}
+
+.unit {
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.form-actions .header-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ── Backups ────────────────────────────────────────────── */
+
+.backup-state {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0 0 12px;
+  color: var(--color-text-body);
+  font-size: 14px;
+}
+
+.backup-state .ok {
+  color: var(--color-success);
+  font-size: 19px;
+}
+
+.backup-list {
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+
+.backup-list summary {
+  width: fit-content;
+  color: var(--color-text-muted);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.backup-list ul {
+  display: grid;
+  gap: 4px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.backup-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  max-width: 420px;
+  color: var(--color-text-body);
+}
+
+.mono {
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 12px;
+}
+
+@media (max-width: 640px) {
+  .switch-row {
+    align-items: flex-start;
+  }
+}

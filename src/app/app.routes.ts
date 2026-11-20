@@ -75,6 +75,13 @@ export const routes: Routes = [
           import('./features/admin/activity/admin-activity').then((m) => m.AdminActivity),
       },
       {
+        path: 'admin/server',
+        canActivate: [adminGuard],
+        title: 'Server · HomeSilo',
+        loadComponent: () =>
+          import('./features/admin/server/server-settings').then((m) => m.ServerSettingsPage),
+      },
+      {
         path: 'settings',
         title: 'Settings · HomeSilo',
         loadComponent: () => import('./features/settings/settings').then((m) => m.Settings),

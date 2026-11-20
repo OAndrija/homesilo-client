@@ -1,0 +1,233 @@
+<div class="settings-page">
+  <header class="page-header">
+    <div>
+      <h2>Server</h2>
+      <p class="subtitle">Settings for everyone on this HomeSilo, and its backups.</p>
+    </div>
+  </header>
+
+  @if (loadError()) {
+    <div class="message error-message" role="alert">
+      <span class="material-symbols-rounded" aria-hidden="true">error</span>
+      {{ loadError() }}
+    </div>
+  }
+
+  <div class="server-sections">
+    @if (settings(); as s) {
+      <!-- ── Sign-up ───────────────────────────────────────── -->
+      <section class="panel" aria-labelledby="signup-heading">
+        <div class="panel-head">
+          <h3 id="signup-heading">Sign-up</h3>
+          <p>Who can create an account on this server.</p>
+        </div>
+        <div class="panel-body">
+          <label class="switch-row">
+            <span class="switch-text">
+              <span class="switch-title">Anyone can create an account</span>
+              <span class="switch-hint">
+                When this is off, people join with an invite link from
+                <a routerLink="/admin/users">Users</a>, or you add them yourself.
+              </span>
+            </span>
+            <input
+              type="checkbox"
+              role="switch"
+              class="switch"
+              [checked]="s.registrationOpen"
+              [disabled]="togglingSignUp()"
+              (change)="toggleSignUp($any($event.target).checked)"
+            />
+          </label>
+          @if (signUpMessage(); as m) {
+            <div
+              class="message"
+              [class.success-message]="!m.error"
+              [class.error-message]="m.error"
+              [attr.role]="m.error ? 'alert' : 'status'"
+            >
+              {{ m.text }}
+            </div>
+          }
+        </div>
+      </section>
+
+      <!-- ── Storage and clean-up ──────────────────────────── -->
+      <section class="panel" aria-labelledby="storage-heading">
+        <div class="panel-head">
+          <h3 id="storage-heading">Storage and clean-up</h3>
+          <p>How much new accounts get, and how long old things are kept.</p>
+        </div>
+        <form class="panel-body fields" (submit)="$event.preventDefault(); save()" novalidate>
+          <div class="field">
+            <label for="quota">Storage for each new account</label>
+            <div class="with-unit">
+              <input
+                id="quota"
+                type="number"
+                min="0"
+                step="1"
+                inputmode="decimal"
+                [value]="quotaGb()"
+                (input)="quotaGb.set(number($event))"
+                [class.input-error]="quotaGb() < 0"
+                aria-describedby="quota-hint"
+              />
+              <span class="unit" aria-hidden="true">GB</span>
+            </div>
+            <span class="hint" id="quota-hint">
+              Accounts that already exist keep what they have. You can change anyone's storage under
+              Users. The largest single file is {{ formatBytes(s.maxUploadBytes) }}, set on the
+              server with MAX_UPLOAD_SIZE.
+            </span>
+          </div>
+
+          <div class="field">
+            <label for="trash">Empty the trash after</label>
+            <div class="with-unit">
+              <input
+                id="trash"
+                type="number"
+                min="0"
+                max="3650"
+                step="1"
+                inputmode="numeric"
+                [value]="trashDays()"
+                (input)="trashDays.set(number($event))"
+                [class.input-error]="trashDays() < 0 || trashDays() > 3650"
+                aria-describedby="trash-hint"
+              />
+              <span class="unit" aria-hidden="true">days</span>
+            </div>
+            <span class="hint" id="trash-hint"
+              >0 keeps trashed items until someone empties it.</span
+            >
+          </div>
+
+          <div class="field">
+            <label for="activity">Keep the activity log for</label>
+            <div class="with-unit">
+              <input
+                id="activity"
+                type="number"
+                min="0"
+                max="3650"
+                step="1"
+                inputmode="numeric"
+                [value]="activityDays()"
+                (input)="activityDays.set(number($event))"
+                [class.input-error]="activityDays() < 0 || activityDays() > 3650"
+                aria-describedby="activity-hint"
+              />
+              <span class="unit" aria-hidden="true">days</span>
+            </div>
+            <span class="hint" id="activity-hint">0 keeps it forever.</span>
+          </div>
+
+          @if (savedMessage(); as m) {
+            <div
+              class="message"
+              [class.success-message]="!m.error"
+              [class.error-message]="m.error"
+              [attr.role]="m.error ? 'alert' : 'status'"
+            >
+              {{ m.text }}
+            </div>
+          }
+
+          <div class="form-actions">
+            <button
+              type="submit"
+              class="header-btn compact"
+              [disabled]="saving() || !dirty() || !valid()"
+            >
+              {{ saving() ? 'Saving…' : 'Save' }}
+            </button>
+          </div>
+        </form>
+      </section>
+    }
+
+    <!-- ── Backups ─────────────────────────────────────────── -->
+    @if (backups(); as b) {
+      <section class="panel" aria-labelledby="backups-heading">
+        <div class="panel-head">
+          <h3 id="backups-heading">Database backups</h3>
+          <p>
+            @if (b.enabled) {
+              Made {{ schedule(b.schedule) }}; the last {{ b.keep }} are kept.
+            } @else {
+              Nightly backups are turned off (BACKUP_ENABLED).
+            }
+          </p>
+        </div>
+        <div class="panel-body">
+          @if (b.lastError) {
+            <div class="message error-message backup-state" role="alert">
+              <span class="material-symbols-rounded" aria-hidden="true">error</span>
+              <span>
+                The last backup, {{ b.lastAttemptAt | friendlyDate }}, failed:
+                {{ b.lastError }}
+              </span>
+            </div>
+          } @else if (latest(); as last) {
+            <p class="backup-state">
+              <span class="material-symbols-rounded ok" aria-hidden="true">check_circle</span>
+              <span>
+                Last backup
+                <span [title]="last.createdAt | exactDate">{{
+                  last.createdAt | friendlyDate
+                }}</span>, {{ formatBytes(last.sizeBytes) }}.
+              </span>
+            </p>
+          } @else {
+            <p class="backup-state">No backups yet.</p>
+          }
+
+          @if (b.backups.length > 1) {
+            <details class="backup-list">
+              <summary>All {{ b.backups.length }} backups</summary>
+              <ul>
+                @for (backup of b.backups; track backup.name) {
+                  <li>
+                    <span class="mono">{{ backup.name }}</span>
+                    <span>{{ formatBytes(backup.sizeBytes) }}</span>
+                  </li>
+                }
+              </ul>
+            </details>
+          }
+
+          <p class="hint">
+            They're kept in <span class="mono">{{ b.location }}</span> on the server, on the same
+            disk as everything else, so they won't help if that disk fails.
+            <a [href]="backupGuide" target="_blank" rel="noopener">The backup guide</a> shows how to
+            keep a copy somewhere else, along with your files.
+          </p>
+
+          @if (backupMessage(); as m) {
+            <div
+              class="message"
+              [class.success-message]="!m.error"
+              [class.error-message]="m.error"
+              [attr.role]="m.error ? 'alert' : 'status'"
+            >
+              {{ m.text }}
+            </div>
+          }
+        </div>
+        <div class="panel-foot">
+          <span>Takes a few seconds.</span>
+          <button
+            type="button"
+            class="header-btn compact secondary"
+            (click)="backUpNow()"
+            [disabled]="backingUp() || b.running"
+          >
+            {{ backingUp() || b.running ? 'Backing up…' : 'Back up now' }}
+          </button>
+        </div>
+      </section>
+    }
+  </div>
+</div>

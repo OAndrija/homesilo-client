@@ -179,6 +179,24 @@ export function describeActivity(entry: ActivityEntry, meId?: string | null): Ac
         detail: count(entry.newValue, 'item', 'items'),
       };
 
+    case 'SETTING_CHANGED':
+      return {
+        icon: 'tune',
+        tone: 'admin',
+        actor,
+        verb: `changed ${SETTING_NAMES[entry.targetName ?? ''] ?? 'a server setting'}`,
+        detail: settingChange(entry.targetName, entry.oldValue, entry.newValue),
+      };
+    case 'BACKUP_CREATED':
+      return { icon: 'backup', tone: 'admin', actor, verb: 'made a database backup' };
+    case 'BACKUP_FAILED':
+      return {
+        icon: 'error',
+        tone: 'danger',
+        actor: 'A database backup',
+        verb: 'failed',
+        detail: entry.newValue ?? undefined,
+      };
     case 'SERVER_SET_UP':
       return { icon: 'rocket_launch', tone: 'admin', actor, verb: 'set up HomeSilo' };
     case 'INVITE_CREATED':
@@ -262,4 +280,35 @@ export function describeActivity(entry: ActivityEntry, meId?: string | null): Ac
         detail: `and ${count(entry.newValue, 'file', 'files')}`,
       };
   }
+}
+
+const SETTING_NAMES: Record<string, string> = {
+  'registration.open': 'who can sign up',
+  'storage.default-quota-bytes': 'the storage for new accounts',
+  'trash.retention-days': 'how long the trash is kept',
+  'activity.retention-days': 'how long the activity log is kept',
+};
+
+/** "from 30 to 7 days", in words that fit the setting. */
+function settingChange(
+  key: string | null,
+  from: string | null,
+  to: string | null,
+): string | undefined {
+  if (from === null || to === null) return undefined;
+  switch (key) {
+    case 'registration.open':
+      return to === 'true' ? 'to anyone' : 'to invite only';
+    case 'storage.default-quota-bytes':
+      return `from ${formatBytes(Number(from))} to ${formatBytes(Number(to))}`;
+    case 'trash.retention-days':
+    case 'activity.retention-days':
+      return `from ${days(from)} to ${days(to)}`;
+    default:
+      return `from ${from} to ${to}`;
+  }
+}
+
+function days(value: string): string {
+  return value === '0' ? 'forever' : `${value} day${value === '1' ? '' : 's'}`;
 }
