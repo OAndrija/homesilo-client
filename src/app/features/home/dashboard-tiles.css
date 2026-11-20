@@ -562,7 +562,10 @@
 
 .fit-list {
   position: absolute;
-  inset: 0;
+  /* Clips what doesn't fit, with a little room above and at the sides so an
+     item lifting on hover isn't cut off. The padding keeps the items where they were. */
+  inset: -6px -6px 0;
+  padding: 6px 6px 0;
   align-content: start;
   overflow: hidden;
 }
