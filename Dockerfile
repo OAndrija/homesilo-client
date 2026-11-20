@@ -3,7 +3,7 @@
 # ── Build ─────────────────────────────────────────────────────────────────────
 # Runs on the machine doing the build, whatever the target: the built files are the same
 # everywhere, and building under arm64 emulation would be slow.
-FROM --platform=$BUILDPLATFORM node:22-alpine AS build
+FROM --platform=$BUILDPLATFORM node:26-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN --mount=type=cache,target=/root/.npm npm ci
