@@ -125,4 +125,13 @@ describe('Auth', () => {
     expect(prefs.get('appearance.spacing')).toBeNull();
     fetchSpy.mockRestore();
   });
+
+  it('signs out other devices', () => {
+    let done = false;
+    auth.signOutOtherDevices().subscribe(() => (done = true));
+    const req = http.expectOne('/api/v1/users/me/sessions/sign-out-others');
+    expect(req.request.method).toBe('POST');
+    req.flush(null, { status: 204, statusText: 'No Content' });
+    expect(done).toBe(true);
+  });
 });

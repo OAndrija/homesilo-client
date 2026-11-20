@@ -1,0 +1,199 @@
+<div
+  class="dialog-backdrop"
+  data-dialog-backdrop
+  (click)="onBackdropClick($event)"
+  (keydown)="onKeydown($event)"
+>
+  @if (result(); as r) {
+    <div class="dialog wide" role="dialog" aria-modal="true" aria-labelledby="invite-title">
+      <header class="dialog-head">
+        <span class="dialog-icon" aria-hidden="true">
+          <span class="material-symbols-rounded" aria-hidden="true">mark_email_read</span>
+        </span>
+        <div class="dialog-titles">
+          <h3 id="invite-title">Invite link ready</h3>
+          <p class="dialog-sub">
+            Send it to {{ r.created.invite.note || 'them' }} however you like.
+          </p>
+        </div>
+        <button class="dialog-close" type="button" (click)="closed.emit()" aria-label="Close">
+          <span class="material-symbols-rounded" aria-hidden="true">close</span>
+        </button>
+      </header>
+
+      <div class="dialog-body form">
+        <div class="field">
+          <label class="dlg-label" for="invite-link">Invite link</label>
+          <div class="dlg-input with-actions">
+            <span class="material-symbols-rounded" aria-hidden="true">link</span>
+            <input
+              #linkField
+              id="invite-link"
+              class="mono"
+              type="text"
+              readonly
+              [value]="r.link"
+              (focus)="$any($event.target).select()"
+              aria-describedby="invite-link-hint"
+            />
+            <div class="input-actions">
+              <button
+                type="button"
+                class="input-action"
+                (click)="copy()"
+                [attr.aria-label]="copied() ? 'Copied' : 'Copy link'"
+                [title]="copied() ? 'Copied' : 'Copy'"
+              >
+                <span class="material-symbols-rounded" aria-hidden="true">{{
+                  copied() ? 'check' : 'content_copy'
+                }}</span>
+              </button>
+            </div>
+          </div>
+          <div class="field-hint" id="invite-link-hint">
+            Works once, until {{ r.created.invite.expiresAt | date: 'd MMM, HH:mm' }}, and makes
+            {{ r.created.invite.role === 'ADMIN' ? 'an admin' : 'a member' }} account. This is the
+            only time the link is shown, so copy it now.
+          </div>
+        </div>
+        <p class="sr-status visually-hidden" aria-live="polite">
+          {{ copied() ? 'Link copied' : '' }}
+        </p>
+      </div>
+
+      <footer class="dialog-foot">
+        @if (canShare) {
+          <button class="dlg-btn secondary" type="button" (click)="share()">
+            <span class="material-symbols-rounded" aria-hidden="true">share</span>
+            Share…
+          </button>
+        }
+        <button class="dlg-btn primary" type="button" (click)="copy()">
+          <span class="material-symbols-rounded" aria-hidden="true">{{
+            copied() ? 'check' : 'content_copy'
+          }}</span>
+          {{ copied() ? 'Copied' : 'Copy link' }}
+        </button>
+      </footer>
+    </div>
+  } @else {
+    <form
+      class="dialog wide"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="invite-title"
+      (submit)="$event.preventDefault(); submit()"
+      novalidate
+    >
+      <header class="dialog-head">
+        <span class="dialog-icon" aria-hidden="true">
+          <span class="material-symbols-rounded" aria-hidden="true">forward_to_inbox</span>
+        </span>
+        <div class="dialog-titles">
+          <h3 id="invite-title">Invite someone</h3>
+          <p class="dialog-sub">They choose their own username and password.</p>
+        </div>
+        <button
+          class="dialog-close"
+          type="button"
+          (click)="closed.emit()"
+          [disabled]="busy()"
+          aria-label="Close"
+        >
+          <span class="material-symbols-rounded" aria-hidden="true">close</span>
+        </button>
+      </header>
+
+      <div class="dialog-body form">
+        <div class="field">
+          <label class="dlg-label" for="invite-note">
+            Who it's for <span class="label-note">Optional, to tell invites apart</span>
+          </label>
+          <div class="dlg-input">
+            <span class="material-symbols-rounded" aria-hidden="true">badge</span>
+            <input
+              #noteField
+              id="invite-note"
+              type="text"
+              maxlength="80"
+              autocomplete="off"
+              placeholder="e.g. Mum"
+              [value]="note()"
+              (input)="note.set($any($event.target).value)"
+              [disabled]="busy()"
+            />
+          </div>
+        </div>
+
+        <div class="field">
+          <span class="dlg-label" id="invite-days-label">Link works for</span>
+          <div class="segmented compact" role="radiogroup" aria-labelledby="invite-days-label">
+            @for (length of lengths; track length.days) {
+              <button
+                type="button"
+                role="radio"
+                [attr.aria-checked]="days() === length.days"
+                (click)="days.set(length.days)"
+                [disabled]="busy()"
+              >
+                <span class="seg-title">{{ length.label }}</span>
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="field">
+          <span class="dlg-label" id="invite-role-label">Their account</span>
+          <div class="segmented" role="radiogroup" aria-labelledby="invite-role-label">
+            <button
+              type="button"
+              role="radio"
+              [attr.aria-checked]="role() === 'USER'"
+              (click)="role.set('USER')"
+              [disabled]="busy()"
+            >
+              <span class="seg-title"
+                ><span class="material-symbols-rounded" aria-hidden="true">person</span>Member</span
+              >
+              <span class="seg-note">Their own files only</span>
+            </button>
+            <button
+              type="button"
+              role="radio"
+              [attr.aria-checked]="role() === 'ADMIN'"
+              (click)="role.set('ADMIN')"
+              [disabled]="busy()"
+            >
+              <span class="seg-title"
+                ><span class="material-symbols-rounded" aria-hidden="true">shield_person</span
+                >Admin</span
+              >
+              <span class="seg-note">Can also manage users</span>
+            </button>
+          </div>
+        </div>
+
+        @if (error()) {
+          <div class="dlg-error" role="alert">
+            <span class="material-symbols-rounded" aria-hidden="true">error</span>
+            <span>{{ error() }}</span>
+          </div>
+        }
+      </div>
+
+      <footer class="dialog-foot">
+        <button class="dlg-btn secondary" type="button" (click)="closed.emit()" [disabled]="busy()">
+          Cancel
+        </button>
+        <button class="dlg-btn primary" type="submit" [disabled]="busy()">
+          @if (busy()) {
+            <span class="dlg-spinner" aria-hidden="true"></span>
+            Making link…
+          } @else {
+            Make invite link
+          }
+        </button>
+      </footer>
+    </form>
+  }
+</div>

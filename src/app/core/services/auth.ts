@@ -9,8 +9,10 @@ import {
   ChangePasswordRequest,
   LoginRequest,
   RegisterRequest,
+  SetupRequest,
   User,
 } from '../models/auth.models';
+import { InvitePreview } from '../models/invite';
 import { DashboardStore } from './dashboard-store';
 import { PreferencesService } from './preferences';
 
@@ -43,6 +45,18 @@ export class Auth {
 
   config(): Observable<AuthConfig> {
     return this.http.get<AuthConfig>(`${API_BASE}/auth/config`);
+  }
+
+  /** Creates the first admin on a new server and signs them in. */
+  setUp(request: SetupRequest): Observable<User> {
+    return this.http
+      .post<AuthResponse>(`${API_BASE}/auth/setup`, request)
+      .pipe(switchMap((response) => this.startSession(response)));
+  }
+
+  /** Whether an invite link still works, and who sent it. */
+  previewInvite(token: string): Observable<InvitePreview> {
+    return this.http.post<InvitePreview>(`${API_BASE}/auth/invites/preview`, { token });
   }
 
   register(request: RegisterRequest): Observable<User> {
@@ -81,6 +95,11 @@ export class Auth {
 
   changePassword(request: ChangePasswordRequest): Observable<void> {
     return this.http.put<void>(`${API_BASE}/users/me/password`, request);
+  }
+
+  /** Ends every other session of this account; this one gets a fresh cookie. */
+  signOutOtherDevices(): Observable<void> {
+    return this.http.post<void>(`${API_BASE}/users/me/sessions/sign-out-others`, {});
   }
 
   /** The server rejected our cookie (expired, revoked, account disabled). */

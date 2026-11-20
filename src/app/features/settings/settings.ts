@@ -182,6 +182,26 @@ export class Settings {
     });
   }
 
+  signingOut = signal(false);
+  devicesMessage = signal<{ text: string; error: boolean } | null>(null);
+
+  signOutOtherDevices(): void {
+    this.signingOut.set(true);
+    this.devicesMessage.set(null);
+    this.auth
+      .signOutOtherDevices()
+      .pipe(finalize(() => this.signingOut.set(false)))
+      .subscribe({
+        next: () =>
+          this.devicesMessage.set({ text: 'Signed out everywhere except here.', error: false }),
+        error: (err) =>
+          this.devicesMessage.set({
+            text: errorMessage(err, "Couldn't sign out your other devices. Try again."),
+            error: true,
+          }),
+      });
+  }
+
   onSubmit(): void {
     this.submitted.set(true);
     this.errorMessage.set('');

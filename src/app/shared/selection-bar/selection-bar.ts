@@ -2,12 +2,7 @@ import { Component, DestroyRef, effect, inject, input, output } from '@angular/c
 import { FloatingBars } from '../../core/services/floating-bars';
 
 export type SelectionBarAction =
-  | 'download'
-  | 'trash'
-  | 'restore'
-  | 'deleteForever'
-  | 'star'
-  | 'move';
+  'download' | 'trash' | 'restore' | 'deleteForever' | 'star' | 'move';
 
 @Component({
   selector: 'app-selection-bar',

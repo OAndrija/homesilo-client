@@ -2,6 +2,7 @@ import { HttpEventType, provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { DashboardStore } from './dashboard-store';
+import { CHUNKED_ABOVE } from './chunked-uploads';
 import { UploadService } from './uploads';
 
 describe('UploadService', () => {
@@ -86,5 +87,48 @@ describe('UploadService', () => {
     await flushMicrotasks();
     uploads.dismiss();
     expect(uploads.items()).toEqual([]);
+  });
+
+  describe('big files', () => {
+    const big = () => new File([new Uint8Array(CHUNKED_ABOVE + 1)], 'movie.mkv');
+    const session = {
+      id: 's1',
+      size: CHUNKED_ABOVE + 1,
+      chunkSize: CHUNKED_ABOVE,
+      chunkCount: 2,
+      receivedChunks: [],
+    };
+
+    it('go in chunks, and Retry carries on where the failure stopped them', async () => {
+      uploads.enqueue([big()], null);
+      http.expectOne('/api/v1/uploads').flush(session);
+      http
+        .expectOne('/api/v1/uploads/s1/chunks/0')
+        .flush(null, { status: 204, statusText: 'No Content' });
+      http
+        .expectOne('/api/v1/uploads/s1/chunks/1')
+        .flush({ detail: 'Not enough space' }, { status: 413, statusText: 'Payload Too Large' });
+      await flushMicrotasks();
+      expect(uploads.items()[0]).toMatchObject({ status: 'error', sessionId: 's1' });
+
+      uploads.retry(uploads.items()[0].id);
+      http.expectOne('/api/v1/uploads/s1').flush({ ...session, receivedChunks: [0] });
+      http
+        .expectOne('/api/v1/uploads/s1/chunks/1')
+        .flush(null, { status: 204, statusText: 'No Content' });
+      http
+        .expectOne('/api/v1/uploads/s1/complete')
+        .flush({ id: 'f', originalFileName: 'movie.mkv' });
+      await flushMicrotasks();
+      expect(uploads.items()[0].status).toBe('done');
+    });
+
+    it('cancelled, are thrown away on the server too', () => {
+      uploads.enqueue([big()], null);
+      http.expectOne('/api/v1/uploads').flush(session);
+      http.expectOne('/api/v1/uploads/s1/chunks/0');
+      uploads.cancel(uploads.items()[0].id);
+      expect(http.expectOne((r) => r.method === 'DELETE').request.url).toBe('/api/v1/uploads/s1');
+    });
   });
 });

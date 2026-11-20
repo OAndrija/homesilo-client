@@ -34,6 +34,8 @@ export interface AdminOverview {
   defaultQuotaBytes: number;
   registrationEnabled: boolean;
   topUsers: StorageByUser[];
+  /** The server's release, e.g. "1.2.0"; "dev" when run from source. */
+  version: string;
 }
 
 export type AccountStatus = 'ACTIVE' | 'DISABLED';

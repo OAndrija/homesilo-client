@@ -1,7 +1,8 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Location } from '@angular/common';
+import { ActivatedRoute, provideRouter, Router } from '@angular/router';
 import { passwordStrength, Register } from './register';
 
 describe('Register', () => {
@@ -33,6 +34,81 @@ describe('Register', () => {
 
     register.form.setValue({ username: 'alice.b', email: 'a@b.co', password: 'long-enough' });
     expect(register.form.valid).toBe(true);
+  });
+});
+
+describe('Register with an invite link', () => {
+  let http: HttpTestingController;
+  let replaced: string[];
+
+  function open(fragment: string | null) {
+    replaced = [];
+    TestBed.configureTestingModule({
+      imports: [Register],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        { provide: ActivatedRoute, useValue: { snapshot: { data: { invite: true }, fragment } } },
+        { provide: Location, useValue: { replaceState: (url: string) => replaced.push(url) } },
+      ],
+    });
+    http = TestBed.inject(HttpTestingController);
+    vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    const register = TestBed.createComponent(Register).componentInstance;
+    return register;
+  }
+
+  afterEach(() => http.verify());
+
+  it('checks the link, clears it from the address bar and signs up with it', () => {
+    const register = open('secret-token');
+    expect(replaced).toEqual(['/invite']);
+    const preview = http.expectOne('/api/v1/auth/invites/preview');
+    expect(preview.request.body).toEqual({ token: 'secret-token' });
+    preview.flush({ invitedBy: 'owner', expiresAt: '2026-12-01T10:00:00' });
+    http
+      .expectOne('/api/v1/auth/config')
+      .flush({ registrationEnabled: false, setupRequired: false });
+
+    expect(register.invite()).toEqual({
+      kind: 'valid',
+      preview: { invitedBy: 'owner', expiresAt: '2026-12-01T10:00:00' },
+    });
+    expect(register.canSignUp()).toBe(true);
+
+    register.form.setValue({ username: 'mum', email: 'mum@home.lan', password: 'long-enough' });
+    register.onSubmit();
+    const req = http.expectOne('/api/v1/auth/register');
+    expect(req.request.body.inviteToken).toBe('secret-token');
+  });
+
+  it("can't sign up with a used or expired link", () => {
+    const register = open('used-token');
+    http
+      .expectOne('/api/v1/auth/invites/preview')
+      .flush(
+        { detail: 'This invite link has expired or has already been used.' },
+        { status: 404, statusText: 'Not Found' },
+      );
+    http
+      .expectOne('/api/v1/auth/config')
+      .flush({ registrationEnabled: false, setupRequired: false });
+    expect(register.invite()).toEqual({
+      kind: 'invalid',
+      message: 'This invite link has expired or has already been used.',
+    });
+    expect(register.canSignUp()).toBe(false);
+  });
+
+  it('says so when the link is missing its secret', () => {
+    const register = open(null);
+    http
+      .expectOne('/api/v1/auth/config')
+      .flush({ registrationEnabled: true, setupRequired: false });
+    expect(register.invite().kind).toBe('invalid');
+    // Even on an open server: a broken invite link is worth pointing out.
+    expect(register.canSignUp()).toBe(false);
   });
 });
 

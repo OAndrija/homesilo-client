@@ -45,9 +45,18 @@ export function describeActivity(entry: ActivityEntry, meId?: string | null): Ac
 
   switch (entry.action) {
     case 'SIGNED_UP':
-      return { icon: 'person_add', tone: 'good', actor, verb: 'created an account' };
+      return {
+        icon: 'person_add',
+        tone: 'good',
+        actor,
+        verb: 'created an account',
+        // newValue: who sent the invite they joined with.
+        detail: entry.newValue ? `invited by ${entry.newValue}` : undefined,
+      };
     case 'SIGNED_IN':
       return { icon: 'login', tone: 'neutral', actor, verb: 'signed in' };
+    case 'SESSIONS_REVOKED':
+      return { icon: 'devices', tone: 'neutral', actor, verb: 'signed out of other devices' };
     case 'SIGNED_OUT':
       return { icon: 'logout', tone: 'neutral', actor, verb: 'signed out' };
     case 'PASSWORD_CHANGED':
@@ -170,6 +179,45 @@ export function describeActivity(entry: ActivityEntry, meId?: string | null): Ac
         detail: count(entry.newValue, 'item', 'items'),
       };
 
+    case 'SETTING_CHANGED':
+      return {
+        icon: 'tune',
+        tone: 'admin',
+        actor,
+        verb: `changed ${SETTING_NAMES[entry.targetName ?? ''] ?? 'a server setting'}`,
+        detail: settingChange(entry.targetName, entry.oldValue, entry.newValue),
+      };
+    case 'BACKUP_CREATED':
+      return { icon: 'backup', tone: 'admin', actor, verb: 'made a database backup' };
+    case 'BACKUP_FAILED':
+      return {
+        icon: 'error',
+        tone: 'danger',
+        actor: 'A database backup',
+        verb: 'failed',
+        detail: entry.newValue ?? undefined,
+      };
+    case 'SERVER_SET_UP':
+      return { icon: 'rocket_launch', tone: 'admin', actor, verb: 'set up HomeSilo' };
+    case 'INVITE_CREATED':
+      return {
+        icon: 'forward_to_inbox',
+        tone: 'admin',
+        actor,
+        verb: 'made an invite link',
+        connector: name ? 'for' : undefined,
+        object: name || undefined,
+        detail: entry.newValue === 'ADMIN' ? 'for an admin account' : undefined,
+      };
+    case 'INVITE_REVOKED':
+      return {
+        icon: 'link_off',
+        tone: 'admin',
+        actor,
+        verb: 'revoked an invite link',
+        connector: name ? 'for' : undefined,
+        object: name || undefined,
+      };
     case 'USER_CREATED':
       return {
         icon: 'person_add',
@@ -232,4 +280,35 @@ export function describeActivity(entry: ActivityEntry, meId?: string | null): Ac
         detail: `and ${count(entry.newValue, 'file', 'files')}`,
       };
   }
+}
+
+const SETTING_NAMES: Record<string, string> = {
+  'registration.open': 'who can sign up',
+  'storage.default-quota-bytes': 'the storage for new accounts',
+  'trash.retention-days': 'how long the trash is kept',
+  'activity.retention-days': 'how long the activity log is kept',
+};
+
+/** "from 30 to 7 days", in words that fit the setting. */
+function settingChange(
+  key: string | null,
+  from: string | null,
+  to: string | null,
+): string | undefined {
+  if (from === null || to === null) return undefined;
+  switch (key) {
+    case 'registration.open':
+      return to === 'true' ? 'to anyone' : 'to invite only';
+    case 'storage.default-quota-bytes':
+      return `from ${formatBytes(Number(from))} to ${formatBytes(Number(to))}`;
+    case 'trash.retention-days':
+    case 'activity.retention-days':
+      return `from ${days(from)} to ${days(to)}`;
+    default:
+      return `from ${from} to ${to}`;
+  }
+}
+
+function days(value: string): string {
+  return value === '0' ? 'forever' : `${value} day${value === '1' ? '' : 's'}`;
 }

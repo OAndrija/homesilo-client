@@ -1,0 +1,150 @@
+<app-auth-shell
+  [headline]="['Welcome home.', 'Let’s set up', 'your silo.']"
+  lead="Create the admin account. You'll invite everyone else from inside HomeSilo."
+>
+  <div class="auth-card">
+    <div class="form-head">
+      <h2>Set up HomeSilo</h2>
+      <p>This server has no accounts yet. The first one is its admin.</p>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+      <div class="field">
+        <label for="setupCode">Setup code</label>
+        <div class="input code-input">
+          <span class="material-symbols-rounded" aria-hidden="true">key</span>
+          <input
+            id="setupCode"
+            type="text"
+            formControlName="setupCode"
+            autocomplete="off"
+            autocapitalize="characters"
+            spellcheck="false"
+            placeholder="XXXX-XXXX-XXXX"
+            aria-describedby="setup-code-hint"
+            [class.input-error]="submitted && setupCode.errors"
+            [attr.aria-invalid]="submitted && !!setupCode.errors"
+          />
+        </div>
+        @if (submitted && setupCode.errors?.['required']) {
+          <span class="error">Enter the setup code from the server log</span>
+        } @else {
+          <span class="hint" id="setup-code-hint">
+            It proves this is your server. Find it in the server log:
+            <code class="log-command">docker compose logs server | grep -A3 "setup code"</code>
+          </span>
+        }
+      </div>
+
+      <div class="field">
+        <label for="username">Admin username</label>
+        <div class="input">
+          <span class="material-symbols-rounded" aria-hidden="true">shield_person</span>
+          <input
+            id="username"
+            type="text"
+            formControlName="username"
+            autocomplete="username"
+            autocapitalize="none"
+            spellcheck="false"
+            placeholder="Choose a username"
+            [class.input-error]="submitted && username.errors"
+            [attr.aria-invalid]="submitted && !!username.errors"
+          />
+        </div>
+        @if (submitted && username.errors?.['required']) {
+          <span class="error">Choose a username</span>
+        } @else if (
+          submitted && (username.errors?.['minlength'] || username.errors?.['maxlength'])
+        ) {
+          <span class="error">Username must be 3–64 characters</span>
+        } @else if (submitted && username.errors?.['pattern']) {
+          <span class="error">Use only letters, numbers, dots, dashes and underscores</span>
+        }
+      </div>
+
+      <div class="field">
+        <label for="email">Email</label>
+        <div class="input">
+          <span class="material-symbols-rounded" aria-hidden="true">mail</span>
+          <input
+            id="email"
+            type="email"
+            formControlName="email"
+            autocomplete="email"
+            placeholder="you@example.com"
+            [class.input-error]="submitted && email.errors"
+            [attr.aria-invalid]="submitted && !!email.errors"
+          />
+        </div>
+        @if (submitted && email.errors?.['required']) {
+          <span class="error">Enter your email</span>
+        } @else if (submitted && email.errors?.['email']) {
+          <span class="error">Enter a valid email address</span>
+        }
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <div class="input">
+          <span class="material-symbols-rounded" aria-hidden="true">lock</span>
+          <input
+            id="password"
+            class="has-toggle"
+            [type]="showPassword() ? 'text' : 'password'"
+            formControlName="password"
+            autocomplete="new-password"
+            placeholder="At least 8 characters"
+            aria-describedby="password-strength"
+            [class.input-error]="submitted && password.errors"
+            [attr.aria-invalid]="submitted && !!password.errors"
+          />
+          <button
+            type="button"
+            class="toggle-visibility"
+            (click)="showPassword.set(!showPassword())"
+            [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+            [attr.aria-pressed]="showPassword()"
+          >
+            <span class="material-symbols-rounded" aria-hidden="true">{{
+              showPassword() ? 'visibility_off' : 'visibility'
+            }}</span>
+          </button>
+        </div>
+        @if (submitted && password.errors?.['required']) {
+          <span class="error">Choose a password</span>
+        } @else if (submitted && password.errors?.['minlength']) {
+          <span class="error">Password must be at least 8 characters</span>
+        } @else if (strength().level > 0) {
+          <div
+            class="strength"
+            id="password-strength"
+            [attr.data-level]="strength().level"
+            aria-live="polite"
+          >
+            <span class="strength-bars" aria-hidden="true">
+              <span></span><span></span><span></span><span></span>
+            </span>
+            <span class="strength-label">{{ strength().label }}</span>
+          </div>
+        }
+      </div>
+
+      @if (errorMessage()) {
+        <div class="alert alert-error" role="alert">
+          <span class="material-symbols-rounded" aria-hidden="true">error</span>
+          <span>{{ errorMessage() }}</span>
+        </div>
+      }
+
+      <button type="submit" class="submit-btn" [disabled]="loading()">
+        @if (loading()) {
+          <span class="spinner" aria-hidden="true"></span>
+          Creating admin…
+        } @else {
+          Create admin account
+        }
+      </button>
+    </form>
+  </div>
+</app-auth-shell>

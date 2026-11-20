@@ -1,0 +1,13 @@
+/* Three short lengths sit on one row, without the notes the role choice has. */
+.segmented.compact {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.segmented.compact button {
+  align-items: center;
+  padding-block: 10px;
+}
+
+.dlg-btn .material-symbols-rounded {
+  font-size: 18px;
+}

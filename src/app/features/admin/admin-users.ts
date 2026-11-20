@@ -7,6 +7,7 @@ import {
   HostListener,
   inject,
   signal,
+  viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { catchError, Observable, of, switchMap, tap } from 'rxjs';
@@ -30,6 +31,8 @@ import { LoadingDelayPipe } from '../../shared/pipes/loading-delay';
 import { DeleteUserDialog } from './delete-user-dialog';
 import { PasswordDialog } from './password-dialog';
 import { UserFormDialog } from './user-form-dialog';
+import { InviteDialog } from './invites/invite-dialog';
+import { InvitesPanel } from './invites/invites-panel';
 import { PreferencesService } from '../../core/services/preferences';
 import { sortChange, sortSetting } from '../../core/services/list-settings';
 
@@ -70,6 +73,8 @@ const SEGMENT_COLORS = [
     UserFormDialog,
     PasswordDialog,
     DeleteUserDialog,
+    InvitesPanel,
+    InviteDialog,
   ],
   templateUrl: './admin-users.html',
   styleUrl: './admin-users.css',
@@ -309,6 +314,19 @@ export class AdminUsers {
   }
 
   // ── Actions ──────────────────────────────────────────────────
+
+  /** The invite dialog is open. */
+  inviting = signal(false);
+  private invitesPanel = viewChild(InvitesPanel);
+
+  invitesPanelReload(): void {
+    this.invitesPanel()?.reload();
+  }
+
+  closeInvite(): void {
+    this.inviting.set(false);
+    this.invitesPanel()?.focusInviteButton();
+  }
 
   openAdd(): void {
     this.dialogError.set('');

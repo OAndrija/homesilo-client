@@ -1,6 +1,7 @@
 import { HttpEventType } from '@angular/common/http';
+import { CHUNKED_ABOVE, ChunkedUploads, UploadStep } from './chunked-uploads';
 import { computed, inject, Injectable, signal } from '@angular/core';
-import { Subject, Subscription } from 'rxjs';
+import { filter, map, Observable, Subject, Subscription } from 'rxjs';
 import { errorMessage } from '../http/http-error';
 import { FileMetadata } from '../models/file-metadata';
 import { DashboardStore } from './dashboard-store';
@@ -17,16 +18,22 @@ export interface UploadItem {
   /** 0–100 while uploading. */
   progress: number;
   error?: string;
+  /** A big file's upload session on the server, so a retry carries on where it stopped. */
+  sessionId?: string;
 }
 
 /**
  * The app-wide upload queue behind the upload panel. Files upload one at a time
  * (gentle on a home server), keep going while the user moves between pages, and
  * report progress per file. Pages listen to `uploaded` to show new files.
+ *
+ * Big files go in chunks (see {@link ChunkedUploads}): a dropped connection
+ * retries the chunk, and Retry after a failure resumes instead of starting over.
  */
 @Injectable({ providedIn: 'root' })
 export class UploadService {
   private files = inject(Files);
+  private chunked = inject(ChunkedUploads);
   private store = inject(DashboardStore);
 
   readonly items = signal<UploadItem[]>([]);
@@ -71,6 +78,8 @@ export class UploadService {
       this.current.subscription.unsubscribe();
       this.current = null;
     }
+    const sessionId = this.items().find((i) => i.id === id)?.sessionId;
+    if (sessionId) this.chunked.cancel(sessionId);
     this.pending.delete(id);
     this.patch(id, { status: 'cancelled' });
     this.processNext();
@@ -79,7 +88,8 @@ export class UploadService {
   retry(id: number): void {
     const item = this.items().find((i) => i.id === id);
     if (!item || item.status !== 'error' || !this.pending.has(id)) return;
-    this.patch(id, { status: 'queued', progress: 0, error: undefined });
+    // A chunked upload keeps its session, so it picks up from the chunks already sent.
+    this.patch(id, { status: 'queued', error: undefined });
     this.processNext();
   }
 
@@ -104,18 +114,24 @@ export class UploadService {
       return;
     }
 
-    this.patch(next.id, { status: 'uploading', progress: 0 });
-    const subscription = this.files.uploadWithProgress(file, next.folderId).subscribe({
-      next: (event) => {
-        if (event.type === HttpEventType.UploadProgress && event.total) {
+    this.patch(next.id, { status: 'uploading' });
+    const steps =
+      file.size > CHUNKED_ABOVE
+        ? this.chunked.upload(file, next.folderId, next.sessionId ?? null)
+        : this.wholeFile(file, next.folderId);
+    const subscription = steps.subscribe({
+      next: (step) => {
+        if (step.kind === 'started') {
+          this.patch(next.id, { sessionId: step.sessionId });
+        } else if (step.kind === 'progress' && step.total) {
           // Hold at 99% until the server has stored the file and answered.
           this.patch(next.id, {
-            progress: Math.min(99, Math.round((event.loaded / event.total) * 100)),
+            progress: Math.min(99, Math.round((step.loaded / step.total) * 100)),
           });
-        } else if (event.type === HttpEventType.Response && event.body) {
+        } else if (step.kind === 'done') {
           this.pending.delete(next.id);
-          this.patch(next.id, { status: 'done', progress: 100 });
-          this.uploaded.next({ file: event.body, folderId: next.folderId });
+          this.patch(next.id, { status: 'done', progress: 100, sessionId: undefined });
+          this.uploaded.next({ file: step.file, folderId: next.folderId });
         }
       },
       error: (err) => {
@@ -128,6 +144,22 @@ export class UploadService {
       complete: () => this.finishCurrent(),
     });
     this.current = { id: next.id, subscription };
+  }
+
+  /** A small file, in one request. */
+  private wholeFile(file: File, folderId: string | null): Observable<UploadStep> {
+    return this.files.uploadWithProgress(file, folderId).pipe(
+      map((event): UploadStep | null => {
+        if (event.type === HttpEventType.UploadProgress && event.total) {
+          return { kind: 'progress', loaded: event.loaded, total: event.total };
+        }
+        if (event.type === HttpEventType.Response && event.body) {
+          return { kind: 'done', file: event.body };
+        }
+        return null;
+      }),
+      filter((step): step is UploadStep => step !== null),
+    );
   }
 
   private finishCurrent(): void {

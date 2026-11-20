@@ -84,4 +84,62 @@ describe('describeActivity', () => {
     expect(sentence(expired)).toBe('HomeSilo cleared old items from the trash');
     expect(describeActivity(expired).detail).toBe('7 items');
   });
+
+  it('describes server settings and backups', () => {
+    const trash = entry({
+      action: 'SETTING_CHANGED',
+      targetType: null,
+      targetName: 'trash.retention-days',
+      oldValue: '30',
+      newValue: '0',
+    });
+    expect(sentence(trash)).toBe('maja changed how long the trash is kept');
+    expect(describeActivity(trash).detail).toBe('from 30 days to forever');
+    const signUp = entry({
+      action: 'SETTING_CHANGED',
+      targetType: null,
+      targetName: 'registration.open',
+      oldValue: 'false',
+      newValue: 'true',
+    });
+    expect(describeActivity(signUp).detail).toBe('to anyone');
+    expect(sentence(entry({ action: 'BACKUP_CREATED', targetType: null }))).toBe(
+      'maja made a database backup',
+    );
+    const failed = entry({
+      action: 'BACKUP_FAILED',
+      actorId: null,
+      actorUsername: null,
+      targetType: null,
+      newValue: 'disk full',
+    });
+    expect(sentence(failed)).toBe('A database backup failed');
+    expect(describeActivity(failed).detail).toBe('disk full');
+  });
+
+  it('describes setup and invites', () => {
+    expect(sentence(entry({ action: 'SERVER_SET_UP' }))).toBe('maja set up HomeSilo');
+    expect(
+      sentence(
+        entry({ action: 'INVITE_CREATED', targetType: null, targetName: 'Mum', newValue: 'USER' }),
+      ),
+    ).toBe('maja made an invite link for Mum');
+    const forAdmin = entry({
+      action: 'INVITE_CREATED',
+      targetType: null,
+      targetName: null,
+      newValue: 'ADMIN',
+    });
+    expect(sentence(forAdmin)).toBe('maja made an invite link');
+    expect(describeActivity(forAdmin).detail).toBe('for an admin account');
+    expect(sentence(entry({ action: 'INVITE_REVOKED', targetType: null, targetName: 'Mum' }))).toBe(
+      'maja revoked an invite link for Mum',
+    );
+    expect(sentence(entry({ action: 'SESSIONS_REVOKED' }))).toBe(
+      'maja signed out of other devices',
+    );
+    expect(describeActivity(entry({ action: 'SIGNED_UP', newValue: 'owner' })).detail).toBe(
+      'invited by owner',
+    );
+  });
 });

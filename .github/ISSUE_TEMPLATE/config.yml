@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a bug or share an idea
+    url: https://github.com/OAndrija/homesilo-server/issues/new/choose
+    about: Issues for the web app and the server are kept together in the server repository.
+  - name: A security problem
+    url: https://github.com/OAndrija/homesilo-server/security/advisories/new
+    about: Please report these privately, not as an issue.

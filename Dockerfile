@@ -1,7 +1,9 @@
 # syntax=docker/dockerfile:1
 
 # ── Build ─────────────────────────────────────────────────────────────────────
-FROM node:22-alpine AS build
+# Runs on the machine doing the build, whatever the target: the built files are the same
+# everywhere, and building under arm64 emulation would be slow.
+FROM --platform=$BUILDPLATFORM node:22-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN --mount=type=cache,target=/root/.npm npm ci
@@ -9,8 +11,14 @@ COPY . .
 RUN npm run build
 
 # ── Runtime: nginx serves the SPA and proxies /api to the server ──────────────
-FROM nginxinc/nginx-unprivileged:1.27-alpine
+# The image moved from nginxinc/ to nginx/; the old name gets no new releases.
+FROM nginx/nginx-unprivileged:1.30.7-alpine
+# Alpine security fixes published since the base image was built (Dependabot bumps the tag itself).
+USER root
+RUN apk upgrade --no-cache
+USER 101
 COPY --chmod=755 nginx/15-upload-size.envsh /docker-entrypoint.d/15-upload-size.envsh
+COPY --chmod=755 nginx/20-real-ip.envsh /docker-entrypoint.d/20-real-ip.envsh
 COPY nginx/security-headers.conf /etc/nginx/snippets/security-headers.conf
 COPY nginx/default.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=build /app/dist/homesilo-client/browser /usr/share/nginx/html

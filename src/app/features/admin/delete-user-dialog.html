@@ -40,8 +40,7 @@
             >{{ user().fileCount | number }} file{{ user().fileCount === 1 ? '' : 's' }}</strong
           >
           and all their folders are deleted, freeing
-          <strong>{{ formatBytes(user().storageUsedBytes) }}</strong
-          >.
+          <strong>{{ formatBytes(user().storageUsedBytes) }}</strong>.
         </li>
         <li>They’re signed out and can’t sign in again.</li>
         <li>Their username and email become free to use for a new account.</li>
