@@ -26,6 +26,15 @@
     opacity 0.18s ease;
 }
 
+/* The header stays put while you scroll, and tiles slide under it. In edit mode
+   their dashed outlines and buttons reach past the content edges, so the header
+   is widened by that much to cover them, and sits above the size picker too. */
+.page-header.editing {
+  z-index: 40;
+  margin-inline: -16px;
+  padding-inline: 16px;
+}
+
 .dash.editing .tile-body {
   pointer-events: none;
 }
