@@ -32,6 +32,7 @@ import { UndoHistory } from '../../core/utils/undo-history';
 import { FitArea } from '../../shared/fit-area/fit-area';
 import { Area, fitItems, fitPhotos } from '../../core/utils/fit';
 import { shareGrains } from '../../core/utils/share-grains';
+import { squarify } from '../../core/utils/treemap';
 import { ThemeService } from '../../core/services/theme';
 import { ActivityItem } from '../../shared/activity-item/activity-item';
 import { ActivityApi } from '../../core/services/activity';
@@ -290,15 +291,39 @@ export class Home {
     return Array.from({ length: 10 }, (_, r) => cells.slice((9 - r) * 10, (10 - r) * 10));
   });
 
-  /** Storage as strata in a column: the biggest type at the bottom, free space on top. */
-  layers = computed(() =>
-    this.breakdownWithPercent().map((type) => ({
-      label: type.label,
-      color: type.color,
-      // Even a tiny share stays visible as a thin band.
-      height: Math.max(type.capacityPct, 1.2),
-    })),
-  );
+  /**
+   * Storage as a treemap: a block per file type, its area in proportion to the
+   * space it takes, and the free space as the last block.
+   */
+  blocks = computed(() => {
+    const limit = this.storageLimitBytes();
+    const types = this.breakdownWithPercent();
+    if (limit <= 0) return [];
+    // A tiny type still gets a block big enough to see.
+    const shares = types.map((t) => Math.max(t.bytes / limit, 0.006));
+    const free = Math.max(0, 1 - shares.reduce((a, b) => a + b, 0));
+    const rects = squarify([...shares, free]);
+    const blocks = types.map((t, i) => ({
+      key: t.label,
+      label: t.label,
+      icon: t.icon as string | null,
+      color: t.color as string | null,
+      title: `${t.label}: ${t.sizeLabel}`,
+      rect: rects[i],
+    }));
+    if (free > 0) {
+      blocks.push({
+        key: 'free',
+        label: 'Free',
+        icon: null,
+        color: null,
+        title: `Free: ${this.storageFreeLabel()}`,
+        rect: rects[types.length],
+      });
+    }
+    // Room for an icon or a word inside: a fifth of the square each way.
+    return blocks.map((b) => ({ ...b, roomy: b.rect.w >= 0.2 && b.rect.h >= 0.2 }));
+  });
 
   /** Biggest file type (the breakdown is already sorted by size); null while empty. */
   topCategory = computed(() => this.breakdownWithPercent().at(0) ?? null);

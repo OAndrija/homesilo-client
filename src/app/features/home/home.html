@@ -208,27 +208,39 @@
                             }
                           }
                         </div>
-                      } @else if (storageLook === 'layers') {
-                        <!-- One band per file type, the biggest at the bottom, free space above. -->
+                      } @else if (storageLook === 'blocks') {
+                        <!-- A treemap: one block per file type, sized by the space it takes, then the free space. -->
                         <div
-                          class="layers"
+                          class="blocks"
                           role="img"
                           [attr.aria-label]="
                             storagePercent() + '% of storage used, ' + storageFreeLabel() + ' free'
                           "
                         >
-                          <span class="layers-stack">
-                            @for (layer of layers(); track layer.label) {
-                              <span
-                                class="layer"
-                                [style.height.%]="layer.height"
-                                [style.background]="layer.color"
-                              ></span>
-                            }
-                          </span>
-                          <span class="layers-level" [style.bottom.%]="storagePercent()">
-                            {{ storagePercent() }}%
-                          </span>
+                          @for (block of blocks(); track block.key) {
+                            <span
+                              class="block"
+                              [class.is-free]="!block.color"
+                              [style.left.%]="block.rect.x * 100"
+                              [style.top.%]="block.rect.y * 100"
+                              [style.width.%]="block.rect.w * 100"
+                              [style.height.%]="block.rect.h * 100"
+                              [style.background-color]="block.color"
+                              [title]="block.title"
+                            >
+                              @if (block.roomy) {
+                                @if (block.icon) {
+                                  <span
+                                    class="material-symbols-rounded block-label"
+                                    aria-hidden="true"
+                                    >{{ block.icon }}</span
+                                  >
+                                } @else {
+                                  <span class="block-label">{{ block.label }}</span>
+                                }
+                              }
+                            </span>
+                          }
                         </div>
                       } @else {
                         <!-- The silo from the HomeSilo logo: greyed out when empty, its colour rising as storage fills. -->

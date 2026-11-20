@@ -83,7 +83,7 @@ export const TILES: readonly TileDefinition[] = [
       { id: 'ring', label: 'Ring', icon: 'donut_large' },
       { id: 'bars', label: 'Bars', icon: 'bar_chart' },
       { id: 'grid', label: 'Grid', icon: 'grid_view' },
-      { id: 'layers', label: 'Layers', icon: 'stacked_bar_chart' },
+      { id: 'blocks', label: 'Blocks', icon: 'view_quilt' },
     ],
   },
   {
