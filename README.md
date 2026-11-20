@@ -80,3 +80,10 @@ number. See [RELEASING.md](https://github.com/OAndrija/homesilo-server/blob/main
 in the server repository. Bugs and ideas go to the
 [server's issues](https://github.com/OAndrija/homesilo-server/issues) too, so
 everything is in one place.
+
+## Licence
+
+[GNU AGPL v3](LICENSE), the same as the server. You can use, change and share
+it. If you run a changed version for other people over a network, offer them
+your source too. The Settings page links to the source code for that reason;
+keep a link like it if you fork.

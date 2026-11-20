@@ -69,6 +69,7 @@ jobs:
             type=raw,value=latest
           labels: |
             org.opencontainers.image.title=HomeSilo web client
+            org.opencontainers.image.licenses=AGPL-3.0-only
             org.opencontainers.image.description=The web app for HomeSilo, a self-hosted file drive, served by nginx
 
       # Scanned before anything is published: a known, fixable, serious vulnerability stops the release.
