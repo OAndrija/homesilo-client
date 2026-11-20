@@ -189,6 +189,47 @@
                             <span class="ring-label">used</span>
                           </span>
                         </div>
+                      } @else if (storageLook === 'grid') {
+                        <!-- 100 grains, one per percent of the quota, poured in from the bottom. -->
+                        <div
+                          class="grain"
+                          role="img"
+                          [attr.aria-label]="
+                            storagePercent() + '% of storage used, ' + storageFreeLabel() + ' free'
+                          "
+                        >
+                          @for (row of grainRows(); track $index) {
+                            @for (cell of row; track $index) {
+                              <span
+                                class="grain-cell"
+                                [class.is-free]="!cell"
+                                [style.background]="cell?.color"
+                              ></span>
+                            }
+                          }
+                        </div>
+                      } @else if (storageLook === 'layers') {
+                        <!-- One band per file type, the biggest at the bottom, free space above. -->
+                        <div
+                          class="layers"
+                          role="img"
+                          [attr.aria-label]="
+                            storagePercent() + '% of storage used, ' + storageFreeLabel() + ' free'
+                          "
+                        >
+                          <span class="layers-stack">
+                            @for (layer of layers(); track layer.label) {
+                              <span
+                                class="layer"
+                                [style.height.%]="layer.height"
+                                [style.background]="layer.color"
+                              ></span>
+                            }
+                          </span>
+                          <span class="layers-level" [style.bottom.%]="storagePercent()">
+                            {{ storagePercent() }}%
+                          </span>
+                        </div>
                       } @else {
                         <!-- The silo from the HomeSilo logo: greyed out when empty, its colour rising as storage fills. -->
                         <div
@@ -519,11 +560,17 @@
                       #folderArea="fitArea"
                       [style.min-height.px]="listMinHeight(tile)"
                     >
-                      @let folderFit = listFit(folderArea.size());
-                      <div class="tile-grid fit-list" [style.--columns]="folderFit.columns">
-                        @for (folder of folders().slice(0, folderFit.count); track folder.id) {
+                      @let folderLayout = folderFit(tile, folderArea.size());
+                      @let folderIcons = look(tile) === 'icons';
+                      <div
+                        class="tile-grid fit-list"
+                        [class.folder-icons]="folderIcons"
+                        [style.--columns]="folderLayout.columns"
+                      >
+                        @for (folder of folders().slice(0, folderLayout.count); track folder.id) {
                           <a
                             class="tile"
+                            [class.folder-icon-tile]="folderIcons"
                             routerLink="/my-files"
                             [queryParams]="{ folderId: folder.id }"
                             [title]="folder.name"
@@ -594,6 +641,7 @@
                           <button
                             type="button"
                             class="photo"
+                            [attr.data-feature]="$first ? photoLayout.feature : null"
                             (click)="openPhoto(photo)"
                             [title]="photo.originalFileName"
                             [attr.aria-label]="'Open ' + photo.originalFileName"

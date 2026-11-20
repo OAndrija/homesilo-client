@@ -31,6 +31,7 @@ import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
 import { UndoHistory } from '../../core/utils/undo-history';
 import { FitArea } from '../../shared/fit-area/fit-area';
 import { Area, fitItems, fitPhotos } from '../../core/utils/fit';
+import { shareGrains } from '../../core/utils/share-grains';
 import { ThemeService } from '../../core/services/theme';
 import { ActivityItem } from '../../shared/activity-item/activity-item';
 import { ActivityApi } from '../../core/services/activity';
@@ -120,6 +121,15 @@ export class Home {
     return { ...fit, count: fit.columns * fit.rows };
   }
 
+  /** Folders as icons: smaller cells, a big folder above its name. */
+  private static readonly ICON_ITEM = { minWidth: 112, height: 108 };
+
+  folderFit(tile: PlacedTile, area: Area): { columns: number; rows: number; count: number } {
+    if (this.look(tile) !== 'icons') return this.listFit(area);
+    const fit = fitItems(area, { ...Home.ICON_ITEM, gap: this.itemGap(), minRows: 1 });
+    return { ...fit, count: fit.columns * fit.rows };
+  }
+
   /** Photo rows per size (the least; more when the tile is tall enough). */
   private static readonly PHOTO_ROWS: Partial<Record<TileSize, number>> = {
     tall: 2,
@@ -138,9 +148,21 @@ export class Home {
   photoFit(
     tile: PlacedTile,
     area: Area,
-  ): { columns: number; rows: number; cell: number; count: number } {
+  ): {
+    columns: number;
+    rows: number;
+    cell: number;
+    count: number;
+    feature: 'big' | 'wide' | null;
+  } {
     const fit = fitPhotos(area, { ...Home.PHOTO, rows: Home.PHOTO_ROWS[tile.size] ?? 1 });
-    return { ...fit, count: fit.columns * fit.rows };
+    const cells = fit.columns * fit.rows;
+    // Mosaic: the newest photo takes 2×2 cells, or two cells side by side in a single row.
+    // With fewer than three columns it would crowd out the rest, so the grid stays plain.
+    let feature: 'big' | 'wide' | null = null;
+    if (this.look(tile) === 'mosaic' && fit.columns >= 3) feature = fit.rows >= 2 ? 'big' : 'wide';
+    const count = feature === 'big' ? cells - 3 : feature === 'wide' ? cells - 1 : cells;
+    return { ...fit, count, feature };
   }
 
   activity = signal<ActivityEntry[]>([]);
@@ -245,6 +267,38 @@ export class Home {
       return segment;
     });
   });
+
+  /**
+   * The quota as 100 grains, one per percent, filling the grid from the bottom
+   * row up. Each file type gets grains in proportion to its size, and at least
+   * one, so even a small type shows. Rows come top first, ready to draw.
+   */
+  grainRows = computed(() => {
+    const limit = this.storageLimitBytes();
+    const used = this.storageUsedBytes();
+    const types = this.breakdownWithPercent();
+    const filled =
+      used > 0 && limit > 0 ? Math.min(100, Math.max(1, Math.round((used / limit) * 100))) : 0;
+    const counts = shareGrains(
+      types.map((t) => t.bytes),
+      filled,
+    );
+    const cells: ({ color: string; label: string } | null)[] = types.flatMap((t, i) =>
+      Array.from({ length: counts[i] }, () => ({ color: t.color, label: t.label })),
+    );
+    while (cells.length < 100) cells.push(null);
+    return Array.from({ length: 10 }, (_, r) => cells.slice((9 - r) * 10, (10 - r) * 10));
+  });
+
+  /** Storage as strata in a column: the biggest type at the bottom, free space on top. */
+  layers = computed(() =>
+    this.breakdownWithPercent().map((type) => ({
+      label: type.label,
+      color: type.color,
+      // Even a tiny share stays visible as a thin band.
+      height: Math.max(type.capacityPct, 1.2),
+    })),
+  );
 
   /** Biggest file type (the breakdown is already sorted by size); null while empty. */
   topCategory = computed(() => this.breakdownWithPercent().at(0) ?? null);

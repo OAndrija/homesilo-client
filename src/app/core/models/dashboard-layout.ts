@@ -82,6 +82,8 @@ export const TILES: readonly TileDefinition[] = [
       { id: 'silo', label: 'Silo', icon: 'warehouse' },
       { id: 'ring', label: 'Ring', icon: 'donut_large' },
       { id: 'bars', label: 'Bars', icon: 'bar_chart' },
+      { id: 'grid', label: 'Grid', icon: 'grid_view' },
+      { id: 'layers', label: 'Layers', icon: 'stacked_bar_chart' },
     ],
   },
   {
@@ -147,6 +149,10 @@ export const TILES: readonly TileDefinition[] = [
     icon: 'folder',
     sizes: ['tall', 'medium', 'large', 'wide', 'wide-tall'],
     defaultSize: 'wide',
+    variants: [
+      { id: 'list', label: 'List', icon: 'view_list' },
+      { id: 'icons', label: 'Icons', icon: 'view_module' },
+    ],
   },
   {
     id: 'recent',
@@ -163,6 +169,10 @@ export const TILES: readonly TileDefinition[] = [
     icon: 'photo_library',
     sizes: ['tall', 'medium', 'large', 'wide', 'wide-tall'],
     defaultSize: 'wide',
+    variants: [
+      { id: 'grid', label: 'Grid', icon: 'grid_on' },
+      { id: 'mosaic', label: 'Mosaic', icon: 'auto_awesome_mosaic' },
+    ],
   },
   {
     id: 'activity',

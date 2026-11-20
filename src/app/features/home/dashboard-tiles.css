@@ -237,7 +237,7 @@
   }
 }
 
-/* ── Storage looks: silo (default), ring, bars ── */
+/* ── Storage looks: silo (default), ring, bars, grid, layers ── */
 
 .ring {
   container-type: inline-size;
@@ -321,9 +321,139 @@
   transition: width 0.6s cubic-bezier(0.2, 0, 0, 1);
 }
 
+/* Grid: a hundred grains, one per percent of the quota, poured in from the bottom. */
+.grain {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  grid-template-rows: repeat(10, minmax(0, 1fr));
+  gap: 3px;
+  width: 100%;
+  max-width: 190px;
+  aspect-ratio: 1;
+  margin: 0 auto;
+}
+
+.grain-cell {
+  border-radius: 28%;
+  transition: background-color 0.4s ease;
+}
+
+.grain-cell.is-free {
+  background: color-mix(in srgb, var(--color-text-muted) 13%, transparent);
+}
+
+.dash-tile[data-size='tall'] .grain {
+  max-width: 124px;
+}
+
+.dash-tile[data-size='medium'] .grain {
+  gap: 2px;
+}
+
+/* Layers: the column of a silo, a band per file type with the biggest at the bottom. */
+.layers {
+  position: relative;
+  width: 100%;
+  max-width: 104px;
+  aspect-ratio: 1 / 1.9;
+  margin: 0 auto;
+}
+
+.layers-stack {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column-reverse;
+  overflow: hidden;
+  /* A domed roof, like the silo's. */
+  border-radius: 50% 50% 14px 14px / 26% 26% 14px 14px;
+  background: color-mix(in srgb, var(--color-text-muted) 11%, transparent);
+  box-shadow: inset 0 0 0 1px var(--color-border);
+}
+
+/* Light from the left, shade on the right: it reads as round. */
+.layers-stack::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgb(255 255 255 / 0.22),
+    transparent 38%,
+    transparent 64%,
+    rgb(0 0 0 / 0.14)
+  );
+  pointer-events: none;
+}
+
+.layer {
+  flex: none;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.4);
+  transition: height 0.6s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.layers-level {
+  position: absolute;
+  left: calc(100% + 8px);
+  translate: 0 50%;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.layers-level::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: calc(100% + 2px);
+  width: 6px;
+  border-top: 1.5px solid currentColor;
+}
+
+.dash-tile[data-size='tall'] .layers {
+  max-width: 64px;
+}
+
+.dash-tile[data-size='medium'] .layers {
+  max-width: 52px;
+}
+
+/* The tall tile centres its picture, so the level reads on the left too. */
+.dash-tile[data-size='tall'] .layers-level,
+.dash-tile[data-size='medium'] .layers-level {
+  display: none;
+}
+
+@container tile (max-width: 520px) {
+  .grain {
+    max-width: 80px;
+    gap: 2px;
+  }
+  .layers {
+    max-width: 42px;
+  }
+  .layers-level {
+    display: none;
+  }
+}
+
+@container tile (max-width: 420px) {
+  .grain {
+    max-width: 60px;
+    gap: 1.5px;
+  }
+  .layers {
+    max-width: 32px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .ring-arc,
-  .bd-bar span {
+  .bd-bar span,
+  .grain-cell,
+  .layer {
     transition: none;
   }
 }
@@ -454,6 +584,54 @@
 .photo-grid.fit-list .photo {
   aspect-ratio: auto;
   height: 100%;
+}
+
+/* Mosaic: the newest photo takes a 2×2 spot, or two cells in a single row. */
+.photo[data-feature='big'] {
+  grid-column: span 2;
+  grid-row: span 2;
+}
+
+.photo[data-feature='wide'] {
+  grid-column: span 2;
+}
+
+/* Folders as icons: a big folder over its name, like a desktop. */
+.tile-grid.fit-list.folder-icons {
+  grid-auto-rows: 108px;
+}
+
+.fit-list .tile.folder-icon-tile {
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  height: 108px;
+  padding: 10px 8px;
+  border-color: transparent;
+  background: transparent;
+  text-align: center;
+}
+
+.fit-list .tile.folder-icon-tile:hover {
+  border-color: var(--color-border);
+  background: var(--color-surface-alt);
+}
+
+.folder-icon-tile .tile-icon {
+  width: auto;
+  height: 46px;
+  background: none;
+}
+
+.folder-icon-tile .tile-icon .material-symbols-rounded {
+  font-size: 50px;
+}
+
+.folder-icon-tile .tile-text {
+  flex: none;
+  width: 100%;
+  align-items: center;
+  gap: 1px;
 }
 
 /* ── Recent photos ── */
